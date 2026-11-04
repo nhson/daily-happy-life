@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/* ── Living sky ─────────────────────────────────────────────
+   Registered so the gradient itself can transition. */
+@property --sky-top { syntax: "<color>"; inherits: true; initial-value: #6aa4dc; }
+@property --sky-mid { syntax: "<color>"; inherits: true; initial-value: #b7d4ef; }
+@property --sky-bottom { syntax: "<color>"; inherits: true; initial-value: #eaf2f9; }
+
+:root {
+  --sky-top: #6aa4dc;
+  --sky-mid: #b7d4ef;
+  --sky-bottom: #eaf2f9;
+  transition: --sky-top 2.4s ease, --sky-mid 2.4s ease, --sky-bottom 2.4s ease;
+
+  /* Task kinds */
+  --kind-objective: #ffb547;
+  --kind-maintenance: #9aa5b8;
+  --kind-prototype: #9b87ff;
+
+  /* Sources of meaning */
+  --m-wonder: #79c6ff;
+  --m-coherence: #f39ab4;
+  --m-flow: #43d3c1;
+  --m-community: #ff9d6c;
+
+  --radius: 22px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Dark ink on a bright sky. Opacities mirror INK in src/domain/sky.ts (contrast-tested). */
+:root,
+:root[data-ink="dark"] {
+  --ink: #0b1230;
+  --ink-2: rgb(11 18 48 / 0.78);
+  --ink-3: rgb(11 18 48 / 0.64);
+  --glass: rgb(255 255 255 / 0.55);
+  --glass-strong: rgb(255 255 255 / 0.8);
+  --glass-border: rgb(255 255 255 / 0.7);
+  --hairline: rgb(11 18 48 / 0.09);
+  --fill: rgb(11 18 48 / 0.06);
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 18px 50px -20px rgb(28 40 90 / 0.35);
+  --solid: #0b1230;
+  --solid-ink: #ffffff;
+  color-scheme: light;
+}
+
+/* Light ink on a dark sky */
+:root[data-ink="light"] {
+  --ink: #f6f2ea;
+  --ink-2: rgb(246 242 234 / 0.8);
+  --ink-3: rgb(246 242 234 / 0.66);
+  --glass: rgb(10 14 38 / 0.42);
+  --glass-strong: rgb(14 18 46 / 0.78);
+  --glass-border: rgb(255 255 255 / 0.11);
+  --hairline: rgb(255 255 255 / 0.1);
+  --fill: rgb(255 255 255 / 0.07);
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 18px 50px -20px rgb(0 0 0 / 0.6);
+  --solid: #f6f2ea;
+  --solid-ink: #0b1230;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-hairline: var(--hairline);
+  --color-fill: var(--fill);
+  --color-solid: var(--solid);
+  --color-solid-ink: var(--solid-ink);
+  --color-objective: var(--kind-objective);
+  --color-maintenance: var(--kind-maintenance);
+  --color-prototype: var(--kind-prototype);
+  --color-wonder: var(--m-wonder);
+  --color-coherence: var(--m-coherence);
+  --color-flow: var(--m-flow);
+  --color-community: var(--m-community);
+  --font-sans: var(--font-geist);
+  --font-serif: var(--font-instrument);
+  --font-mono: var(--font-geist-mono);
+  --ease-spring: var(--ease-out);
+}
+
+html {
+  background: var(--sky-mid);
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  color: var(--ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  transition: color 1.2s ease;
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+
+::selection { background: color-mix(in oklab, var(--kind-objective) 45%, transparent); }
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+/* Text fields show focus as a soft halo, not a hard box. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--kind-objective) 45%, transparent);
+  border-radius: 14px;
+}
+input.serif:focus-visible,
+textarea.serif:focus-visible {
+  box-shadow: none;
+  border-radius: 0;
+  background-image: linear-gradient(var(--kind-objective), var(--kind-objective));
+  background-size: 100% 2px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+}
+
+/* The morning ritual owns the screen. */
+[data-chrome] { transition: opacity 0.4s ease; }
+:root[data-ritual] [data-chrome] { opacity: 0; pointer-events: none; }
+
+/* Frosted surface. Keeps text AA on every sky. */
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+  transition: background-color 1.2s ease, border-color 1.2s ease;
+}
+.glass-strong {
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  backdrop-filter: blur(30px) saturate(1.6);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+}
+
+.serif { font-family: var(--font-instrument), ui-serif, Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+.tabular { font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; color: var(--ink-3); }
+
+/* Compass line glow when all Top 3 are done */
+.glow { text-shadow: 0 0 28px color-mix(in oklab, var(--kind-objective) 70%, transparent), 0 0 2px color-mix(in oklab, var(--kind-objective) 40%, transparent); transition: text-shadow 1.2s ease; }
+
+/* Hide scrollbars on horizontal carousels */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+dialog::backdrop { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

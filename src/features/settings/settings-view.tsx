@@ -1,0 +1,100 @@
+"use client";
+
+import { ArrowLeft, Download } from "lucide-react";
+import Link from "next/link";
+import { copy } from "@/copy/en";
+import { useStore } from "@/data/mock-store";
+import { Button, Chip } from "@/ui/controls";
+
+const hours = Array.from({ length: 24 }, (_, h) => h);
+const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
+
+export function SettingsView() {
+  const { state, actions } = useStore();
+  const s = state.settings;
+  const zones = Intl.supportedValuesOf?.("timeZone") ?? [s.timeZone];
+
+  const exportAll = () => {
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), ...state }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `daily-happy-life-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  return (
+    <div className="mx-auto flex max-w-xl flex-col gap-8 pt-4 lg:pt-8">
+      <Link href="/today" className="flex h-10 w-fit items-center gap-1.5 text-sm text-ink-2 hover:text-ink">
+        <ArrowLeft size={16} /> {copy.tabs.today}
+      </Link>
+      <h1 className="serif text-[44px] leading-none">{copy.settings.title}</h1>
+
+      <div className="glass flex flex-col divide-y divide-[color:var(--hairline)] rounded-[28px]">
+        <Row label={copy.settings.reminder} hint={copy.settings.reminderHint}>
+          <input type="time" value={s.reminderTime} onChange={(e) => actions.updateSettings({ reminderTime: e.target.value })} className="tabular rounded-xl bg-fill px-3 py-2 font-mono text-sm text-ink outline-none" />
+        </Row>
+        <Row label={copy.settings.timeZone}>
+          <select value={s.timeZone} onChange={(e) => actions.updateSettings({ timeZone: e.target.value })} className="max-w-48 rounded-xl bg-fill px-3 py-2 text-sm text-ink outline-none">
+            {zones.map((z) => (
+              <option key={z}>{z}</option>
+            ))}
+          </select>
+        </Row>
+        <Row label={copy.settings.evening}>
+          <HourSelect value={s.eveningHour} onChange={(eveningHour) => actions.updateSettings({ eveningHour })} />
+        </Row>
+        <Row label={copy.settings.dayEnds} hint={copy.settings.dayEndsHint}>
+          <HourSelect value={s.dayEndHour} options={[0, 1, 2, 3, 4, 5, 6]} onChange={(dayEndHour) => actions.updateSettings({ dayEndHour })} />
+        </Row>
+        <Row label={copy.settings.sound}>
+          <input type="checkbox" checked={s.sound} onChange={(e) => actions.updateSettings({ sound: e.target.checked })} className="size-5 accent-[var(--kind-objective)]" />
+        </Row>
+      </div>
+
+      <section>
+        <p className="eyebrow mb-3">{copy.settings.theme}</p>
+        <div className="flex flex-wrap gap-2">
+          {(["sky", "light", "dark"] as const).map((t) => (
+            <Chip key={t} selected={s.theme === t} onClick={() => actions.updateSettings({ theme: t })}>
+              {copy.settings.themes[t]}
+            </Chip>
+          ))}
+        </div>
+      </section>
+
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button variant="glass" onClick={exportAll}>
+          <Download size={16} /> {copy.settings.export}
+        </Button>
+        <Button variant="ghost" onClick={actions.resetFixtures}>
+          {copy.settings.reset}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label className="flex min-h-16 items-center justify-between gap-4 px-5 py-3">
+      <span>
+        <span className="block text-[15px]">{label}</span>
+        {hint && <span className="mt-0.5 block text-xs text-ink-3">{hint}</span>}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function HourSelect({ value, onChange, options = hours }: { value: number; onChange: (h: number) => void; options?: number[] }) {
+  return (
+    <select value={value} onChange={(e) => onChange(Number(e.target.value))} className="tabular rounded-xl bg-fill px-3 py-2 font-mono text-sm text-ink outline-none">
+      {options.map((h) => (
+        <option key={h} value={h}>
+          {hh(h)}
+        </option>
+      ))}
+    </select>
+  );
+}
