@@ -157,6 +157,7 @@ export const en = {
       3: "If money and image were no object, what would you do?",
     } as Record<1 | 2 | 3, string>,
     writePlan: "Write this plan",
+    planInvite: "No need to be right, only honest. About ten minutes.",
     gauges: { resources: "Resources", likability: "Likability", confidence: "Confidence", coherence: "Coherence" },
     objectives: "Objectives",
     objectivesHint: "Up to five this quarter. Three is plenty.",

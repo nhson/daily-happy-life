@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { Check, Feather, HeartHandshake, Palette, Pencil, Plus, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
+import { Check, Dices, Feather, Footprints, HeartHandshake, Palette, Pencil, Plus, Signpost, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
@@ -39,6 +39,8 @@ const MINDSET_LOOK: Record<MindsetKey, { icon: LucideIcon; tint: string }> = {
   "create-your-world": { icon: Palette, tint: "var(--kind-objective)" },
 };
 const PLAN_TINT: Record<1 | 2 | 3, string> = { 1: "var(--kind-objective)", 2: "var(--m-wonder)", 3: "var(--kind-prototype)" };
+/** The path you walk, the fork in the road, the roll of the dice. */
+const PLAN_ICON: Record<1 | 2 | 3, LucideIcon> = { 1: Footprints, 2: Signpost, 3: Dices };
 const wash = (tint: string, at = "0% 0%", strength = 26) =>
   `radial-gradient(120% 90% at ${at}, color-mix(in oklab, ${tint} ${strength}%, transparent), transparent 62%)`;
 
@@ -307,22 +309,44 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
   const written = !!plan.title;
   const slotName = copy.life.slotNames[plan.slot];
 
-  if (!written)
+  if (!written) {
+    const tint = PLAN_TINT[plan.slot];
+    const Icon = PLAN_ICON[plan.slot];
     return (
-      <button
+      <motion.button
         type="button"
         onClick={onEdit}
-        className="flex min-h-[22rem] w-[82vw] max-w-sm shrink-0 snap-center flex-col rounded-[30px] border-[1.5px] border-dashed border-ink-3/50 p-6 text-left transition-colors hover:bg-fill lg:w-auto lg:max-w-none"
+        whileHover={{ y: -3 }}
+        transition={{ type: "spring", stiffness: 300, damping: 24 }}
+        className="group flex min-h-[22rem] w-[82vw] max-w-sm shrink-0 snap-center flex-col rounded-[30px] border-[1.5px] border-dashed p-6 text-left lg:w-auto lg:max-w-none"
+        style={{
+          borderColor: `color-mix(in oklab, ${tint} 55%, transparent)`,
+          backgroundColor: "color-mix(in oklab, var(--glass) 55%, transparent)",
+          backgroundImage: wash(tint, "100% 0%", 30),
+        }}
       >
-        <p className="eyebrow">
-          {copy.life.planLabel(plan.slot, slotName)}
-        </p>
-        <p className="serif mt-auto text-[28px] leading-tight text-ink-2">{copy.life.planPrompts[plan.slot]}</p>
-        <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium">
+        <p className="eyebrow">{copy.life.planLabel(plan.slot, slotName)}</p>
+        <span className="relative mt-8 grid size-14 place-items-center">
+          <span
+            aria-hidden
+            className="absolute inset-0 rounded-full blur-md transition-opacity duration-500 group-hover:opacity-100"
+            style={{ background: tint, opacity: 0.45 }}
+          />
+          <span className="relative grid size-14 place-items-center rounded-full" style={{ background: `color-mix(in oklab, ${tint} 45%, var(--glass-strong))` }}>
+            <Icon size={22} className="text-ink" aria-hidden />
+          </span>
+        </span>
+        <p className="serif mt-auto pt-8 text-balance text-[28px] leading-[1.12] text-ink">{copy.life.planPrompts[plan.slot]}</p>
+        <p className="mt-3 text-sm leading-relaxed text-ink-2">{copy.life.planInvite}</p>
+        <span
+          className="mt-6 inline-flex h-11 items-center gap-2 self-start rounded-full px-5 text-sm font-medium text-[#0b1230] transition-transform group-hover:translate-x-0.5"
+          style={{ background: `color-mix(in oklab, ${tint} 70%, white)` }}
+        >
           <Plus size={16} /> {copy.life.writePlan}
         </span>
-      </button>
+      </motion.button>
     );
+  }
 
   return (
     <motion.article

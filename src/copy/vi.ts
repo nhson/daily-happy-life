@@ -159,6 +159,7 @@ export const vi: Copy = {
       3: "Nếu tiền bạc và hình ảnh không thành vấn đề, bạn sẽ làm gì?",
     },
     writePlan: "Viết kế hoạch này",
+    planInvite: "Không cần đúng, chỉ cần thật. Khoảng mười phút.",
     gauges: { resources: "Nguồn lực", likability: "Mức yêu thích", confidence: "Sự tự tin", coherence: "Độ ăn khớp" },
     objectives: "Mục tiêu",
     objectivesHint: "Tối đa năm mục tiêu mỗi quý. Ba là đủ.",
