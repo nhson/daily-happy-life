@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, dayIndex, localMinutes, logicalDate, quarterOf } from "./logical-day";
+import { addDays, dayIndex, localMinutes, logicalDate, quarterOf, quarterProgress } from "./logical-day";
 
 const HCM = "Asia/Ho_Chi_Minh"; // UTC+7, no DST
 const NY = "America/New_York"; // DST
@@ -66,5 +66,23 @@ describe("quarterOf", () => {
 describe("localMinutes", () => {
   it("returns minutes since local midnight", () => {
     expect(localMinutes(new Date("2026-11-03T02:30:00Z"), HCM)).toBe(9 * 60 + 30);
+  });
+});
+
+describe("quarterProgress", () => {
+  it("starts at week 1 of 13 on the quarter's first day", () => {
+    expect(quarterProgress("2026-10-01")).toEqual({ week: 1, weeks: 13, fraction: 0 });
+  });
+  it("counts whole weeks elapsed and the share of the quarter's days", () => {
+    const p = quarterProgress("2026-11-04"); // 34 days into a 92-day quarter
+    expect(p.week).toBe(5);
+    expect(p.fraction).toBeCloseTo(34 / 92);
+  });
+  it("never goes past week 13 in a long quarter", () => {
+    expect(quarterProgress("2026-12-31").week).toBe(13);
+    expect(quarterProgress("2026-12-31").fraction).toBeCloseTo(91 / 92);
+  });
+  it("handles a short quarter", () => {
+    expect(quarterProgress("2026-03-31")).toEqual({ week: 13, weeks: 13, fraction: 89 / 90 });
   });
 });

@@ -52,3 +52,15 @@ export function quarterOf(date: LogicalDate): string {
   const month = Number(date.slice(5, 7));
   return `${date.slice(0, 4)}-Q${Math.ceil(month / 3)}`;
 }
+
+/** How far into its quarter a Logical Day is: week N of 13, and the share of the quarter's days gone by. */
+export function quarterProgress(date: LogicalDate): { week: number; weeks: 13; fraction: number } {
+  const y = Number(date.slice(0, 4));
+  const q = Math.ceil(Number(date.slice(5, 7)) / 3);
+  const start = Date.UTC(y, (q - 1) * 3, 1);
+  const end = Date.UTC(y, q * 3, 1);
+  const day = Date.UTC(y, Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10)));
+  const elapsed = Math.round((day - start) / 86_400_000);
+  const total = Math.round((end - start) / 86_400_000);
+  return { week: Math.min(13, Math.floor(elapsed / 7) + 1), weeks: 13, fraction: elapsed / total };
+}

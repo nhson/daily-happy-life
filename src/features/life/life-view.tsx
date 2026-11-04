@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { Check, Feather, HeartHandshake, Palette, Pencil, Plus, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
+import { Check, Feather, HeartHandshake, Milestone, Palette, Pencil, Plus, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
@@ -9,7 +9,8 @@ import { MINDSET_KEYS, type MindsetKey } from "@/domain/mindsets";
 import { GAUGE_KEYS, type OdysseyPlan } from "@/domain/types";
 import { useStore } from "@/data/mock-store";
 import { Button, Chip, GaugeDial } from "@/ui/controls";
-import { KindDot, kindColor } from "@/ui/glyphs";
+import { KindDot } from "@/ui/glyphs";
+import { quarterProgress } from "@/domain/logical-day";
 import { Sheet } from "@/ui/sheet";
 import { Tip } from "@/ui/tip";
 import { PlanScene } from "./plan-scene";
@@ -511,96 +512,138 @@ function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void
 
 function ObjectivesSection() {
   const copy = useCopy();
-  const { state, activeObjectives, quarter, actions } = useStore();
+  const { state, activeObjectives, quarter, today, actions } = useStore();
   const [draft, setDraft] = useState("");
   const [adding, setAdding] = useState(false);
   const all = state.objectives.filter((o) => o.quarter === quarter);
+  const room = 5 - activeObjectives.length;
+  const qp = quarterProgress(today);
 
   return (
     <section aria-label={copy.life.objectives}>
-      <SectionHead
-        title={copy.life.objectives}
-        hint={`${quarter.replace("-", " · ")} — ${copy.life.objectivesHint}`}
-        action={<span className="tabular font-mono text-xs text-ink-3">{activeObjectives.length}/5</span>}
-      />
-      <ul className="flex flex-col gap-3">
-        {all.map((o) => {
+      <SectionHead title={copy.life.objectives} hint={copy.life.objectivesHint} />
+      <QuarterStrip label={quarter.replace("-", " · ")} week={copy.life.quarterWeek(qp.week, qp.weeks)} fraction={qp.fraction} />
+      <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+        {all.map((o, i) => {
           const tasks = state.tasks.filter((t) => t.objectiveId === o.id && !t.closedAt);
           const done = tasks.filter((t) => t.doneAt).length;
           const pct = tasks.length ? done / tasks.length : 0;
           return (
-            <li key={o.id} className={clsx("glass flex items-center gap-4 rounded-[24px] px-5 py-4", o.status !== "active" && "opacity-60")}>
-              <Ring pct={pct} />
-              <div className="min-w-0 flex-1">
-                <p className={clsx("text-[15px] leading-snug", o.status === "dropped" && "line-through")}>{o.title}</p>
-                <p className="tabular mt-0.5 font-mono text-xs text-ink-3">
+            <motion.li
+              key={o.id}
+              layout
+              className={clsx("glass flex min-h-44 flex-col rounded-[26px] p-5", o.status !== "active" && "opacity-60")}
+              style={{
+                backgroundImage: wash("var(--kind-objective)", "0% 100%", 12 + Math.round(pct * 30)),
+                // Every task under it is done: it glows, quietly.
+                ...(pct === 1 && o.status === "active" && { boxShadow: "var(--shadow), 0 0 0 1px color-mix(in oklab, var(--kind-objective) 60%, transparent), 0 0 40px -14px var(--kind-objective)" }),
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="tabular font-mono text-[11px] text-ink-3">{String(i + 1).padStart(2, "0")}</span>
+                {o.status === "active" ? (
+                  <div className="-my-2 -mr-2 flex">
+                    <IconButton label={copy.life.markDone(o.title)} onClick={() => actions.setObjectiveStatus(o.id, "done")}>
+                      <Check size={16} />
+                    </IconButton>
+                    <IconButton label={copy.life.drop(o.title)} onClick={() => actions.setObjectiveStatus(o.id, "dropped")}>
+                      <X size={16} />
+                    </IconButton>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => actions.setObjectiveStatus(o.id, "active")} className="-my-2 h-9 px-2 text-xs text-ink-3 hover:text-ink">
+                    {copy.common.undo}
+                  </button>
+                )}
+              </div>
+              <p className={clsx("serif mt-3 text-balance text-[24px] leading-[1.15]", o.status === "dropped" && "line-through")}>{o.title}</p>
+              <div className="mt-auto pt-5">
+                <div className="h-1.5 overflow-hidden rounded-full bg-fill">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: "var(--kind-objective)", boxShadow: "0 0 12px var(--kind-objective)" }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.max(pct * 100, tasks.length ? 3 : 0)}%` }}
+                    transition={{ type: "spring", stiffness: 60, damping: 18 }}
+                  />
+                </div>
+                <p className="tabular mt-2 font-mono text-xs text-ink-3">
                   {copy.life.objectiveTasks(done, tasks.length)}
                   {o.status !== "active" ? ` · ${copy.life.objectiveStatus[o.status]}` : ""}
                 </p>
               </div>
-              {o.status === "active" ? (
-                <div className="flex gap-1">
-                  <IconButton label={copy.life.markDone(o.title)} onClick={() => actions.setObjectiveStatus(o.id, "done")}>
-                    <Check size={16} />
-                  </IconButton>
-                  <IconButton label={copy.life.drop(o.title)} onClick={() => actions.setObjectiveStatus(o.id, "dropped")}>
-                    <X size={16} />
-                  </IconButton>
-                </div>
-              ) : (
-                <button type="button" onClick={() => actions.setObjectiveStatus(o.id, "active")} className="h-9 px-2 text-xs text-ink-3 hover:text-ink">
-                  {copy.common.undo}
-                </button>
-              )}
-            </li>
+            </motion.li>
           );
         })}
+        {room > 0 && (
+          <li>
+            {adding ? (
+              <form
+                className="glass flex min-h-44 flex-col rounded-[26px] p-5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!draft.trim()) return;
+                  actions.addObjective(draft);
+                  setDraft("");
+                  setAdding(false);
+                }}
+              >
+                <textarea
+                  autoFocus
+                  rows={2}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder={copy.life.objectivePlaceholder}
+                  className="serif w-full flex-1 resize-none bg-transparent text-[24px] leading-[1.15] outline-none placeholder:text-ink-3"
+                />
+                <div className="mt-3 flex justify-end gap-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setAdding(false)}>
+                    {copy.common.cancel}
+                  </Button>
+                  <Button size="sm" type="submit" disabled={!draft.trim()}>
+                    {copy.common.add}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <motion.button
+                type="button"
+                onClick={() => setAdding(true)}
+                whileHover={{ y: -2 }}
+                className="group flex h-full w-full flex-row items-center gap-4 rounded-[26px] border-[1.5px] border-dashed p-5 text-left sm:min-h-44 sm:flex-col sm:items-start sm:justify-end sm:gap-3"
+                style={{ borderColor: "color-mix(in oklab, var(--kind-objective) 75%, transparent)", backgroundImage: wash("var(--kind-objective)", "0% 100%", 18) }}
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-full" style={{ background: "color-mix(in oklab, var(--kind-objective) 40%, var(--glass-strong))" }}>
+                  <Plus size={18} className="text-ink" aria-hidden />
+                </span>
+                <span>
+                  <span className="block text-[15px] font-medium text-ink">{copy.life.addObjective}</span>
+                  <span className="block text-sm text-ink-3">{copy.life.roomFor(room)}</span>
+                </span>
+              </motion.button>
+            )}
+          </li>
+        )}
       </ul>
-      {activeObjectives.length < 5 &&
-        (adding ? (
-          <form
-            className="glass mt-3 flex items-center gap-2 rounded-[24px] py-2 pl-5 pr-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!draft.trim()) return;
-              actions.addObjective(draft);
-              setDraft("");
-              setAdding(false);
-            }}
-          >
-            <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={copy.life.objectivePlaceholder} className="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-ink-3" />
-            <Button size="sm" type="submit" disabled={!draft.trim()}>
-              {copy.common.add}
-            </Button>
-          </form>
-        ) : (
-          <button type="button" onClick={() => setAdding(true)} className="mt-3 flex h-11 items-center gap-2 px-1 text-sm text-ink-2 hover:text-ink">
-            <Plus size={16} /> {copy.life.addObjective}
-          </button>
-        ))}
     </section>
   );
 }
 
-function Ring({ pct }: { pct: number }) {
-  const r = 15;
-  const c = 2 * Math.PI * r;
+/** Where you are in the quarter: a thin horizon with the sun travelling along it. */
+function QuarterStrip({ label, week, fraction }: { label: string; week: string; fraction: number }) {
   return (
-    <svg width="38" height="38" viewBox="0 0 38 38" className="-rotate-90 shrink-0" aria-hidden>
-      <circle cx="19" cy="19" r={r} fill="none" stroke="var(--hairline)" strokeWidth="3" />
-      <motion.circle
-        cx="19"
-        cy="19"
-        r={r}
-        fill="none"
-        stroke={kindColor.objective}
-        strokeWidth="3"
-        strokeLinecap="round"
-        initial={{ strokeDasharray: `0 ${c}` }}
-        animate={{ strokeDasharray: `${c * pct} ${c}` }}
-        transition={{ type: "spring", stiffness: 70, damping: 16 }}
-      />
-    </svg>
+    <div className="glass flex items-center gap-4 rounded-full py-2.5 pl-5 pr-5">
+      <span className="tabular shrink-0 font-mono text-xs text-ink-2">{label}</span>
+      <div className="relative h-1 flex-1 rounded-full bg-fill">
+        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${fraction * 100}%`, background: "linear-gradient(90deg, transparent, var(--kind-objective))" }} />
+        <span
+          aria-hidden
+          className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ left: `${fraction * 100}%`, background: "radial-gradient(circle at 35% 35%, #fff6e0, var(--kind-objective) 70%)", boxShadow: "0 0 14px var(--kind-objective)" }}
+        />
+      </div>
+      <span className="tabular shrink-0 font-mono text-xs text-ink-2">{week}</span>
+    </div>
   );
 }
 
@@ -625,30 +668,60 @@ function DecisionsSection() {
         title={copy.life.decisions}
         hint={copy.life.decisionsHint}
         action={
-          <Button size="sm" variant="glass" onClick={() => setOpen(true)}>
-            <Plus size={15} /> {copy.life.logDecision}
-          </Button>
+          state.decisions.length > 0 && (
+            <Button size="sm" variant="glass" onClick={() => setOpen(true)}>
+              <Plus size={15} /> {copy.life.logDecision}
+            </Button>
+          )
         }
       />
       {state.decisions.length === 0 ? (
-        <p className="serif text-2xl text-ink-3">The first one is usually small.</p>
+        <div className="glass flex flex-col items-start gap-4 rounded-[30px] p-7 sm:flex-row sm:items-center sm:gap-6" style={{ backgroundImage: wash("var(--m-coherence)", "0% 0%", 26) }}>
+          <span className="relative grid size-14 shrink-0 place-items-center">
+            <span aria-hidden className="absolute inset-0 rounded-full blur-md" style={{ background: "var(--m-coherence)", opacity: 0.5 }} />
+            <span className="relative grid size-14 place-items-center rounded-full" style={{ background: "color-mix(in oklab, var(--m-coherence) 45%, var(--glass-strong))" }}>
+              <Milestone size={22} className="text-ink" aria-hidden />
+            </span>
+          </span>
+          <div className="flex-1">
+            <p className="serif text-[clamp(1.6rem,4vw,2rem)] leading-tight">{copy.life.decisionsEmpty}</p>
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-ink-2">{copy.life.decisionsEmptyBody}</p>
+          </div>
+          <Button onClick={() => setOpen(true)}>
+            <Plus size={15} /> {copy.life.logDecision}
+          </Button>
+        </div>
       ) : (
-        <ol className="relative ml-2 border-l border-hairline pl-6">
+        <ol className="relative flex flex-col gap-4 pl-8">
+          <span aria-hidden className="absolute bottom-4 left-[7px] top-4 w-px" style={{ background: "linear-gradient(to bottom, var(--kind-objective), color-mix(in oklab, var(--m-coherence) 60%, transparent), transparent)" }} />
           {state.decisions.map((d) => {
             const plan = state.plans.find((p) => p.id === d.linkedPlanId);
             return (
-              <li key={d.id} className="relative pb-8 last:pb-0">
-                <span className="absolute -left-[31px] top-1.5 size-2.5 rounded-full bg-ink ring-4 ring-[color:var(--glass)]" aria-hidden />
-                <p className="tabular font-mono text-xs text-ink-3">
-                  {formatDate(new Date(`${d.date}T12:00:00`), { day: "numeric", month: "short", year: "numeric" })}
-                </p>
-                <p className="serif mt-1 text-2xl leading-snug">{d.decision}</p>
-                {d.drivenBy && <p className="mt-1 text-sm text-ink-2">{d.drivenBy}</p>}
-                {plan?.title && (
-                  <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-ink-3">
-                    <span className="size-1.5 rounded-full bg-ink-3" /> {plan.title}
+              <li key={d.id} className="relative">
+                <span
+                  aria-hidden
+                  className="absolute -left-8 top-6 size-[15px] rounded-full"
+                  style={{ background: "radial-gradient(circle at 35% 35%, #fff6e0, var(--kind-objective) 70%)", boxShadow: "0 0 14px var(--kind-objective)" }}
+                />
+                <div className="glass rounded-[24px] p-5" style={{ backgroundImage: wash("var(--kind-objective)", "0% 0%", 12) }}>
+                  <p className="tabular font-mono text-xs text-ink-3">
+                    {formatDate(new Date(`${d.date}T12:00:00`), { day: "numeric", month: "short", year: "numeric" })}
                   </p>
-                )}
+                  <p className="serif mt-1.5 text-balance text-[26px] leading-[1.15]">{d.decision}</p>
+                  {d.drivenBy && (
+                    <p className="serif mt-3 border-l-2 pl-3 text-lg italic leading-snug text-ink-2" style={{ borderColor: "color-mix(in oklab, var(--m-coherence) 70%, transparent)" }}>
+                      {d.drivenBy}
+                    </p>
+                  )}
+                  {plan?.title && (
+                    <p
+                      className="mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs text-ink-2"
+                      style={{ background: `color-mix(in oklab, ${PLAN_TINT[plan.slot]} 22%, transparent)` }}
+                    >
+                      <span className="size-1.5 rounded-full" style={{ background: PLAN_TINT[plan.slot] }} /> {plan.title}
+                    </p>
+                  )}
+                </div>
               </li>
             );
           })}
