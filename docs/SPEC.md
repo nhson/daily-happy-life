@@ -2,7 +2,7 @@
 
 > Working name. Final name is **open** (see §11). Renaming = one config value + page titles.
 
-- **Status:** Agreed in design interview, 2026-11-03. Not yet built.
+- **Status:** Agreed in design interview, 2026-11-03; edge cases settled 2026-11-04. Phase 0 prototype built — see [`PLAN.md`](PLAN.md).
 - **Owner:** Hoang Son (sole user for v1).
 - **Background research:** [`docs/research/meaningful-life-app.md`](research/meaningful-life-app.md)
 
@@ -50,7 +50,7 @@ Usage alone is not success.
 ```
 Compass (yearly)
   └─ Active Odyssey Plan (1 of 3; switchable at quarterly review)
-       └─ Objectives (3–5 per quarter)
+       └─ Objectives (at most 5 active per quarter, ideally ≥ 3)
             └─ Tasks (daily)
 
 Other 2 Odyssey Plans ──> Prototype tasks (cheap experiments: a conversation, a trial weekend)
@@ -75,15 +75,27 @@ Maintenance ──> Tasks with no life objective (taxes, groceries)
 3. Tap which **sources of meaning** today touched: Wonder / Coherence / Flow / Community.
 4. Optional one-line note.
 
+**Missed check-in:** if yesterday's check-in was never closed, the next Morning Ritual opens with an optional "Close yesterday?" step: energy, engagement, sources of meaning, note — no task ticking (tasks ticked now count as Done today). Allowed once, for the previous Logical Day only; it counts toward the week dots.
+
 **Reminder:** one web push per day at the user's chosen local time, containing the day's Compass line.
 
 **Logical Day:** a day ends at the user's "day ends at" hour (default 04:00 local), not midnight. Compass line, Top 3, Daily Log and the reminder cron all use the logical date.
 
-**Top 3 carry-over:** Top 3 resets every Logical Day. The morning ritual offers yesterday's unfinished Top 3 as one-tap "carry over" chips.
+**Top 3 carry-over:** Top 3 resets every Logical Day. The morning ritual offers the unfinished Top 3 of the most recent Logical Day that had one (looking back at most 7 days) as one-tap "carry over" chips. Each day's Top 3, as it stood when the day ended, is kept in that day's Daily Log.
 
-**Quarter Close:** on first open in a new quarter, each still-active Objective gets Done / Drop / Carry forward (carry forward = copy into the new quarter). This is the whole quarterly review until Phase 2.
+**Due dates:** optional, set by editing a task (not in capture). Shown as a small label; tasks due today or overdue appear on Today. Never added to Top 3 automatically, never a notification.
 
-**Promoting a plan:** when the Active Plan changes, open Prototype tasks of the newly active plan must be converted (into Objective tasks under a new Objective) or closed. Closed prototypes stay as history.
+**Quarter Close:** in a new quarter, a card at the top of Today (not blocking) asks each still-active Objective of the last quarter: Done / Drop / Carry forward. Carry forward copies the Objective into the new quarter and moves its open tasks to the copy; Drop closes its open tasks. Until the card is finished, last quarter's active Objectives stay usable. It ends with: an optional "Did you decide anything this quarter? Because of what?" → saves a Decision; and, if fewer than 3 Objectives are active, a gentle "Add one?". This is the whole quarterly review until Phase 2.
+
+**Promoting a plan:** when the Active Plan changes, one sheet settles both sides:
+- each still-active Objective of the old plan → **Drop** (its open tasks are closed) or **Keep** (moves under the new plan);
+- open Prototype tasks of the newly active plan → converted (into Objective tasks under a new Objective) or closed.
+
+The sheet ends with a pre-filled, skippable Decision ("Switched to ‹plan›", linked to the plan) asking what drove it.
+
+**Ending tasks:** a task ends **Done** (counts toward Life Share) or **Closed** (let go; kept as history). Any open task can be Closed by the user. **Delete** exists only for mistakes (typo, duplicate) and leaves no trace.
+
+**Finishing an Objective:** marking an Objective Done mid-quarter asks once about its open tasks: close them (default) or move them to another active Objective.
 
 **Life Share:** count of completed tasks over the last 7 Logical Days, split Objective / Maintenance / Prototype. Shown as one thin three-colour bar on Today in evening mode.
 
@@ -95,10 +107,11 @@ Phone-first PWA; desktop is a wider layout of the same screens. **Three tabs + c
 |---|---|
 | **Today** | Compass line, Top 3, if-then intention, remaining tasks. Switches to evening check-in mode in the evening. |
 | **Tasks** | List, filter by objective / Maintenance / Prototype. |
-| **Life** | One scrolling page with sections: **Compass** (Workview, Lifeview, 5 mindsets as reference) · **Odyssey** (3 plans: 6-word title, questions, 4 gauges 0–10, one active) · **Objectives** (3–5 this quarter, done/total) · **Decisions** (date, decision, what drove it, optional plan). |
+| **Life** | One scrolling page with sections: **Compass** (Workview, Lifeview, 5 mindsets as reference) · **Odyssey** (3 plans: 6-word title, questions, 4 gauges 0–10, one active) · **Objectives** (at most 5 active this quarter, done/total) · **Decisions** (date, decision, what drove it, optional plan). |
 
 - **Settings** behind the avatar: reminder time, timezone, evening-mode hour, day-ends-at hour, push opt-in, **Export all (JSON)**.
 - **Capture:** floating ＋ on phone, ⌘K on desktop. Title + kind chips (active Objectives…, Maintenance, Prototype →); the last-used kind is preselected so the common case is type + Enter. No "unsorted" kind.
+- **Offline:** writes need a connection (no background sync in v1). Offline, capture keeps the draft and says so quietly; it saves when you're back.
 
 **First run (progressive):**
 - Day 1: short Compass (one sentence each for Workview and Lifeview) → one Objective → first tasks. Usable immediately.
@@ -118,7 +131,9 @@ tasks         (id, userId, kind objective|maintenance|prototype, objectiveId?, p
                title, dueDate?, top3Date?, doneAt?, closedAt?, createdAt)
                -- in Top 3 ⇔ top3Date = today's logical date
 daily_logs    (userId, date, intention, energy 1-5, engagement 1-5,
-               meaningSources text[], note, morningAt?, closedAt?; PK(userId, date))
+               meaningSources text[], note, top3TaskIds text[], morningAt?, closedAt?;
+               PK(userId, date))
+               -- top3TaskIds: that day's final Top 3 (history; tasks.top3Date is only "today")
                -- morningAt: ritual done/skipped (runs once per Logical Day)
                -- closedAt: "Close the day" committed (counts toward the 5-of-7 dots)
 decisions     (id, userId, date, decision, drivenBy, linkedPlanId?)
@@ -126,6 +141,7 @@ decisions     (id, userId, date, decision, drivenBy, linkedPlanId?)
 
 Constraints:
 - At most one `isActive` plan per user. Unique `(userId, slot)`.
+- At most 5 `active` Objectives per user per quarter (domain layer).
 - Task kind/link rule from §5: the DB check constraint enforces the kind ↔ link-column shape; "prototype plan must be non-active" (which needs other rows) is enforced in the domain layer and applies to open tasks only.
 - Every query is scoped by `userId`.
 
@@ -158,7 +174,7 @@ Phase-2 weekly review and AI read `tasks` + `daily_logs` without schema changes.
 
 UI is checked by hand, plus one Playwright smoke test of the full ritual (morning → evening) at phone viewport.
 
-**Phase 2 (weeks 2–6)**
+**Phase 2 (after v1 is in daily use)**
 1. Focus timer (attached to a task)
 2. **Weekly review with AI (Claude):** objective vs Maintenance %, energy/engagement patterns, sources of meaning, prototype progress. Weekly only, never daily chat.
 3. **Quarterly review:** Health/Work/Play/Love dashboard, re-rate Odyssey gauges, keep or switch active plan, reset objectives.
