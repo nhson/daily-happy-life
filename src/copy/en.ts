@@ -3,6 +3,10 @@
  * No exclamation marks. No guilt. No "Great job".
  */
 export const en = {
+  signIn: {
+    title: "Welcome back",
+    subtitle: "Sign in to pick up your day.",
+  },
   common: {
     back: "Back",
     cancel: "Cancel",

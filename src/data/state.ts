@@ -24,4 +24,4 @@ export interface AppState {
   lastKind: KindChoice | null;
 }
 
-export type RitualMode = "morning" | "day" | "evening" | "night";
+export type { RitualMode } from "@/domain/ritual-mode";

@@ -15,6 +15,12 @@ bun run lint
 echo "=== bun run test ==="
 bun run test
 
+# Slice 1+: the build needs Clerk + Neon env vars, provisioned on Vercel.
+if [ ! -f .env.local ]; then
+  echo "No .env.local: run 'vercel link' then 'vercel env pull .env.local' (needs access to the Vercel project)." >&2
+  exit 1
+fi
+
 echo "=== bun run build ==="
 bun run build
 

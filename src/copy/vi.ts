@@ -5,6 +5,10 @@ import type { Copy } from "./index";
  * Voice: quiet, warm, "bạn". No exclamation marks. No guilt.
  */
 export const vi: Copy = {
+  signIn: {
+    title: "Chào mừng bạn trở lại",
+    subtitle: "Đăng nhập để tiếp tục ngày của bạn.",
+  },
   common: {
     back: "Quay lại",
     cancel: "Huỷ",

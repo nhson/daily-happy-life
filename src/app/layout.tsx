@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Serif_Display } from "next/font/google";
 import { APP_NAME } from "@/config";
 import { skyTable } from "@/domain/sky";
+import { ClerkRoot } from "@/features/auth/clerk-root";
 import "./globals.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin", "vietnamese"] });
@@ -44,7 +45,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: skyScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* Inside <body>, as Cache Components require. */}
+        <ClerkRoot>{children}</ClerkRoot>
+      </body>
     </html>
   );
 }

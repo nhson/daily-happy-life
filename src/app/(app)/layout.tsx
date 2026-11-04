@@ -1,11 +1,20 @@
+import { Suspense } from "react";
+import { EnsureUser } from "@/features/auth/ensure-user";
 import { AppShell } from "@/features/shell/app-shell";
 
 /**
- * Phase 0 renders client-only (mock store lives in the browser), so pages can't be prerendered.
- * Slice 1 moves data to the server and should remove this to restore instant-navigation checks.
+ * The app shell still renders client-only (the mock store lives in the browser until Slice 3),
+ * so Next can't validate the pages below it. Remove with the mock store, not before.
  */
 export const instant = false;
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <>
+      <Suspense>
+        <EnsureUser />
+      </Suspense>
+      <AppShell>{children}</AppShell>
+    </>
+  );
 }

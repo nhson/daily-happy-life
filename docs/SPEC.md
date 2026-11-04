@@ -153,7 +153,7 @@ decisions     (id, userId, date, decision, drivenBy, linkedPlanId?)
 
 Constraints:
 - At most one `isActive` plan per user. Unique `(userId, slot)`.
-- At most 5 `active` Objectives per user per quarter (domain layer).
+- At most 3 `active` Objectives per user per quarter (domain layer).
 - Task kind/link rule from §5: the DB check constraint enforces the kind ↔ link-column shape; "prototype plan must be non-active" (which needs other rows) is enforced in the domain layer and applies to open tasks only.
 - Every query is scoped by `userId`.
 

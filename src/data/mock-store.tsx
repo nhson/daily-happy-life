@@ -19,6 +19,7 @@ import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domai
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
 import { useClock } from "@/ui/clock";
 import { blank, fixtures } from "./fixtures";
+import { ritualMode } from "@/domain/ritual-mode";
 import type { AppState, KindChoice, RitualMode } from "./state";
 
 const KEY = "dhl:mock:v1";
@@ -78,16 +79,9 @@ function useStoreState() {
 
   const { timeZone, dayEndHour, eveningHour } = state.settings;
   const today = logicalDate(now, timeZone, dayEndHour);
-  const hour = now.getHours();
   const log = state.logs[today] ?? emptyLog(today);
 
-  const mode: RitualMode = log.closedAt
-    ? "night"
-    : hour >= eveningHour || hour < dayEndHour
-      ? "evening"
-      : log.morningAt
-        ? "day"
-        : "morning";
+  const mode: RitualMode = ritualMode(now, { timeZone, eveningHour, dayEndHour, morningAt: log.morningAt, closedAt: log.closedAt });
 
   const activePlan = state.plans.find((p) => p.isActive) ?? null;
 

@@ -70,13 +70,23 @@ Decisions made while building Phase 0:
 - **Plan title length is per language**: six words in English, 6–10 syllables in Vietnamese (`copy.life.titleRange`), since every Vietnamese word is one syllable.
 - **At most 3 active Objectives a quarter** (owner, 2026-11-04; was 5). Rule in `src/domain/objectives.ts`; the store refuses a 4th and won't reactivate a Done/Dropped one while full. On a plan switch with three active, open Prototypes fold into an existing Objective, which moves under the new plan (`checkFold`).
 - **Review in both languages**: `bun run review` → `review/vi/`, `bun run review -- --lang=en` → `review/en/`; `?lang=vi|en` switches the prototype.
-- Phase 0 opts out of Next's instant-navigation validation (`instant = false`); remove in Slice 1.
+- Phase 0 opts out of Next's instant-navigation validation (`instant = false`); it stays until the mock store goes (Slice 3): the app shell renders client-only, so Next can't validate the pages below it (tried in Slice 1: dev reports every page as a dropped segment).
 - **Tasks tab = Open ∣ Done** segmented control. A search button beside the tabs opens the search bar on demand (`/` on desktop); the why-filter lives inside it as a menu, the active filter as a removable token. Closing search clears both. Done shows the last 7 Logical Days only, grouped by day, newest first.
 - Review URLs: `?at=HH:MM` pins time of day, `?reset=1` reloads fixtures, `?fresh=1` starts the first run.
 
 Onboarding & tutorial (settled 2026-11-04, SPEC §7 "First run"): built in the Phase 0 prototype on mock data first, wired to the backend in Slice 5. Review URL `?day=N` pretends it is Logical Day N since setup.
 
 Edge-case rules settled 2026-11-04 (plan switch, Quarter Close, task endings, missed check-in, carry-over, Top 3 history, due dates, offline) live in SPEC §6–8 and are folded into the slices below.
+
+Decisions made in Slice 1 (2026-11-04):
+- **Repo** public at `github.com/nhson/daily-happy-life` (owner's choice); Vercel project `daily-happy-life` deploys `main` to production and every PR to a preview.
+- **Clerk and Neon via the Vercel Marketplace** (free plans, env vars provisioned). Clerk runs its development instance on all environments: a production instance needs a domain we own, `*.vercel.app` won't do. Its sign-in card shows a "Development mode" strip until then.
+- **Owner-only = Clerk allowlist** holding the owner's email; there is no sign-up page, and the card's sign-up link is hidden. (Clerk won't let this plan also check the allowlist at sign-in; with no other account able to exist, sign-up is the gate that matters.)
+- **One Neon database for all environments** while it's one user. Previews write to the owner's data; split with Neon branches before anyone else signs in.
+- **The database refuses bad shapes itself** (check constraints, partial unique index for one Active Plan); tests run the real migrations on PGlite.
+- **User row on first sign-in** is created from the `(app)` layout (`ensureUser`, idempotent); first timezone guess is Vercel's `x-vercel-ip-timezone`, falling back to Asia/Ho_Chi_Minh.
+- **Ritual mode reads the user's timezone** (`src/domain/ritual-mode.ts`), not the device clock.
+- **Design review runs signed out**: `bun run dev:review` (`DHL_REVIEW=1`, honoured by `next dev` only) before `bun run review`.
 
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
