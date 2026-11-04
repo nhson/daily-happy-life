@@ -33,6 +33,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 ## Log
 
+### 2026-11-04 — Review prep: a fully Vietnamese prototype
+
+- Sample content follows the language: `fixtures(today, tz, locale)` holds the sample in vi and en (Compass, plans, objectives, tasks, notes, intention, decision); `?reset=1&lang=…` and Settings "reset" use it. Fixed the English sample intention reading "When I I sit down…".
+- The check-in sheet's submit button is "Lưu và khép lại" in Vietnamese, so it no longer repeats the "Khép lại ngày" label used by the Today button and the sheet title (the Evening Check-in term).
+- Review script types the intention in the review language; `review/vi` and `review/en` re-shot, no console errors.
+
 ### 2026-11-04 — Life page: more emotional and inspiring (owner request)
 
 - Hero: "Who you are becoming" as the headline (word-by-word reveal), a reflective intro, and a "Living toward" pill with the Active Plan.

@@ -36,7 +36,9 @@ function load(): AppState {
       if (raw) state = JSON.parse(raw) as AppState;
     } catch {}
   }
-  state ??= fixtures(today, tz);
+  const lang = params.get("lang");
+  const asked = lang === "vi" || lang === "en" ? lang : undefined;
+  state ??= fixtures(today, tz, asked);
 
   // Saved before onboarding state existed: an onboarded user has seen it all.
   if (!state.onboarding)
@@ -49,8 +51,7 @@ function load(): AppState {
 
   // Saved before languages existed: Vietnamese is the default.
   if (!state.settings.locale) state = { ...state, settings: { ...state.settings, locale: "vi" } };
-  const lang = params.get("lang");
-  if (lang === "vi" || lang === "en") state = { ...state, settings: { ...state.settings, locale: lang } };
+  if (asked) state = { ...state, settings: { ...state.settings, locale: asked } };
 
   const day = Number(params.get("day"));
   if (day >= 1 && state.onboarding.setupDate)
@@ -341,7 +342,7 @@ function useStoreState() {
     [quarter, today],
   );
 
-  const resetFixtures = useCallback(() => setState(fixtures(today, timeZone)), [today, timeZone]);
+  const resetFixtures = useCallback(() => setState((s) => fixtures(today, timeZone, s.settings.locale)), [today, timeZone]);
 
   return {
     state,

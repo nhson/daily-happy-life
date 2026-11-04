@@ -16,6 +16,8 @@ const out = `${outRoot}/${lang}`;
 const typed = {
   en: {
     capture: "Call Mum about the weekend",
+    when: "sit down after lunch",
+    then: "write for twenty minutes",
     note: "Walked home the long way, by the lake.",
     workview: "Work is how I turn curiosity into useful tools.",
     lifeview: "Life is for the people I love and learning slowly.",
@@ -24,6 +26,8 @@ const typed = {
   },
   vi: {
     capture: "Gọi cho mẹ về chuyện cuối tuần",
+    when: "ăn trưa xong và ngồi vào bàn",
+    then: "viết trong hai mươi phút",
     note: "Đi bộ về nhà đường vòng, men theo hồ.",
     workview: "Công việc là cách mình biến sự tò mò thành những công cụ có ích.",
     lifeview: "Cuộc sống dành cho những người mình thương và việc học thật chậm.",
@@ -68,8 +72,8 @@ for (const [name, opts] of Object.entries(sizes)) {
   await shot("03-morning-top3-picked");
   await page.getByRole("button", { name: c.morning.continue }).click();
   await page.waitForTimeout(700);
-  await page.getByPlaceholder(c.morning.whenPlaceholder).fill("sit down after lunch");
-  await page.getByPlaceholder(c.morning.thenPlaceholder).fill("write for twenty minutes");
+  await page.getByPlaceholder(c.morning.whenPlaceholder).fill(typed.when);
+  await page.getByPlaceholder(c.morning.thenPlaceholder).fill(typed.then);
   await shot("04-morning-intention");
   await page.getByRole("button", { name: c.morning.set }).click();
   await page.waitForTimeout(1400);

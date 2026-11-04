@@ -106,7 +106,7 @@ export const vi: Copy = {
     meaning: "Hôm nay điều gì chạm tới ý nghĩa?",
     note: "Một dòng, nếu bạn muốn",
     notePlaceholder: "Một khoảnh khắc đáng giữ lại",
-    close: "Khép lại ngày",
+    close: "Lưu và khép lại",
   },
   meaning: {
     wonder: { name: "Kinh ngạc", hint: "Có điều gì khiến bạn dừng lại" },
