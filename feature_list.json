@@ -26,8 +26,8 @@
       "dependencies": [
         "feat-001"
       ],
-      "status": "not-started",
-      "evidence": ""
+      "status": "in-progress",
+      "evidence": "2026-11-04: ./init.sh pass (97 Vitest tests incl. 13 schema-constraint tests on PGlite + ensureUser + ritualMode; next build OK). Migration applied to Neon (bun run db:migrate). Deployed 7178037 to https://daily-happy-life.vercel.app (Ready). Signed out, every route redirects to /sign-in (browser) or 404s (non-browser); no sign-up page; Clerk hosted sign-up refuses a non-allowlisted email (\"…is not allowed to access this application.\"). Review (dev:review) vi + en: no console errors. PENDING: owner signs in on the deployed URL and the users row appears; passkeys enabled in the Clerk dashboard. Deviation: instant = false kept until Slice 3 (PLAN records why)."
     },
     {
       "id": "feat-003",

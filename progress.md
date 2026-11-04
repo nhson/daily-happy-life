@@ -16,11 +16,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ### What's In Progress
 
 - [x] feat-001: owner approved the Phase 0 design on 2026-11-04
-- [ ] feat-002: Slice 1 — Foundation (Clerk, Neon + Drizzle, Vercel)
+- [ ] feat-002: Slice 1 — Foundation — built and deployed to https://daily-happy-life.vercel.app
+  - Waiting on owner: sign in once on the deployed URL; enable passkeys (and optionally turn off password) in the Clerk dashboard
 
 ### What's Next
 
-1. feat-002 (Slice 1 — Foundation): needs owner accounts for Clerk, Neon and Vercel
+1. Owner signs in on production → check the `users` row in Neon → mark feat-002 done
+2. feat-003 (Slice 2 — Tasks + Capture live)
 
 ## Blockers / Risks
 
@@ -31,6 +33,16 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-04 — Slice 1: Foundation
+
+- GitHub (public, owner's choice) + Vercel project `daily-happy-life`; Neon and Clerk via the Vercel Marketplace.
+- Drizzle schema per SPEC §8 with check constraints (kind/link shape, ranges, enums, one Active Plan); tested by running the real migration on PGlite (13 tests). Applied to Neon.
+- `ensureUser` (test-first) creates the user row on first sign-in from the `(app)` layout; timezone guess from `x-vercel-ip-timezone`.
+- `ritualMode` (test-first) reads hours in the user's timezone; the store uses it.
+- `src/proxy.ts` protects everything but `/sign-in`; Clerk allowlist = owner's email; sign-in page in the sky, Vietnamese copy, no sign-up link. Verified on production: a stranger's sign-up is refused.
+- Kept `instant = false` until the mock store goes (Slice 3); dev validation can't see past the client-only shell. Review now runs with `bun run dev:review`.
+- Clerk runs its development instance in production (needs an owned domain for a production instance); one Neon DB for every environment for now. Both recorded in PLAN.
 
 ### 2026-11-04 — Phase 0 approved
 
