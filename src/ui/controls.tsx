@@ -3,6 +3,7 @@
 import { clsx } from "clsx";
 import { motion } from "motion/react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useCopy } from "@/copy";
 
 type Variant = "solid" | "glass" | "ghost";
 
@@ -81,6 +82,7 @@ export function RatingStops({
   value: number | null;
   onChange: (v: number) => void;
 }) {
+  const copy = useCopy();
   return (
     <fieldset>
       <legend className="mb-2 text-sm font-medium text-ink">{label}</legend>
@@ -94,7 +96,7 @@ export function RatingStops({
               type="button"
               role="radio"
               aria-checked={exact}
-              aria-label={`${label} ${n} of 5`}
+              aria-label={copy.common.rating(label, n, 5)}
               whileTap={{ scale: 0.9 }}
               onClick={() => onChange(n)}
               className="grid h-12 flex-1 place-items-center rounded-2xl transition-colors duration-200"
@@ -126,6 +128,7 @@ export function RatingStops({
 
 /** Radial 0–10 dial for an Odyssey gauge. */
 export function GaugeDial({ value, label, size = 56 }: { value: number | null; label: string; size?: number }) {
+  const copy = useCopy();
   const r = (size - 8) / 2;
   const c = 2 * Math.PI * r;
   const arc = 0.75; // 270° dial
@@ -148,11 +151,11 @@ export function GaugeDial({ value, label, size = 56 }: { value: number | null; l
             transition={{ type: "spring", stiffness: 80, damping: 18 }}
           />
         </svg>
-        <span className="tabular absolute inset-0 grid place-items-center font-mono text-sm text-ink" aria-label={`${label}: ${value ?? "not rated"} of 10`}>
+        <span className="tabular absolute inset-0 grid place-items-center font-mono text-sm text-ink" aria-label={copy.common.gauge(label, value)}>
           {value ?? "–"}
         </span>
       </div>
-      <span className="max-w-full truncate text-[10.5px] text-ink-3">{label}</span>
+      <span className="max-w-full text-balance text-center text-[10.5px] leading-tight text-ink-3">{label}</span>
     </div>
   );
 }

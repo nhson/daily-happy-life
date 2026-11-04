@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ViewTransition, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { APP_NAME } from "@/config";
-import { copy } from "@/copy/en";
+import { useCopy, useLocale } from "@/copy";
 import { StoreProvider, useStore } from "@/data/mock-store";
 import { CaptureButton, CaptureProvider } from "@/features/capture/capture";
 import { ClockProvider } from "@/ui/clock";
@@ -41,6 +41,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function Themed({ children }: { children: ReactNode }) {
   const { state, mode } = useStore();
+  const locale = useLocale();
+  // The root layout renders lang="vi"; keep it true when the user switches language.
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
   return (
     <SkyProvider theme={state.settings.theme} settled={mode === "night"}>
       {children}
@@ -49,12 +54,13 @@ function Themed({ children }: { children: ReactNode }) {
 }
 
 const TABS = [
-  { href: "/today", label: copy.tabs.today, Icon: Sun },
-  { href: "/tasks", label: copy.tabs.tasks, Icon: ListChecks },
-  { href: "/life", label: copy.tabs.life, Icon: Mountain },
+  { href: "/today", tab: "today", Icon: Sun },
+  { href: "/tasks", tab: "tasks", Icon: ListChecks },
+  { href: "/life", tab: "life", Icon: Mountain },
 ] as const;
 
 function Frame({ children }: { children: ReactNode }) {
+  const copy = useCopy();
   const pathname = usePathname();
   const router = useRouter();
   const { state } = useStore();
@@ -74,9 +80,9 @@ function Frame({ children }: { children: ReactNode }) {
           <AppMark size={26} />
           <span className="serif text-xl">{APP_NAME}</span>
         </Link>
-        <nav className="glass flex rounded-full p-1" aria-label="Main">
+        <nav className="glass flex rounded-full p-1" aria-label={copy.common.mainNav}>
           {TABS.map((t) => (
-            <TabLink key={t.href} {...t} active={pathname.startsWith(t.href)} layoutId="tab-desktop" desktop />
+            <TabLink key={t.href} href={t.href} Icon={t.Icon} label={copy.tabs[t.tab]} active={pathname.startsWith(t.href)} layoutId="tab-desktop" desktop />
           ))}
         </nav>
         <div className="flex items-center gap-3">
@@ -95,9 +101,9 @@ function Frame({ children }: { children: ReactNode }) {
 
       {/* Phone tab bar + capture */}
       <div data-chrome className="fixed inset-x-0 bottom-0 z-30 flex items-end justify-center gap-3 px-4 pb-[max(env(safe-area-inset-bottom),14px)] lg:hidden">
-        <nav className="glass-strong flex flex-1 justify-around rounded-full p-1.5 sm:max-w-sm" aria-label="Main">
+        <nav className="glass-strong flex flex-1 justify-around rounded-full p-1.5 sm:max-w-sm" aria-label={copy.common.mainNav}>
           {TABS.map((t) => (
-            <TabLink key={t.href} {...t} active={pathname.startsWith(t.href)} layoutId="tab-phone" />
+            <TabLink key={t.href} href={t.href} Icon={t.Icon} label={copy.tabs[t.tab]} active={pathname.startsWith(t.href)} layoutId="tab-phone" />
           ))}
         </nav>
         <CaptureButton />

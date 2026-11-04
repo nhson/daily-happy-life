@@ -15,7 +15,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 ### What's In Progress
 
-- [ ] feat-001: owner reviews `review/*.png` (generate with `bun dev` + `bun run review`)
+- [ ] feat-001: owner reviews `review/vi/*.png` and `review/en/*.png` (generate with `bun dev` + `bun run review`)
   - Blockers: waiting on owner verdict (approve or redirect)
 
 ### What's Next
@@ -32,6 +32,14 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-04 — Vietnamese localization (default language)
+
+- Grilled and settled (Q1–Q7): Vietnamese default, English in Settings, `users.locale`; "bạn"; typed dictionaries + `useCopy()`; everything the user reads follows the language, user content and export field names don't.
+- `src/copy/index.ts` (`useCopy`, `useLocale`, `useFormatDate`, `LOCALE_TAG`), `src/copy/vi.ts`; ~35 hard-coded strings moved into copy; Mindset lines now keys in the domain (`MINDSET_KEYS`), words in copy (test-first).
+- Owner approved the term table (GLOSSARY.md "Vietnamese") and Noto Serif Display, narrowed; Instrument Serif and Newsreader removed.
+- Review script reads button names from the dictionaries: `review/vi/` and `review/en/` (`--lang=en`), no console errors. Fixed from the Vietnamese shots: gauge label truncation, Active badge wrap, intention text under the edit pencil, English "When I / I will" on Today.
+- Not done: fixture content (sample tasks, Compass) is still English — it's "user content"; push reminder text gets localized server-side in Slice 9.
 
 ### 2026-11-04 — Onboarding & tutorial prototype (feat-006 design, on mock data)
 

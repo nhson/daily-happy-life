@@ -4,8 +4,8 @@ import { clsx } from "clsx";
 import { Check, Pencil, Plus, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { copy } from "@/copy/en";
-import { MINDSETS } from "@/domain/mindsets";
+import { useCopy, useFormatDate } from "@/copy";
+import { MINDSET_KEYS } from "@/domain/mindsets";
 import { GAUGE_KEYS, type OdysseyPlan } from "@/domain/types";
 import { useStore } from "@/data/mock-store";
 import { Button, Chip, GaugeDial } from "@/ui/controls";
@@ -15,6 +15,7 @@ import { Tip } from "@/ui/tip";
 import { useToast } from "@/ui/toast";
 
 export function LifeView() {
+  const copy = useCopy();
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-16 pt-4 lg:pt-8">
       <header>
@@ -31,6 +32,7 @@ export function LifeView() {
 }
 
 function LifeTip() {
+  const copy = useCopy();
   const { tipUnseen, actions } = useStore();
   return (
     <div className="mt-6 max-w-xl empty:hidden">
@@ -56,6 +58,7 @@ function SectionHead({ title, hint, action }: { title: string; hint?: string; ac
 // ── Compass ─────────────────────────────────────────────────
 
 function CompassSection() {
+  const copy = useCopy();
   const { state, actions } = useStore();
   const compass = state.compass ?? { workview: "", lifeview: "" };
   return (
@@ -67,11 +70,11 @@ function CompassSection() {
       </div>
       <p className="eyebrow mb-3 mt-8">{copy.life.mindsets}</p>
       <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-5">
-        {MINDSETS.map((m, i) => (
-          <div key={m.key} className="glass w-56 shrink-0 snap-start rounded-[22px] p-4 lg:w-auto">
+        {MINDSET_KEYS.map((key, i) => (
+          <div key={key} className="glass w-56 shrink-0 snap-start rounded-[22px] p-4 lg:w-auto">
             <p className="tabular font-mono text-[11px] text-ink-3">0{i + 1}</p>
-            <p className="mt-1 text-sm font-medium">{m.name}</p>
-            <p className="serif mt-2 text-lg leading-snug text-ink-2">{m.line}</p>
+            <p className="mt-1 text-sm font-medium">{copy.mindsets[key].name}</p>
+            <p className="serif mt-2 text-lg leading-snug text-ink-2">{copy.mindsets[key].line}</p>
           </div>
         ))}
       </div>
@@ -80,6 +83,7 @@ function CompassSection() {
 }
 
 function ViewCard({ label, prompt, value, onSave }: { label: string; prompt: string; value: string; onSave: (v: string) => void }) {
+  const copy = useCopy();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   return (
@@ -93,7 +97,7 @@ function ViewCard({ label, prompt, value, onSave }: { label: string; prompt: str
               setDraft(value);
               setEditing(true);
             }}
-            aria-label={`Edit ${label}`}
+            aria-label={copy.life.editLabel(label)}
             className="-m-2 grid size-10 place-items-center rounded-full text-ink-3 hover:text-ink"
           >
             <Pencil size={15} />
@@ -119,10 +123,10 @@ function ViewCard({ label, prompt, value, onSave }: { label: string; prompt: str
           />
           <div className="mt-3 flex justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => setEditing(false)}>
-              Cancel
+              {copy.common.cancel}
             </Button>
             <Button type="submit" size="sm">
-              Save
+              {copy.common.save}
             </Button>
           </div>
         </form>
@@ -138,6 +142,7 @@ function ViewCard({ label, prompt, value, onSave }: { label: string; prompt: str
 // ── Odyssey ─────────────────────────────────────────────────
 
 function OdysseySection() {
+  const copy = useCopy();
   const { state, actions } = useStore();
   const toast = useToast();
   const [editing, setEditing] = useState<OdysseyPlan | null>(null);
@@ -164,7 +169,7 @@ function OdysseySection() {
     if (actions.openPrototypesOf(p.id).length) setPromoting(p);
     else {
       actions.setActivePlan(p.id, null);
-      toast(`“${p.title}” is now your Active Plan.`);
+      toast(copy.life.nowActive(p.title));
     }
   };
 
@@ -183,7 +188,7 @@ function OdysseySection() {
         ))}
       </div>
 
-      <Sheet open={!!editing} onClose={() => setEditing(null)} label="Edit plan">
+      <Sheet open={!!editing} onClose={() => setEditing(null)} label={copy.life.editPlan}>
         {editing && (
           <PlanEditor
             plan={editing}
@@ -194,7 +199,7 @@ function OdysseySection() {
           />
         )}
       </Sheet>
-      <Sheet open={!!promoting} onClose={() => setPromoting(null)} label="Change Active Plan">
+      <Sheet open={!!promoting} onClose={() => setPromoting(null)} label={copy.life.changeActive}>
         {promoting && <PromotionForm plan={promoting} onDone={() => setPromoting(null)} />}
       </Sheet>
     </section>
@@ -202,8 +207,9 @@ function OdysseySection() {
 }
 
 function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; prototypes: number; onEdit: () => void; onPromote: () => void }) {
+  const copy = useCopy();
   const written = !!plan.title;
-  const slotName = plan.slot === 1 ? "Current path" : plan.slot === 2 ? "Plan B" : "Wild card";
+  const slotName = copy.life.slotNames[plan.slot];
 
   if (!written)
     return (
@@ -213,7 +219,7 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
         className="flex min-h-[22rem] w-[82vw] max-w-sm shrink-0 snap-center flex-col rounded-[30px] border-[1.5px] border-dashed border-ink-3/50 p-6 text-left transition-colors hover:bg-fill lg:w-auto lg:max-w-none"
       >
         <p className="eyebrow">
-          Plan {plan.slot} · {slotName}
+          {copy.life.planLabel(plan.slot, slotName)}
         </p>
         <p className="serif mt-auto text-[28px] leading-tight text-ink-2">{copy.life.planPrompts[plan.slot]}</p>
         <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium">
@@ -234,10 +240,10 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
     >
       <div className="flex items-center justify-between">
         <p className="eyebrow">
-          Plan {plan.slot} · {slotName}
+          {copy.life.planLabel(plan.slot, slotName)}
         </p>
         {plan.isActive ? (
-          <span className="rounded-full px-2.5 py-1 text-[11px] font-medium text-[#0b1230]" style={{ background: "var(--kind-objective)" }}>
+          <span className="shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium text-[#0b1230]" style={{ background: "var(--kind-objective)" }}>
             {copy.life.active}
           </span>
         ) : (
@@ -257,7 +263,7 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
       </div>
       <div className="mt-5 flex items-center justify-between">
         <button type="button" onClick={onEdit} className="flex h-10 items-center gap-1.5 text-sm text-ink-2 hover:text-ink">
-          <Pencil size={14} /> Edit
+          <Pencil size={14} /> {copy.life.edit}
         </button>
         {!plan.isActive && (
           <Button size="sm" variant="glass" onClick={onPromote}>
@@ -270,8 +276,11 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
 }
 
 function PlanEditor({ plan, onSave }: { plan: OdysseyPlan; onSave: (p: OdysseyPlan) => void }) {
+  const copy = useCopy();
   const [draft, setDraft] = useState(plan);
   const words = draft.title.trim() ? draft.title.trim().split(/\s+/).length : 0;
+  const { min, max } = copy.life.titleRange;
+  const fits = words >= min && words <= max;
   return (
     <form
       className="flex flex-col gap-6 py-2"
@@ -283,24 +292,26 @@ function PlanEditor({ plan, onSave }: { plan: OdysseyPlan; onSave: (p: OdysseyPl
       <p className="serif text-xl leading-snug text-ink-2">{copy.life.planPrompts[plan.slot]}</p>
       <label className="block">
         <span className="flex justify-between">
-          <span className="eyebrow">Six-word title</span>
-          <span className={clsx("tabular font-mono text-xs", words === 6 ? "text-ink" : "text-ink-3")}>{words}/6</span>
+          <span className="eyebrow">{copy.life.sixWordTitle}</span>
+          <span className={clsx("tabular font-mono text-xs", fits ? "text-ink" : "text-ink-3")}>
+            {words}/{min === max ? min : `${min}–${max}`}
+          </span>
         </span>
         <input
           autoFocus
           value={draft.title}
           onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-          placeholder="Small studio, big outdoors, slow mornings"
+          placeholder={copy.life.titlePlaceholder}
           className="serif mt-1 w-full bg-transparent text-[28px] leading-tight text-ink outline-none placeholder:text-ink-3"
         />
       </label>
       <label className="block">
-        <span className="eyebrow">Questions it tests</span>
+        <span className="eyebrow">{copy.life.questions}</span>
         <textarea
           value={draft.questions}
           onChange={(e) => setDraft({ ...draft, questions: e.target.value })}
           rows={2}
-          placeholder="What would you need to find out?"
+          placeholder={copy.life.questionsPlaceholder}
           className="mt-2 w-full resize-none rounded-2xl bg-fill px-4 py-3 text-[15px] text-ink outline-none ring-1 ring-hairline placeholder:text-ink-3 focus:ring-ink-3"
         />
       </label>
@@ -323,13 +334,14 @@ function PlanEditor({ plan, onSave }: { plan: OdysseyPlan; onSave: (p: OdysseyPl
         ))}
       </div>
       <Button type="submit" size="lg" disabled={!draft.title.trim()}>
-        Save plan
+        {copy.life.savePlan}
       </Button>
     </form>
   );
 }
 
 function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void }) {
+  const copy = useCopy();
   const { actions } = useStore();
   const toast = useToast();
   const affected = actions.openPrototypesOf(plan.id);
@@ -360,7 +372,7 @@ function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void
           disabled={!name.trim()}
           onClick={() => {
             actions.setActivePlan(plan.id, { fold: name.trim() });
-            toast(`“${plan.title}” is now your Active Plan.`);
+            toast(copy.life.nowActive(plan.title));
             onDone();
           }}
         >
@@ -372,7 +384,7 @@ function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void
           className="flex-1"
           onClick={() => {
             actions.setActivePlan(plan.id, "close");
-            toast(`“${plan.title}” is now your Active Plan.`);
+            toast(copy.life.nowActive(plan.title));
             onDone();
           }}
         >
@@ -386,6 +398,7 @@ function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void
 // ── Objectives ──────────────────────────────────────────────
 
 function ObjectivesSection() {
+  const copy = useCopy();
   const { state, activeObjectives, quarter, actions } = useStore();
   const [draft, setDraft] = useState("");
   const [adding, setAdding] = useState(false);
@@ -409,21 +422,22 @@ function ObjectivesSection() {
               <div className="min-w-0 flex-1">
                 <p className={clsx("text-[15px] leading-snug", o.status === "dropped" && "line-through")}>{o.title}</p>
                 <p className="tabular mt-0.5 font-mono text-xs text-ink-3">
-                  {done}/{tasks.length} tasks{o.status !== "active" ? ` · ${o.status}` : ""}
+                  {copy.life.objectiveTasks(done, tasks.length)}
+                  {o.status !== "active" ? ` · ${copy.life.objectiveStatus[o.status]}` : ""}
                 </p>
               </div>
               {o.status === "active" ? (
                 <div className="flex gap-1">
-                  <IconButton label={`Mark “${o.title}” done`} onClick={() => actions.setObjectiveStatus(o.id, "done")}>
+                  <IconButton label={copy.life.markDone(o.title)} onClick={() => actions.setObjectiveStatus(o.id, "done")}>
                     <Check size={16} />
                   </IconButton>
-                  <IconButton label={`Drop “${o.title}”`} onClick={() => actions.setObjectiveStatus(o.id, "dropped")}>
+                  <IconButton label={copy.life.drop(o.title)} onClick={() => actions.setObjectiveStatus(o.id, "dropped")}>
                     <X size={16} />
                   </IconButton>
                 </div>
               ) : (
                 <button type="button" onClick={() => actions.setObjectiveStatus(o.id, "active")} className="h-9 px-2 text-xs text-ink-3 hover:text-ink">
-                  Undo
+                  {copy.common.undo}
                 </button>
               )}
             </li>
@@ -442,9 +456,9 @@ function ObjectivesSection() {
               setAdding(false);
             }}
           >
-            <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="True by the end of this quarter…" className="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-ink-3" />
+            <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={copy.life.objectivePlaceholder} className="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-ink-3" />
             <Button size="sm" type="submit" disabled={!draft.trim()}>
-              Add
+              {copy.common.add}
             </Button>
           </form>
         ) : (
@@ -489,6 +503,8 @@ function IconButton({ label, onClick, children }: { label: string; onClick: () =
 // ── Decisions ───────────────────────────────────────────────
 
 function DecisionsSection() {
+  const copy = useCopy();
+  const formatDate = useFormatDate();
   const { state } = useStore();
   const [open, setOpen] = useState(false);
   return (
@@ -512,7 +528,7 @@ function DecisionsSection() {
               <li key={d.id} className="relative pb-8 last:pb-0">
                 <span className="absolute -left-[31px] top-1.5 size-2.5 rounded-full bg-ink ring-4 ring-[color:var(--glass)]" aria-hidden />
                 <p className="tabular font-mono text-xs text-ink-3">
-                  {new Date(`${d.date}T12:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                  {formatDate(new Date(`${d.date}T12:00:00`), { day: "numeric", month: "short", year: "numeric" })}
                 </p>
                 <p className="serif mt-1 text-2xl leading-snug">{d.decision}</p>
                 {d.drivenBy && <p className="mt-1 text-sm text-ink-2">{d.drivenBy}</p>}
@@ -534,6 +550,7 @@ function DecisionsSection() {
 }
 
 function DecisionForm({ onDone }: { onDone: () => void }) {
+  const copy = useCopy();
   const { state, actions } = useStore();
   const [decision, setDecision] = useState("");
   const [drivenBy, setDrivenBy] = useState("");
@@ -547,10 +564,10 @@ function DecisionForm({ onDone }: { onDone: () => void }) {
         onDone();
       }}
     >
-      <input autoFocus value={decision} onChange={(e) => setDecision(e.target.value)} placeholder="What did you decide?" className="serif w-full bg-transparent text-[28px] leading-tight outline-none placeholder:text-ink-3" />
+      <input autoFocus value={decision} onChange={(e) => setDecision(e.target.value)} placeholder={copy.life.decisionPlaceholder} className="serif w-full bg-transparent text-[28px] leading-tight outline-none placeholder:text-ink-3" />
       <label className="block">
         <span className="eyebrow">{copy.life.drivenBy}</span>
-        <textarea value={drivenBy} onChange={(e) => setDrivenBy(e.target.value)} rows={2} placeholder="Your Lifeview, a gauge, a prototype that taught you something…" className="mt-2 w-full resize-none rounded-2xl bg-fill px-4 py-3 text-[15px] outline-none ring-1 ring-hairline placeholder:text-ink-3 focus:ring-ink-3" />
+        <textarea value={drivenBy} onChange={(e) => setDrivenBy(e.target.value)} rows={2} placeholder={copy.life.drivenByPlaceholder} className="mt-2 w-full resize-none rounded-2xl bg-fill px-4 py-3 text-[15px] outline-none ring-1 ring-hairline placeholder:text-ink-3 focus:ring-ink-3" />
       </label>
       <div className="flex flex-wrap gap-2">
         {state.plans

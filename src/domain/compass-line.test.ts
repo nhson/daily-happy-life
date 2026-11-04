@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compassLineFor } from "./compass-line";
 import { addDays } from "./logical-day";
-import { MINDSETS } from "./mindsets";
+import { MINDSET_KEYS } from "./mindsets";
 
 const full = {
   userId: "user_1",
@@ -45,15 +45,15 @@ describe("compassLineFor", () => {
     const seen = new Set<string>();
     for (let n = 0; n < 40; n++) {
       const line = compassLineFor({ ...full, date: addDays("2026-11-03", n) });
-      if (line.source === "mindset") seen.add(line.text);
+      if (line.source === "mindset") seen.add(line.mindset);
     }
-    expect(seen.size).toBe(MINDSETS.length);
+    expect(seen.size).toBe(MINDSET_KEYS.length);
   });
 
   it("falls back to mindsets when the Compass is still empty", () => {
     const line = compassLineFor({ userId: "u", compass: null, activePlanTitle: null, date: "2026-11-03" });
-    expect(line.source).toBe("mindset");
-    expect(line.text.length).toBeGreaterThan(0);
+    // A key, not words: the screen shows it in the user's language.
+    expect(line.source === "mindset" && MINDSET_KEYS.includes(line.mindset)).toBe(true);
   });
 
   it("offsets the rotation per user", () => {

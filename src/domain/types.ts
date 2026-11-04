@@ -80,4 +80,6 @@ export interface UserSettings {
   eveningHour: number;
   dayEndHour: number;
   theme: "sky" | "light" | "dark";
+  /** UI language; Vietnamese by default. */
+  locale: "vi" | "en";
 }

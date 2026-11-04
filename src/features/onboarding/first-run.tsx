@@ -5,7 +5,7 @@ import { clsx } from "clsx";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { copy } from "@/copy/en";
+import { useCopy } from "@/copy";
 import { useStore } from "@/data/mock-store";
 import { Button } from "@/ui/controls";
 import { AppMark } from "@/ui/glyphs";
@@ -16,6 +16,7 @@ const DAWN = [255, 290, 325, 360, 395];
 const SUNRISE = 480;
 
 export function FirstRun() {
+  const copy = useCopy();
   const { actions } = useStore();
   const { setOverride } = useSky();
   const router = useRouter();
@@ -66,7 +67,7 @@ export function FirstRun() {
       <div className="flex items-center justify-between">
         <AppMark size={30} />
         {step > 0 && !rising && (
-          <ol className="flex gap-4 text-xs" aria-label="Progress">
+          <ol className="flex gap-4 text-xs" aria-label={copy.common.progress}>
             {copy.welcome.steps.map((s, i) => (
               <li key={s} className={i + 1 <= step ? "text-ink" : "text-ink-3"}>
                 {s}
@@ -118,8 +119,8 @@ export function FirstRun() {
                       autoFocus={i === 0}
                       value={t}
                       onChange={(e) => setTasks(tasks.map((x, j) => (j === i ? e.target.value : x)))}
-                      placeholder={`Step ${i + 1}`}
-                      aria-label={`Step ${i + 1}`}
+                      placeholder={copy.common.step(i + 1)}
+                      aria-label={copy.common.step(i + 1)}
                       className="glass h-14 rounded-2xl px-5 text-[16px] text-ink outline-none placeholder:text-ink-3"
                     />
                   ))}
@@ -160,7 +161,7 @@ export function FirstRun() {
             <div className="flex items-center justify-between">
               {step > 0 ? (
                 <button type="button" onClick={() => setStep(step - 1)} className="h-11 px-1 text-sm text-ink-2">
-                  Back
+                  {copy.common.back}
                 </button>
               ) : (
                 <span />
@@ -177,6 +178,7 @@ export function FirstRun() {
 }
 
 function Field({ q, ex, value, onChange, autoFocus }: { q: string; ex: string; value: string; onChange: (v: string) => void; autoFocus?: boolean }) {
+  const copy = useCopy();
   const [showEx, setShowEx] = useState(false);
   return (
     <label className="block">
@@ -187,7 +189,7 @@ function Field({ q, ex, value, onChange, autoFocus }: { q: string; ex: string; v
         onChange={(e) => onChange(e.target.value)}
         rows={2}
         className="glass mt-4 w-full resize-none rounded-2xl px-5 py-4 text-lg leading-snug text-ink outline-none placeholder:text-ink-3"
-        placeholder="One sentence is enough."
+        placeholder={copy.welcome.sentencePlaceholder}
       />
       {showEx ? (
         <span className="serif mt-2 block text-lg italic text-ink-2">“{ex}”</span>

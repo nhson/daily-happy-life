@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import { Star, Check } from "lucide-react";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useRef } from "react";
-import { copy } from "@/copy/en";
+import { useCopy } from "@/copy";
 import type { Task } from "@/domain/types";
 import { useStore } from "@/data/mock-store";
 import { KindDot, kindColor } from "@/ui/glyphs";
@@ -14,11 +14,12 @@ import { useToast } from "@/ui/toast";
 
 export function useWhy() {
   const { state } = useStore();
+  const copy = useCopy();
   return (t: Task): string => {
     if (t.kind === "objective") return state.objectives.find((o) => o.id === t.objectiveId)?.title ?? copy.kinds.objective;
     if (t.kind === "prototype") {
       const p = state.plans.find((x) => x.id === t.prototypePlanId);
-      return `${copy.kinds.prototype} · ${p?.title || `Plan ${p?.slot ?? ""}`}`;
+      return `${copy.kinds.prototype} · ${p?.title || copy.life.plan(p?.slot ?? 0)}`;
     }
     return copy.kinds.maintenance;
   };
@@ -35,6 +36,7 @@ export function TaskRow({
   showWhy?: boolean;
   compact?: boolean;
 }) {
+  const copy = useCopy();
   const { today, top3, actions } = useStore();
   const { celebrate } = useSky();
   const toast = useToast();
@@ -128,7 +130,7 @@ export function TaskRow({
         <button
           type="button"
           onClick={complete}
-          aria-label={done ? `Mark “${task.title}” not done` : `Complete “${task.title}”`}
+          aria-label={done ? copy.taskRow.notDone(task.title) : copy.taskRow.complete(task.title)}
           className="grid size-11 shrink-0 place-items-center"
         >
           <span
@@ -173,7 +175,7 @@ export function TaskRow({
           type="button"
           onClick={flipTop3}
           aria-pressed={inTop3}
-          aria-label={inTop3 ? "Remove from Top 3" : "Add to Top 3"}
+          aria-label={inTop3 ? copy.taskRow.removeTop3 : copy.taskRow.addTop3}
           className={clsx("grid size-11 shrink-0 place-items-center rounded-full transition-opacity", inTop3 ? "opacity-100" : "opacity-40 hover:opacity-80")}
         >
           <Star size={18} strokeWidth={1.8} fill={inTop3 ? "var(--kind-objective)" : "none"} color={inTop3 ? "var(--kind-objective)" : "currentColor"} />

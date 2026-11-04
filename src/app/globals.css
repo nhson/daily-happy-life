@@ -78,7 +78,7 @@
   --color-flow: var(--m-flow);
   --color-community: var(--m-community);
   --font-sans: var(--font-geist);
-  --font-serif: var(--font-instrument);
+  --font-serif: var(--font-serif-display);
   --font-mono: var(--font-geist-mono);
   --ease-spring: var(--ease-out);
 }
@@ -148,7 +148,13 @@ textarea.serif:focus-visible {
   box-shadow: var(--shadow);
 }
 
-.serif { font-family: var(--font-instrument), ui-serif, Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+/* Noto Serif Display, narrowed: keeps a tall, compact headline rhythm and covers Vietnamese. */
+.serif {
+  font-family: var(--font-serif-display), ui-serif, Georgia, serif;
+  font-variation-settings: "wdth" 72;
+  font-weight: 380;
+  letter-spacing: -0.01em;
+}
 .tabular { font-variant-numeric: tabular-nums; }
 .eyebrow { font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; color: var(--ink-3); }
 

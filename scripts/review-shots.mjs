@@ -1,10 +1,36 @@
 // Phase 0 review gate: screenshots of every screen × sky state at phone and desktop sizes.
-// Usage: node scripts/review-shots.mjs [baseUrl] [outDir]
+// Usage: node scripts/review-shots.mjs [baseUrl] [outDir] [--lang=vi|en]   (default vi → review/vi/*.png)
+// Button names come from the copy dictionaries, so the walk works in either language.
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
+import { en } from "../src/copy/en.ts";
+import { vi } from "../src/copy/vi.ts";
 
-const base = process.argv[2] ?? "http://localhost:3210";
-const out = process.argv[3] ?? "review";
+const args = process.argv.slice(2);
+const lang = args.find((a) => a.startsWith("--lang="))?.slice(7) ?? "vi";
+const [base = "http://localhost:3210", outRoot = "review"] = args.filter((a) => !a.startsWith("--"));
+const c = { vi, en }[lang];
+if (!c) throw new Error(`Unknown --lang=${lang}`);
+const out = `${outRoot}/${lang}`;
+// What a user of that language would type (user content is never translated, so sample it per language).
+const typed = {
+  en: {
+    capture: "Call Mum about the weekend",
+    note: "Walked home the long way, by the lake.",
+    workview: "Work is how I turn curiosity into useful tools.",
+    lifeview: "Life is for the people I love and learning slowly.",
+    objective: "Run three mornings a week",
+    steps: ["Buy running shoes", "Map a 5k loop by the river", "Ask Minh to join on Saturdays"],
+  },
+  vi: {
+    capture: "Gọi cho mẹ về chuyện cuối tuần",
+    note: "Đi bộ về nhà đường vòng, men theo hồ.",
+    workview: "Công việc là cách mình biến sự tò mò thành những công cụ có ích.",
+    lifeview: "Cuộc sống dành cho những người mình thương và việc học thật chậm.",
+    objective: "Chạy bộ ba buổi sáng mỗi tuần",
+    steps: ["Mua giày chạy bộ", "Vẽ một vòng chạy 5km dọc bờ sông", "Rủ Minh chạy cùng vào thứ Bảy"],
+  },
+}[lang];
 mkdirSync(out, { recursive: true });
 
 const sizes = {
@@ -16,7 +42,7 @@ const browser = await chromium.launch();
 const errors = [];
 
 for (const [name, opts] of Object.entries(sizes)) {
-  const ctx = await browser.newContext({ ...opts, timezoneId: "Asia/Ho_Chi_Minh", locale: "en-GB" });
+  const ctx = await browser.newContext({ ...opts, timezoneId: "Asia/Ho_Chi_Minh", locale: lang === "vi" ? "vi-VN" : "en-GB" });
   const page = await ctx.newPage();
   page.on("console", (m) => m.type() === "error" && errors.push(`[${name}] ${m.text()}`));
   page.on("pageerror", (e) => errors.push(`[${name}] pageerror: ${e.message}`));
@@ -25,27 +51,27 @@ for (const [name, opts] of Object.entries(sizes)) {
     await page.screenshot({ path: `${out}/${name}-${id}.png`, fullPage: full });
   };
   const go = async (path, wait = 1600) => {
-    await page.goto(base + path);
+    await page.goto(base + path + (path.includes("?") ? "&" : "?") + `lang=${lang}`);
     await page.waitForTimeout(wait);
   };
 
   // Morning ritual
   await go("/today?reset=1&at=06:45", 3200);
   await shot("01-morning-compass");
-  await page.getByRole("button", { name: "Begin the day" }).click();
+  await page.getByRole("button", { name: c.morning.begin }).click();
   await page.waitForTimeout(700);
   await shot("02-morning-top3");
-  const rows = page.locator('[aria-label="Morning ritual"] button[aria-pressed]');
+  const rows = page.locator(`[aria-label="${c.today.ritual}"] button[aria-pressed]`);
   for (let i = 0; i < 3 && i < (await rows.count()); i++) {
     if ((await rows.nth(i).getAttribute("aria-pressed")) !== "true") await rows.nth(i).click();
   }
   await shot("03-morning-top3-picked");
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: c.morning.continue }).click();
   await page.waitForTimeout(700);
-  await page.getByPlaceholder("sit down after lunch").fill("sit down after lunch");
-  await page.getByPlaceholder("write for twenty minutes").fill("write for twenty minutes");
+  await page.getByPlaceholder(c.morning.whenPlaceholder).fill("sit down after lunch");
+  await page.getByPlaceholder(c.morning.thenPlaceholder).fill("write for twenty minutes");
   await shot("04-morning-intention");
-  await page.getByRole("button", { name: "Set my intention" }).click();
+  await page.getByRole("button", { name: c.morning.set }).click();
   await page.waitForTimeout(1400);
 
   // Day
@@ -55,7 +81,7 @@ for (const [name, opts] of Object.entries(sizes)) {
   await shot("06-tasks", true);
   await page.keyboard.press(process.platform === "darwin" ? "Meta+k" : "Control+k");
   await page.waitForTimeout(700);
-  await page.keyboard.type("Call Mum about the weekend");
+  await page.keyboard.type(typed.capture);
   await shot("07-capture");
   await page.keyboard.press("Escape");
   await go("/life?at=16:10", 2200);
@@ -64,38 +90,38 @@ for (const [name, opts] of Object.entries(sizes)) {
   // Evening → night
   await go("/today?at=19:20", 2600);
   await shot("09-evening-checkin-sheet");
-  await page.getByRole("radio", { name: "Energy 4 of 5" }).click();
-  await page.getByRole("radio", { name: "Engagement 5 of 5" }).click();
-  await page.getByRole("button", { name: /^Flow:/ }).click();
-  await page.getByRole("button", { name: /^Community:/ }).click();
-  await page.getByPlaceholder("A moment worth keeping").fill("Walked home the long way, by the lake.");
+  await page.getByRole("radio", { name: c.common.rating(c.checkIn.energy, 4, 5) }).click();
+  await page.getByRole("radio", { name: c.common.rating(c.checkIn.engagement, 5, 5) }).click();
+  await page.getByRole("button", { name: `${c.meaning.flow.name}: ${c.meaning.flow.hint}` }).click();
+  await page.getByRole("button", { name: `${c.meaning.community.name}: ${c.meaning.community.hint}` }).click();
+  await page.getByPlaceholder(c.checkIn.notePlaceholder).fill(typed.note);
   await shot("10-evening-checkin-filled");
-  await page.getByRole("button", { name: "Close the day" }).last().click();
+  await page.getByRole("button", { name: c.checkIn.close, exact: true }).last().click();
   await page.waitForTimeout(3200);
   await shot("11-night-summary", name === "phone");
 
   // First run
   await go("/welcome?fresh=1&at=05:00", 1800);
   await shot("12-welcome");
-  await page.getByRole("button", { name: "Start" }).click();
+  await page.getByRole("button", { name: c.welcome.start, exact: true }).click();
   await page.waitForTimeout(900);
   await shot("13-welcome-compass");
 
   // Onboarding: finish setup, then the in-context tips, nudge and reminder ask (SPEC §7).
-  await page.locator("textarea").nth(0).fill("Work is how I turn curiosity into useful tools.");
-  await page.locator("textarea").nth(1).fill("Life is for the people I love and learning slowly.");
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.locator("textarea").nth(0).fill(typed.workview);
+  await page.locator("textarea").nth(1).fill(typed.lifeview);
+  await page.getByRole("button", { name: c.welcome.next, exact: true }).click();
   await page.waitForTimeout(700);
-  await page.locator("textarea").first().fill("Run three mornings a week");
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.locator("textarea").first().fill(typed.objective);
+  await page.getByRole("button", { name: c.welcome.next, exact: true }).click();
   await page.waitForTimeout(700);
-  for (const [i, t] of ["Buy running shoes", "Map a 5k loop by the river", "Ask Minh to join on Saturdays"].entries())
-    await page.getByLabel(`Step ${i + 1}`).fill(t);
-  await page.getByRole("button", { name: "Next", exact: true }).click();
+  for (const [i, t] of typed.steps.entries())
+    await page.getByLabel(c.common.step(i + 1), { exact: true }).fill(t);
+  await page.getByRole("button", { name: c.welcome.next, exact: true }).click();
   await page.waitForTimeout(700);
-  await page.getByRole("button", { name: "Ask Minh to join on Saturdays" }).click();
+  await page.getByRole("button", { name: typed.steps[2] }).click();
   await shot("14-welcome-for-today");
-  await page.getByRole("button", { name: "Watch the sun come up" }).click();
+  await page.getByRole("button", { name: c.welcome.finish }).click();
   await page.waitForTimeout(6500);
 
   await go("/today?at=11:30", 2400);
@@ -106,10 +132,10 @@ for (const [name, opts] of Object.entries(sizes)) {
   await page.keyboard.press("Escape");
 
   await go("/today?day=2&at=11:30", 2400);
-  await page.getByRole("button", { name: "Got it" }).click();
+  await page.getByRole("button", { name: c.tips.gotIt }).click();
   await page.waitForTimeout(900);
   await shot("17-day2-odyssey-nudge");
-  await page.getByRole("button", { name: "Morning ritual" }).click();
+  await page.getByRole("button", { name: c.today.ritual }).click();
   await page.waitForTimeout(3000);
   await shot("18-morning-tip");
 
@@ -120,13 +146,13 @@ for (const [name, opts] of Object.entries(sizes)) {
 
   await go("/today?at=19:20", 2000);
   // The sheet rises by itself only once per evening, and step 09 already used that.
-  await page.getByRole("button", { name: "Check in" }).click();
+  await page.getByRole("button", { name: c.today.checkIn, exact: true }).first().click();
   await page.waitForTimeout(900);
   await shot("21-evening-tip");
-  await page.getByRole("button", { name: "Close the day" }).last().click();
+  await page.getByRole("button", { name: c.checkIn.close, exact: true }).last().click();
   await page.waitForTimeout(3200);
   await shot("22-closed-day-tip");
-  await page.getByRole("button", { name: "Got it" }).click();
+  await page.getByRole("button", { name: c.tips.gotIt }).click();
   await page.waitForTimeout(900);
   await shot("23-reminder-ask");
 

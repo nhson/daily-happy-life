@@ -3,8 +3,14 @@
 import { clsx } from "clsx";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
-import { copy } from "@/copy/en";
+import { useCopy } from "@/copy";
 import type { CompassLine } from "@/domain/compass-line";
+import type { Copy } from "@/copy";
+
+/** The words to show: the user's own, or a Mindset line in their language. */
+export function compassLineText(line: CompassLine, copy: Copy): string {
+  return line.source === "mindset" ? copy.mindsets[line.mindset].line : line.text;
+}
 
 /** Today's Compass Line, revealed word by word. Tap to see where it comes from. */
 export function CompassHero({
@@ -18,10 +24,13 @@ export function CompassHero({
   glow?: boolean;
   delay?: number;
 }) {
+  const copy = useCopy();
   const [showSource, setShowSource] = useState(false);
   const reduce = useReducedMotion();
-  const words = line.text.split(/\s+/);
-  const source = line.source === "mindset" ? `${line.label} · ${copy.compassSource.mindset}` : copy.compassSource[line.source];
+  const text = compassLineText(line, copy);
+  const words = text.split(/\s+/);
+  const source =
+    line.source === "mindset" ? `${copy.mindsets[line.mindset].name} · ${copy.compassSource.mindset}` : copy.compassSource[line.source];
 
   return (
     <figure>
@@ -29,7 +38,7 @@ export function CompassHero({
         type="button"
         onClick={() => setShowSource((s) => !s)}
         className="block w-full text-left"
-        aria-label={`${line.text} — ${source}`}
+        aria-label={`${text} — ${source}`}
         aria-expanded={showSource}
       >
         <blockquote
@@ -43,7 +52,7 @@ export function CompassHero({
         >
           {words.map((w, i) => (
             <motion.span
-              key={`${line.text}-${i}`}
+              key={`${text}-${i}`}
               className="inline-block whitespace-pre"
               initial={reduce ? { opacity: 0 } : { opacity: 0, y: "0.35em", filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}

@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Download, Lightbulb } from "lucide-react";
 import Link from "next/link";
-import { copy } from "@/copy/en";
+import { LOCALE_NAME, LOCALES, useCopy } from "@/copy";
 import { useStore } from "@/data/mock-store";
 import { Button, Chip } from "@/ui/controls";
 import { useToast } from "@/ui/toast";
@@ -11,6 +11,7 @@ const hours = Array.from({ length: 24 }, (_, h) => h);
 const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
 export function SettingsView() {
+  const copy = useCopy();
   const { state, actions } = useStore();
   const toast = useToast();
   const s = state.settings;
@@ -53,6 +54,17 @@ export function SettingsView() {
           <input type="checkbox" checked={s.sound} onChange={(e) => actions.updateSettings({ sound: e.target.checked })} className="size-5 accent-[var(--kind-objective)]" />
         </Row>
       </div>
+
+      <section>
+        <p className="eyebrow mb-3">{copy.settings.language}</p>
+        <div className="flex flex-wrap gap-2">
+          {LOCALES.map((l) => (
+            <Chip key={l} selected={s.locale === l} onClick={() => actions.updateSettings({ locale: l })}>
+              <span lang={l}>{LOCALE_NAME[l]}</span>
+            </Chip>
+          ))}
+        </div>
+      </section>
 
       <section>
         <p className="eyebrow mb-3">{copy.settings.theme}</p>

@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "review": "node scripts/review-shots.mjs"
+    "review": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/review-shots.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

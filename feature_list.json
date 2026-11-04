@@ -12,7 +12,7 @@
     {
       "id": "feat-001",
       "name": "Phase 0 gate — owner design review",
-      "description": "Playwright screenshots of every screen × sky state at phone + desktop (bun run review → review/*.png) plus a morning-ritual recording. Owner approves or redirects.",
+      "description": "Playwright screenshots of every screen × sky state at phone + desktop in Vietnamese and English (bun run review → review/vi/*.png; bun run review -- --lang=en → review/en/*.png) plus a morning-ritual recording. Owner approves or redirects.",
       "dependencies": [
         "feat-000"
       ],

@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import { ArrowRight, Plus } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
-import { copy } from "@/copy/en";
+import { useCopy, useFormatDate } from "@/copy";
 import { Tip } from "@/ui/tip";
 import { useStore } from "@/data/mock-store";
 import { useCapture } from "@/features/capture/capture";
@@ -12,12 +12,13 @@ import { Button } from "@/ui/controls";
 import { KindDot, kindColor } from "@/ui/glyphs";
 import { tap } from "@/ui/feedback";
 import { useWhy } from "@/features/tasks/task-row";
-import { CompassHero } from "./compass-hero";
+import { CompassHero, compassLineText } from "./compass-hero";
 
-const fmtDate = (d: Date) => d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
 
 /** The Morning Ritual: Compass Line → Top 3 → Intention. Full-screen, once per Logical Day. */
 export function MorningFlow({ onClose }: { onClose: () => void }) {
+  const formatDate = useFormatDate();
+  const copy = useCopy();
   const { now, compassLine, open, carryOver, log, tipUnseen, actions } = useStore();
   const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
@@ -55,7 +56,7 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
     <motion.div
       role="dialog"
       aria-modal="true"
-      aria-label="Morning ritual"
+      aria-label={copy.today.ritual}
       className="fixed inset-0 z-40 flex flex-col"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -64,7 +65,7 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
     >
       <div className="mx-auto flex h-dvh w-full min-w-0 max-w-xl flex-col px-6 pb-[max(env(safe-area-inset-bottom),20px)] pt-[max(env(safe-area-inset-top),20px)]">
         <div className="flex shrink-0 items-center justify-between">
-          <div className="flex gap-1.5" aria-label={`Step ${step + 1} of 3`}>
+          <div className="flex gap-1.5" aria-label={copy.common.stepOf(step + 1, 3)}>
             {[0, 1, 2].map((i) => (
               <motion.span
                 key={i}
@@ -83,13 +84,13 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
           {step === 0 && (
             <motion.section key="compass" {...slide} transition={{ duration: 0.5 }} className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-10">
               <motion.p className="eyebrow mb-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-                {fmtDate(now)}
+                {formatDate(now, { weekday: "long", day: "numeric", month: "long" })}
               </motion.p>
               <CompassHero line={compassLine} size="xl" delay={0.5} />
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 + compassLine.text.split(" ").length * 0.075 }}
+                transition={{ delay: 0.9 + compassLineText(compassLine, copy).split(" ").length * 0.075 }}
                 className="mt-12"
               >
                 <Button size="lg" onClick={() => setStep(1)}>
@@ -114,7 +115,7 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
               </div>
               <div className="flex shrink-0 items-center justify-between pt-3">
                 <button type="button" onClick={() => setStep(0)} className="h-11 px-2 text-sm text-ink-2">
-                  Back
+                  {copy.common.back}
                 </button>
                 <Button size="lg" onClick={() => setStep(2)}>
                   {copy.morning.continue} <ArrowRight size={18} />
@@ -134,7 +135,7 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
               </div>
               <div className="mt-auto flex items-center justify-between pt-8">
                 <button type="button" onClick={() => setStep(1)} className="h-11 px-2 text-sm text-ink-2">
-                  Back
+                  {copy.common.back}
                 </button>
                 <Button size="lg" onClick={finish}>
                   {when.trim() && then.trim() ? copy.morning.set : copy.today.startDay}
@@ -181,6 +182,7 @@ function Top3Picker({
   carryOverIds: string[];
   openIds: string[];
 }) {
+  const copy = useCopy();
   const { state } = useStore();
   const capture = useCapture();
   const why = useWhy();

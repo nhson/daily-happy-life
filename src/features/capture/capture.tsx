@@ -3,7 +3,7 @@
 import { ArrowUp, Plus } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { copy } from "@/copy/en";
+import { useCopy } from "@/copy";
 import { Tip } from "@/ui/tip";
 import { useStore } from "@/data/mock-store";
 import type { KindChoice } from "@/data/state";
@@ -22,6 +22,7 @@ const same = (a: KindChoice | null, b: KindChoice) =>
   (a.kind !== "prototype" || a.planId === (b as typeof a).planId);
 
 export function CaptureProvider({ children }: { children: ReactNode }) {
+  const copy = useCopy();
   const [open, setOpen] = useState(false);
   const show = useCallback(() => setOpen(true), []);
 
@@ -47,6 +48,7 @@ export function CaptureProvider({ children }: { children: ReactNode }) {
 }
 
 function CaptureForm({ onDone }: { onDone: () => void }) {
+  const copy = useCopy();
   const { state, activeObjectives, tipUnseen, actions } = useStore();
   const input = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
@@ -60,7 +62,7 @@ function CaptureForm({ onDone }: { onDone: () => void }) {
     for (const p of state.plans.filter((p) => !p.isActive && p.title))
       list.push({ choice: { kind: "prototype", planId: p.id }, label: p.title, color: kindColor.prototype, kind: "prototype" });
     return list;
-  }, [activeObjectives, state.plans]);
+  }, [activeObjectives, state.plans, copy]);
 
   const [choice, setChoice] = useState<KindChoice>(
     () => options.find((o) => same(state.lastKind, o.choice))?.choice ?? options[0].choice,
@@ -173,6 +175,7 @@ function CaptureForm({ onDone }: { onDone: () => void }) {
 }
 
 export function CaptureButton() {
+  const copy = useCopy();
   const open = useCapture();
   return (
     <motion.button

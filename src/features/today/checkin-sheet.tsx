@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { copy } from "@/copy/en";
+import { useCopy } from "@/copy";
 import { Tip } from "@/ui/tip";
 import { logicalDate } from "@/domain/logical-day";
 import { MEANING_SOURCES, type MeaningSource } from "@/domain/types";
@@ -15,6 +15,7 @@ import { MeaningGlyph, meaningColor } from "@/ui/glyphs";
 
 /** The Evening Check-in — one sheet, one commit. ~60 seconds. */
 export function CheckInForm({ onClosed }: { onClosed: () => void }) {
+  const copy = useCopy();
   const { state, today, top3, log, tipUnseen, actions } = useStore();
   const [energy, setEnergy] = useState<number | null>(log.energy);
   const [engagement, setEngagement] = useState<number | null>(log.engagement);

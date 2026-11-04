@@ -4,7 +4,7 @@ import { clsx } from "clsx";
 import { Check, Search, SlidersHorizontal, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { copy } from "@/copy/en";
+import { LOCALE_TAG, useCopy, useLocale, type Copy } from "@/copy";
 import { addDays, logicalDate } from "@/domain/logical-day";
 import type { Task, TaskKind } from "@/domain/types";
 import { useStore } from "@/data/mock-store";
@@ -20,6 +20,8 @@ const sameFilter = (a: Filter, b: Filter) =>
 
 /** Open tasks and this week’s Done behind a segmented control. Search (with the "why" filter inside) opens on demand. */
 export function TasksPanel({ keyboard = false, title = true }: { keyboard?: boolean; title?: boolean }) {
+  const copy = useCopy();
+  const locale = useLocale();
   const { state, open, activeObjectives, today } = useStore();
   const [tab, setTab] = useState<Tab>("open");
   const [filter, setFilter] = useState<Filter>({ kind: "all" });
@@ -71,7 +73,7 @@ export function TasksPanel({ keyboard = false, title = true }: { keyboard?: bool
       g.push({ key: p.id, label: `${copy.kinds.prototype} · ${p.title || `Plan ${p.slot}`}`, kind: "prototype", tasks: open.filter((t) => t.prototypePlanId === p.id) });
     g.push({ key: "maintenance", label: copy.kinds.maintenance, kind: "maintenance", tasks: open.filter((t) => t.kind === "maintenance") });
     return g.map((x) => ({ ...x, tasks: x.tasks.filter(matches) })).filter((x) => x.tasks.length);
-  }, [activeObjectives, state.plans, open, matches]);
+  }, [activeObjectives, state.plans, open, matches, copy]);
 
   const doneGroups = useMemo(() => {
     const byDay = new Map<string, Task[]>();
@@ -79,8 +81,8 @@ export function TasksPanel({ keyboard = false, title = true }: { keyboard?: bool
       const d = logicalDate(new Date(t.doneAt!), timeZone, dayEndHour);
       byDay.set(d, [...(byDay.get(d) ?? []), t]);
     }
-    return [...byDay].map(([date, tasks]) => ({ key: date, label: dayLabel(date, today), tasks }));
-  }, [done, matches, timeZone, dayEndHour, today]);
+    return [...byDay].map(([date, tasks]) => ({ key: date, label: dayLabel(date, today, copy, LOCALE_TAG[locale]), tasks }));
+  }, [done, matches, timeZone, dayEndHour, today, copy, locale]);
 
   const groups = tab === "open" ? openGroups : doneGroups;
   const flat = useMemo(() => groups.flatMap((g) => g.tasks), [groups]);
@@ -185,10 +187,10 @@ export function TasksPanel({ keyboard = false, title = true }: { keyboard?: bool
   );
 }
 
-function dayLabel(date: string, today: string): string {
+function dayLabel(date: string, today: string, copy: Copy, localeTag: string): string {
   if (date === today) return copy.tasks.today;
   if (date === addDays(today, -1)) return copy.tasks.yesterday;
-  return new Intl.DateTimeFormat("en", { weekday: "long", day: "numeric", month: "short", timeZone: "UTC" }).format(
+  return new Intl.DateTimeFormat(localeTag, { weekday: "long", day: "numeric", month: "short", timeZone: "UTC" }).format(
     new Date(`${date}T12:00:00Z`),
   );
 }
@@ -203,6 +205,7 @@ function Segmented<T extends string>({
   items: { value: T; label: string; count: number }[];
 }) {
   const id = useId();
+  const copy = useCopy();
   return (
     <div role="tablist" aria-label={copy.tasks.title} className="glass grid h-12 grid-cols-2 gap-1 rounded-full p-1">
       {items.map((it) => {
@@ -249,6 +252,7 @@ function SearchBar({
   focusTick: number;
   onClose: () => void;
 }) {
+  const copy = useCopy();
   const [menu, setMenu] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const root = useRef<HTMLDivElement>(null);

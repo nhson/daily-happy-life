@@ -29,7 +29,7 @@ Before writing code:
 - **Human gates**: PLAN.md gates (e.g. Phase 0 owner review) need explicit owner approval — never mark them done yourself
 - **Domain is pure and test-first**: `src/domain/` imports nothing from `data/` or `ui/`; write the Vitest test before the code
 - **Every DB query takes `userId`** (Slice 1+)
-- **All user-facing copy lives in `src/copy/en.ts`** — quiet, warm, second person, no "!"
+- **All user-facing copy lives in `src/copy/vi.ts` (default) and `src/copy/en.ts`**, read with `useCopy()` — quiet, warm, second person ("bạn"), no "!"; Vietnamese terms per GLOSSARY.md
 - **Next.js 16 differs from training data**: read `node_modules/next/dist/docs/` before using a Next API
 - **Record decisions**: build-time decisions go in PLAN.md "Decisions made"; architectural ones get an ADR
 
@@ -46,7 +46,7 @@ A feature is done only when ALL of the following are true:
 
 - [ ] The slice's "Done when" in `feature_list.json` / PLAN.md is demonstrably met
 - [ ] `./init.sh` passes (typecheck, lint, tests, build)
-- [ ] UI changes checked visually (`bun dev` + `bun run review` → `review/*.png`)
+- [ ] UI changes checked visually (`bun dev` + `bun run review` → `review/vi/*.png`; add `-- --lang=en` for English)
 - [ ] Evidence (command and result) recorded in `feature_list.json` `evidence`
 - [ ] Repository remains restartable from `./init.sh`
 

@@ -4,7 +4,7 @@ import { BellRing, Compass } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
-import { copy } from "@/copy/en";
+import { useCopy } from "@/copy";
 import { useStore } from "@/data/mock-store";
 import { Button } from "@/ui/controls";
 import { Tip } from "@/ui/tip";
@@ -14,6 +14,7 @@ const useIsIos = () => useSyncExternalStore(() => () => {}, isIos, () => false);
 
 /** The one onboarding card Today shows, if any: tip → reminder ask → Odyssey nudge (SPEC §7). */
 export function TodayOnboardingCard() {
+  const copy = useCopy();
   const { card, actions } = useStore();
   const reduce = useReducedMotion();
   const key = !card ? "none" : card.type === "tip" ? card.tip : card.type === "nudge" ? `nudge-${card.slot}` : "reminder";
@@ -38,6 +39,7 @@ export function TodayOnboardingCard() {
 }
 
 function ReminderAsk({ onAnswer }: { onAnswer: () => void }) {
+  const copy = useCopy();
   const ios = useIsIos();
   return (
     <section aria-label={copy.onboarding.reminderTitle} className="glass rounded-[24px] p-5">
@@ -66,6 +68,7 @@ function ReminderAsk({ onAnswer }: { onAnswer: () => void }) {
 }
 
 function OdysseyNudge({ slot, onLater }: { slot: 1 | 2 | 3; onLater: () => void }) {
+  const copy = useCopy();
   return (
     <section aria-label={copy.onboarding.nudgeEyebrow(slot)} className="rounded-[24px] border-[1.5px] border-dashed border-ink-3/50 p-5">
       <p className="eyebrow flex items-center gap-1.5">

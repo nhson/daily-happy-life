@@ -25,7 +25,7 @@ The book exercises are the **setup** (first-run). The daily product is the **tas
 
 - v1 is **for one person** (the owner), built so it **can extend to others** later: real auth, `userId` on every row from day one.
 - **Replaces** the owner's personal/life to-do app. Work tickets stay in work tools. No imports or integrations in the MVP.
-- **English UI**, all copy in one strings file so Vietnamese can be added later.
+- **Vietnamese UI by default, English switchable** in Settings. Everything the user reads follows the language (UI, vi-VN dates, Mindset lines, tips, onboarding, push reminder); what the user writes and JSON export field names never change. Copy lives in typed dictionaries (`src/copy/en.ts`, `src/copy/vi.ts`); Vietnamese addresses the user as "bạn".
 
 ## 3. Success criteria (3 months after launch)
 
@@ -131,7 +131,7 @@ Phone-first PWA; desktop is a wider layout of the same screens. **Three tabs + c
 
 ```
 users         (id, clerkId, timezone, reminderTime, eveningHour, dayEndHour default 4,
-               theme sky|light|dark, pushSubscription jsonb, reminderScheduleId?,
+               theme sky|light|dark, locale vi|en default vi, pushSubscription jsonb, reminderScheduleId?,
                onboardedAt?, onboarding jsonb, createdAt)
                -- onboarding: { setupDate, seenTips[], reminderAskedAt?,
                --   nudges: { "<slot>": { snoozedUntil?, notNowCount } } } — UI progress only
@@ -202,4 +202,4 @@ UI is checked by hand, plus one Playwright smoke test of the full ritual (mornin
 
 ## 12. Out of scope (v1)
 
-Native apps · integrations/imports (Todoist, Calendar) · daily AI chat · social/sharing · habits · calendar view · Vietnamese UI · multi-user onboarding.
+Native apps · integrations/imports (Todoist, Calendar) · daily AI chat · social/sharing · habits · calendar view · multi-user onboarding.

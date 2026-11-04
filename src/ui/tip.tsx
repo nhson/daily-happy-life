@@ -3,13 +3,14 @@
 import { Lightbulb } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
-import { copy } from "@/copy/en";
+import { useCopy } from "@/copy";
 
 /**
  * A one-time onboarding card: quiet, inline, in the page flow — never an overlay.
  * Render it inside <AnimatePresence> or pass `show` so it leaves gently.
  */
 export function Tip({ show = true, onDismiss, children }: { show?: boolean; onDismiss: () => void; children: ReactNode }) {
+  const copy = useCopy();
   const reduce = useReducedMotion();
   return (
     <AnimatePresence initial={false}>

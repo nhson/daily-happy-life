@@ -1,16 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Serif_Display } from "next/font/google";
 import { APP_NAME } from "@/config";
 import { skyTable } from "@/domain/sky";
 import "./globals.css";
 
-const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const instrument = Instrument_Serif({
-  variable: "--font-instrument",
-  subsets: ["latin"],
-  weight: "400",
+const geist = Geist({ variable: "--font-geist", subsets: ["latin", "vietnamese"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin", "vietnamese"] });
+// Display serif for the Compass line and headings. Narrowed in globals.css; has Vietnamese glyphs.
+const serif = Noto_Serif_Display({
+  variable: "--font-serif-display",
+  subsets: ["latin", "vietnamese"],
   style: ["normal", "italic"],
+  axes: ["wdth"],
 });
 
 export const metadata: Metadata = {
@@ -35,10 +36,10 @@ const skyScript = `(function(){try{var T=${JSON.stringify(skyTable(15))};var q=n
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="vi"
       data-ink="dark"
       suppressHydrationWarning
-      className={`${geist.variable} ${geistMono.variable} ${instrument.variable} antialiased`}
+      className={`${geist.variable} ${geistMono.variable} ${serif.variable} antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: skyScript }} />

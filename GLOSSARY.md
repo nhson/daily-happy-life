@@ -15,7 +15,7 @@ The user's statement of what work is for and what good work means to them.
 The user's statement of what life is for and how the pieces of it fit together.
 
 **Odyssey Plan**:
-One of exactly three alternative five-year lives the user designs, each with a six-word title, the questions it tests, and four gauge ratings.
+One of exactly three alternative five-year lives the user designs, each with a short title (six words; in Vietnamese 6–10 syllables), the questions it tests, and four gauge ratings.
 _Avoid_: Scenario, path, goal
 
 **Current Path**:
@@ -104,3 +104,40 @@ The single record of one day's Intention and Evening Check-in.
 **Decision**:
 A real life choice the user made, recorded with what drove it and optionally the Odyssey Plan it relates to.
 _Avoid_: Choice, journal entry
+
+## Vietnamese
+
+The approved Vietnamese term for each concept. Vietnamese is the default language; the user is "bạn", and an Intention reads "Khi mình …, mình sẽ …".
+
+| Term | Tiếng Việt |
+|---|---|
+| Compass | La bàn |
+| Workview / Lifeview | Góc nhìn công việc / Góc nhìn cuộc sống |
+| Odyssey Plan | Kế hoạch Odyssey |
+| Current Path | Con đường hiện tại |
+| Active Plan | Kế hoạch đang theo |
+| Gauge | Thước đo |
+| Resources · Likability · Confidence · Coherence (Gauges) | Nguồn lực · Mức yêu thích · Sự tự tin · Độ ăn khớp |
+| Compass Line | Câu la bàn |
+| Mindset | Tư duy |
+| Wonder · Availability · Radical Acceptance · Fully Engaged & Calmly Detached · Create Your World | Ngạc nhiên · Hiện diện · Chấp nhận trọn vẹn · Dấn thân hết mình, buông bỏ bình thản · Kiến tạo thế giới của bạn |
+| Objective | Mục tiêu |
+| Task | Việc |
+| Maintenance | Duy trì |
+| Prototype | Thử nghiệm |
+| Top 3 | Top 3 |
+| Life Share | Cán cân tuần |
+| Quarter Close | Khép quý |
+| Logical Day | Ngày của bạn |
+| Morning Ritual | Nghi thức buổi sáng |
+| Intention | Ý định |
+| Evening Check-in | Khép lại ngày |
+| Energy / Engagement | Năng lượng / Độ say mê |
+| Source of Meaning | Nguồn ý nghĩa |
+| Wonder · Coherence · Flow · Community (Sources) | Kinh ngạc · Mạch lạc · Dòng chảy · Kết nối |
+| Daily Log | Nhật ký ngày |
+| Decision | Quyết định |
+| Done / Closed | Xong / Buông |
+| Dropped (Objective) | Bỏ |
+
+Vietnamese gives the Coherence Gauge (Độ ăn khớp) and the Coherence Source (Mạch lạc) different words, and the Wonder Mindset (Ngạc nhiên) and the Wonder Source (Kinh ngạc) too.

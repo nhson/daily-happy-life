@@ -4,7 +4,7 @@ import { ArrowRight, Moon, Pencil, Sunrise } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { copy } from "@/copy/en";
+import { useCopy, useFormatDate } from "@/copy";
 import { useStore } from "@/data/mock-store";
 import { TaskList } from "@/features/tasks/task-list";
 import { Button, ShareBar, WeekDots } from "@/ui/controls";
@@ -16,10 +16,10 @@ import { MorningFlow } from "./morning-flow";
 import { TasksPanel } from "@/features/tasks/tasks-panel";
 import { TodayOnboardingCard } from "@/features/onboarding/today-card";
 
-// Short month keeps the header on one line beside the week dots on a phone.
-const fmt = (d: Date) => d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" });
 
 export function TodayView() {
+  const formatDate = useFormatDate();
+  const copy = useCopy();
   const store = useStore();
   const { now, today, mode, compassLine, top3, open, dots, share, log } = store;
   const [flowOpen, setFlowOpen] = useState(mode === "morning");
@@ -58,7 +58,8 @@ export function TodayView() {
         >
           <header className="flex items-center justify-between gap-3 pt-2">
             <div className="min-w-0">
-              <p className="eyebrow whitespace-nowrap">{fmt(now)}</p>
+              <p className="eyebrow whitespace-nowrap">{/* Short month keeps the header on one line beside the week dots on a phone. */}
+              {formatDate(now, { weekday: "long", day: "numeric", month: "short" })}</p>
             </div>
             <div className="flex items-center gap-3">
               <WeekDots dots={dots} label={copy.today.weekLabel(checked)} />
@@ -158,6 +159,7 @@ export function TodayView() {
 }
 
 function IntentionCard() {
+  const copy = useCopy();
   const { log } = useStore();
   const [flow, setFlow] = useState(false);
   return (
@@ -167,13 +169,13 @@ function IntentionCard() {
       </h2>
       {log.intention ? (
         <div className="glass group relative rounded-[24px] px-5 py-4">
-          <p className="serif text-[22px] leading-snug">
-            <span className="text-ink-3">When I </span>
+          <p className="serif text-[22px] leading-snug pr-8">
+            <span className="text-ink-3">{copy.morning.when} </span>
             <em>{log.intention.when}</em>
-            <span className="text-ink-3">, I will </span>
+            <span className="text-ink-3">, {copy.morning.then} </span>
             <em>{log.intention.then}</em>.
           </p>
-          <button type="button" onClick={() => setFlow(true)} aria-label="Edit intention" className="absolute right-3 top-3 grid size-9 place-items-center rounded-full text-ink-3 hover:text-ink">
+          <button type="button" onClick={() => setFlow(true)} aria-label={copy.today.editIntention} className="absolute right-3 top-3 grid size-9 place-items-center rounded-full text-ink-3 hover:text-ink">
             <Pencil size={14} />
           </button>
         </div>
@@ -188,6 +190,7 @@ function IntentionCard() {
 }
 
 function IntentionSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const copy = useCopy();
   return (
     <Sheet open={open} onClose={onClose} label={copy.today.intention}>
       {open && <IntentionForm onClose={onClose} />}
@@ -196,6 +199,7 @@ function IntentionSheet({ open, onClose }: { open: boolean; onClose: () => void 
 }
 
 function IntentionForm({ onClose }: { onClose: () => void }) {
+  const copy = useCopy();
   const { log, actions } = useStore();
   const [when, setWhen] = useState(log.intention?.when ?? "");
   const [then, setThen] = useState(log.intention?.then ?? "");
@@ -228,6 +232,7 @@ function IntentionForm({ onClose }: { onClose: () => void }) {
 }
 
 function LifeShareRow({ share }: { share: ReturnType<typeof useStore>["share"] }) {
+  const copy = useCopy();
   return (
     <div className="mt-5">
       <p className="eyebrow mb-2.5">{copy.today.lifeShare}</p>
@@ -251,6 +256,7 @@ function LifeShareRow({ share }: { share: ReturnType<typeof useStore>["share"] }
 }
 
 function NightSummary() {
+  const copy = useCopy();
   const { log, share, compassLine } = useStore();
   return (
     <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2 }} className="flex flex-col gap-8 pt-6 lg:pt-12">

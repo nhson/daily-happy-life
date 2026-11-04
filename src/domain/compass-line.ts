@@ -1,15 +1,13 @@
 import { dayIndex } from "./logical-day";
-import { MINDSETS } from "./mindsets";
+import { MINDSET_KEYS, type MindsetKey } from "./mindsets";
 import type { Compass, LogicalDate } from "./types";
 
 export type CompassLineSource = "workview" | "lifeview" | "plan" | "mindset";
 
-export interface CompassLine {
-  source: CompassLineSource;
-  text: string;
-  /** Mindset name when source is "mindset". */
-  label?: string;
-}
+/** The user's own words, or a Mindset key the screen renders in the user's language. */
+export type CompassLine =
+  | { source: Exclude<CompassLineSource, "mindset">; text: string }
+  | { source: "mindset"; mindset: MindsetKey };
 
 interface Input {
   userId: string;
@@ -49,8 +47,7 @@ export function compassLineFor({ userId, date, compass, activePlanTitle }: Input
     case "plan":
       return { source, text: activePlanTitle!.trim() };
     case "mindset": {
-      const m = MINDSETS[Math.floor(step / sources.length) % MINDSETS.length];
-      return { source, text: m.line, label: m.name };
+      return { source, mindset: MINDSET_KEYS[Math.floor(step / sources.length) % MINDSET_KEYS.length] };
     }
   }
 }

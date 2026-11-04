@@ -2,7 +2,20 @@
  * Every user-facing string. Voice: quiet, warm, second person, short.
  * No exclamation marks. No guilt. No "Great job".
  */
-export const copy = {
+export const en = {
+  common: {
+    back: "Back",
+    cancel: "Cancel",
+    save: "Save",
+    add: "Add",
+    undo: "Undo",
+    mainNav: "Main",
+    progress: "Progress",
+    step: (n: number) => `Step ${n}`,
+    stepOf: (n: number, total: number) => `Step ${n} of ${total}`,
+    rating: (label: string, n: number, total: number) => `${label} ${n} of ${total}`,
+    gauge: (label: string, value: number | null) => `${label}: ${value ?? "not rated"} of 10`,
+  },
   tabs: { today: "Today", tasks: "Tasks", life: "Life" },
   capture: {
     open: "Add a task",
@@ -23,6 +36,12 @@ export const copy = {
       prototype_on_active_plan: "Prototypes test the plans you are not living yet.",
       extra_link: "A task has one reason, not two.",
     },
+  },
+  taskRow: {
+    complete: (title: string) => `Complete “${title}”`,
+    notDone: (title: string) => `Mark “${title}” not done`,
+    addTop3: "Add to Top 3",
+    removeTop3: "Remove from Top 3",
   },
   kinds: {
     objective: "Objective",
@@ -72,6 +91,7 @@ export const copy = {
     todaysLine: "Today’s line",
     reopen: "Reopen today’s check-in",
     ritual: "Morning ritual",
+    editIntention: "Edit intention",
     startDay: "Start the day",
   },
   checkIn: {
@@ -138,6 +158,36 @@ export const copy = {
     decisionsHint: "Choices you made because of what you know about yourself.",
     logDecision: "Log a decision",
     drivenBy: "What drove it",
+    edit: "Edit",
+    plan: (slot: number) => `Plan ${slot}`,
+    editLabel: (label: string) => `Edit ${label}`,
+    editPlan: "Edit plan",
+    changeActive: "Change Active Plan",
+    slotNames: { 1: "Current path", 2: "Plan B", 3: "Wild card" } as Record<1 | 2 | 3, string>,
+    planLabel: (slot: number, name: string) => `Plan ${slot} · ${name}`,
+    sixWordTitle: "Six-word title",
+    /** Word target for a plan title. Vietnamese words are one syllable each, so it allows more. */
+    titleRange: { min: 6 as number, max: 6 as number },
+    titlePlaceholder: "Small studio, big outdoors, slow mornings",
+    questions: "Questions it tests",
+    questionsPlaceholder: "What would you need to find out?",
+    savePlan: "Save plan",
+    objectiveTasks: (done: number, total: number) => `${done}/${total} tasks`,
+    objectiveStatus: { active: "active", done: "done", dropped: "dropped" },
+    markDone: (title: string) => `Mark “${title}” done`,
+    drop: (title: string) => `Drop “${title}”`,
+    objectivePlaceholder: "True by the end of this quarter…",
+    decisionPlaceholder: "What did you decide?",
+    drivenByPlaceholder: "Your Lifeview, a gauge, a prototype that taught you something…",
+    nowActive: (title: string) => `“${title}” is now your Active Plan.`,
+  },
+  /** The five "Designer's Way" mindsets. Lines are our own wording. */
+  mindsets: {
+    wonder: { name: "Wonder", line: "Look at one ordinary thing today as if you had never seen it before." },
+    availability: { name: "Availability", line: "Be fully here for whoever is in front of you." },
+    "radical-acceptance": { name: "Radical Acceptance", line: "Start from what is true today, not from what should be." },
+    "engaged-detached": { name: "Fully Engaged & Calmly Detached", line: "Give it everything you have, then let the outcome be." },
+    "create-your-world": { name: "Create Your World", line: "You are designing this day. Make one deliberate choice." },
   },
   promotion: {
     title: (plan: string) => `Make “${plan}” your Active Plan?`,
@@ -164,6 +214,7 @@ export const copy = {
     todayNone: "None today is fine too. Tomorrow morning you’ll choose.",
     finish: "Watch the sun come up",
     next: "Next",
+    sentencePlaceholder: "One sentence is enough.",
   },
   tips: {
     gotIt: "Got it",
@@ -200,7 +251,6 @@ export const copy = {
     reset: "Reset prototype data",
     showTips: "Show tips again",
     tipsShown: "The tips will show again, one at a time.",
+    language: "Language",
   },
 } as const;
-
-export type Copy = typeof copy;

@@ -49,7 +49,7 @@ export function fixtures(today: LogicalDate, timeZone: string): AppState {
       reminderAskedAt: at(addDays(today, -29), 21),
       nudges: {},
     },
-    settings: { timeZone, reminderTime: "07:00", eveningHour: 19, dayEndHour: 4, theme: "sky", sound: true },
+    settings: { timeZone, reminderTime: "07:00", eveningHour: 19, dayEndHour: 4, theme: "sky", locale: "vi", sound: true },
     compass: {
       workview: "Work is how I turn curiosity into tools that make other people’s days a little lighter.",
       lifeview: "Life is for the people I love, the mountains I haven’t climbed yet, and learning slowly.",
@@ -132,7 +132,7 @@ export function blank(timeZone: string): AppState {
     userId: "user_owner",
     onboarded: false,
     onboarding: freshOnboarding(null),
-    settings: { timeZone, reminderTime: "07:00", eveningHour: 19, dayEndHour: 4, theme: "sky", sound: true },
+    settings: { timeZone, reminderTime: "07:00", eveningHour: 19, dayEndHour: 4, theme: "sky", locale: "vi", sound: true },
     compass: null,
     plans: [1, 2, 3].map((slot) => ({
       id: `plan_${slot}`,

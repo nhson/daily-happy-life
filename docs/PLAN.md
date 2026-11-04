@@ -9,7 +9,7 @@ Companion to [`SPEC.md`](SPEC.md). Vocabulary: [`GLOSSARY.md`](../GLOSSARY.md). 
 | Device | Phone-first PWA; desktop = two columns (Today ∣ Tasks) + keyboard (`⌘K`, `/`, `j/k`, `x`, `t`, `⌘1–9`) |
 | Aesthetic | **Living sky**: background gradient follows local time (pre-dawn → dawn → day → dusk → night); faint contour-line texture |
 | Theme | Sky drives light/dark; override in Settings (Follow sky / Light / Dark) |
-| Type | Instrument Serif (Compass line, headings) · Geist Sans (UI) · Geist Mono tabular (numbers, gauges) |
+| Type | Noto Serif Display, narrowed (Compass line, headings; has Vietnamese glyphs) · Geist Sans (UI) · Geist Mono tabular (numbers, gauges) |
 | Navigation | 3 tabs — **Today · Tasks · Life** — plus floating ＋ / `⌘K` capture; Settings behind avatar |
 | Morning | Guided full-screen flow once per Logical Day: Compass line (word-by-word) → Top 3 (carry-over chips) → Intention (two inline blanks). Skippable. |
 | Evening | One bottom sheet: tick tasks · Energy & Engagement as 5 stops · 4 meaning glyphs · note · **Close the day** → sky settles to night |
@@ -17,7 +17,7 @@ Companion to [`SPEC.md`](SPEC.md). Vocabulary: [`GLOSSARY.md`](../GLOSSARY.md). 
 | Celebration | Strike-through draw + spring collapse; all Top 3 → sky brightens; day closed → sunset |
 | Odyssey | 3 cards (carousel on phone), radial gauge dials, active glow; unwritten plans as dashed ghost cards with the book prompt |
 | First run | 3 full-screen steps over a sky that brightens from pre-dawn to sunrise |
-| Copy | Quiet, warm, second person, short. No "!", no guilt. All strings in `src/copy/en.ts` |
+| Copy | Quiet, warm, second person, short. No "!", no guilt. All strings in `src/copy/vi.ts` (default) and `src/copy/en.ts`, read through `useCopy()` |
 | A11y | AA contrast in every sky state (frosted surfaces where needed), 44px targets, focus rings, reduced-motion = static fades, SR labels |
 | Perf budget | Today interactive < 1.5 s (mid phone, 4G) · INP < 100 ms · feedback within one frame · clean PWA install iOS/Android |
 
@@ -65,6 +65,10 @@ Decisions made while building Phase 0:
 - **Contrast veil.** Dawn and dusk gradients span dark→bright, so no single ink passes AA everywhere. `skyAt` blends in the lightest haze that keeps every text level AA (tested every 15 min, all day).
 - **Capture shortcuts are ⌘1–9**, not bare 1–9, so digits can still be typed in task titles.
 - **Ink choice** = whichever ink has the best worst-case contrast across the whole gradient (not just the lower half).
+- **Vietnamese is the default language** (owner, 2026-11-04). Typed dictionaries `src/copy/vi.ts` + `en.ts` (same `Copy` shape, missing key fails typecheck) read through `useCopy()`; no i18n library. Locale lives in settings (`users.locale`), not the URL. Mindset lines are keys in the domain, words in the copy. Dates via `Intl` (vi-VN / en-GB). Terms in GLOSSARY.md "Vietnamese".
+- **Serif = Noto Serif Display, narrowed** (`wdth` 72, weight 380). Instrument Serif has no Vietnamese glyphs; Newsreader read too wide.
+- **Plan title length is per language**: six words in English, 6–10 syllables in Vietnamese (`copy.life.titleRange`), since every Vietnamese word is one syllable.
+- **Review in both languages**: `bun run review` → `review/vi/`, `bun run review -- --lang=en` → `review/en/`; `?lang=vi|en` switches the prototype.
 - Phase 0 opts out of Next's instant-navigation validation (`instant = false`); remove in Slice 1.
 - **Tasks tab = Open ∣ Done** segmented control. A search button beside the tabs opens the search bar on demand (`/` on desktop); the why-filter lives inside it as a menu, the active filter as a removable token. Closing search clears both. Done shows the last 7 Logical Days only, grouped by day, newest first.
 - Review URLs: `?at=HH:MM` pins time of day, `?reset=1` reloads fixtures, `?fresh=1` starts the first run.

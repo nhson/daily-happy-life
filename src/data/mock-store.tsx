@@ -6,6 +6,7 @@
  *
  * Review URLs:  ?reset=1 (fresh fixtures) · ?fresh=1 (first run) · ?at=HH:MM (time of day)
  *                ?day=N (pretend it is Logical Day N since setup — Odyssey nudges)
+ *                ?lang=vi|en (switch the language, as Settings does)
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -44,6 +45,11 @@ function load(): AppState {
         ? { setupDate: addDays(today, -30), seenTips: ["top3", "capture", "morning", "evening", "closedDay", "life"], reminderAskedAt: new Date().toISOString(), nudges: {} }
         : freshOnboarding(null),
     };
+
+  // Saved before languages existed: Vietnamese is the default.
+  if (!state.settings.locale) state = { ...state, settings: { ...state.settings, locale: "vi" } };
+  const lang = params.get("lang");
+  if (lang === "vi" || lang === "en") state = { ...state, settings: { ...state.settings, locale: lang } };
 
   const day = Number(params.get("day"));
   if (day >= 1 && state.onboarding.setupDate)
