@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-04
-**Active Feature:** feat-001 — Phase 0 gate (owner design review)
+**Active Feature:** feat-002 — Slice 1 (Foundation)
 **Branch:** main
 
 ### What's Done
@@ -15,23 +15,26 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 ### What's In Progress
 
-- [ ] feat-001: owner reviews `review/vi/*.png` and `review/en/*.png` (generate with `bun dev` + `bun run review`)
-  - Blockers: waiting on owner verdict (approve or redirect)
+- [x] feat-001: owner approved the Phase 0 design on 2026-11-04
+- [ ] feat-002: Slice 1 — Foundation (Clerk, Neon + Drizzle, Vercel)
 
 ### What's Next
 
-1. Apply any redirects from the owner's review, re-shoot, get approval → mark feat-001 done
-2. Start feat-002 (Slice 1 — Foundation)
+1. feat-002 (Slice 1 — Foundation): needs owner accounts for Clerk, Neon and Vercel
 
 ## Blockers / Risks
 
-- [ ] Owner approval of Phase 0 is a human gate — agents must not start Slice 1 before it.
+- [x] Owner approval of Phase 0 (granted 2026-11-04).
 
 ## Evidence of Completion
 
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-04 — Phase 0 approved
+
+- Owner approved the design after reviewing `review/vi` and `review/en`. feat-001 done; Slice 1 is next.
 
 ### 2026-11-04 — Review prep: a fully Vietnamese prototype
 

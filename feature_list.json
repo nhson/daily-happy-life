@@ -16,8 +16,8 @@
       "dependencies": [
         "feat-000"
       ],
-      "status": "in-progress",
-      "evidence": ""
+      "status": "done",
+      "evidence": "2026-11-04: owner approved the Phase 0 design (\"approved\") after reviewing review/vi and review/en (31 shots per size, phone + desktop, no console errors; commit d393c53). The morning-ritual recording was not produced; the owner approved without it."
     },
     {
       "id": "feat-002",
