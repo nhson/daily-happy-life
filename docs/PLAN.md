@@ -59,6 +59,15 @@ Goal: nail the feel before any backend exists. Mock data only; components are ke
 6. Copy deck in `copy/en.ts`.
 7. **Gate:** Playwright screenshots of every screen × sky state at phone + desktop sizes, plus a morning-ritual recording. Owner approves or redirects.
 
+**Status (2026-11-04):** steps 1–6 built; awaiting the owner's review at the gate. Run `bun dev`, then `bun run review` → `review/*.png`.
+
+Decisions made while building Phase 0:
+- **Contrast veil.** Dawn and dusk gradients span dark→bright, so no single ink passes AA everywhere. `skyAt` blends in the lightest haze that keeps every text level AA (tested every 15 min, all day).
+- **Capture shortcuts are ⌘1–9**, not bare 1–9, so digits can still be typed in task titles.
+- **Ink choice** = whichever ink has the best worst-case contrast across the whole gradient (not just the lower half).
+- Phase 0 opts out of Next's instant-navigation validation (`instant = false`); remove in Slice 1.
+- Review URLs: `?at=HH:MM` pins time of day, `?reset=1` reloads fixtures, `?fresh=1` starts the first run.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |
