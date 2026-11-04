@@ -140,7 +140,7 @@ export function TodayView() {
           aria-hidden={flowOpen || undefined}
         >
           <div className="sticky top-24">
-            <p className="mb-3 hidden text-xs text-ink-3 xl:block">j / k to move · x to complete · t for Top 3</p>
+            <p className="mb-3 hidden text-xs text-ink-3 xl:block">/ to search · j / k to move · x to complete · t for Top 3</p>
             <TasksPanel keyboard={!flowOpen} />
           </div>
         </motion.aside>

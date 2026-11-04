@@ -113,6 +113,10 @@ select:focus-visible {
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--kind-objective) 45%, transparent);
   border-radius: 14px;
 }
+/* Inputs inside a pill (search) — the pill shows focus instead. */
+input.bare:focus-visible { box-shadow: none; }
+.field-pill:focus-within { box-shadow: var(--shadow), 0 0 0 3px color-mix(in oklab, var(--kind-objective) 45%, transparent); }
+
 input.serif:focus-visible,
 textarea.serif:focus-visible {
   box-shadow: none;

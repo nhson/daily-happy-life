@@ -6,7 +6,7 @@ Companion to [`SPEC.md`](SPEC.md). Vocabulary: [`GLOSSARY.md`](../GLOSSARY.md). 
 
 | Topic | Decision |
 |---|---|
-| Device | Phone-first PWA; desktop = two columns (Today ∣ Tasks) + keyboard (`⌘K`, `j/k`, `x`, `t`, `1–9`) |
+| Device | Phone-first PWA; desktop = two columns (Today ∣ Tasks) + keyboard (`⌘K`, `/`, `j/k`, `x`, `t`, `⌘1–9`) |
 | Aesthetic | **Living sky**: background gradient follows local time (pre-dawn → dawn → day → dusk → night); faint contour-line texture |
 | Theme | Sky drives light/dark; override in Settings (Follow sky / Light / Dark) |
 | Type | Instrument Serif (Compass line, headings) · Geist Sans (UI) · Geist Mono tabular (numbers, gauges) |
@@ -66,6 +66,7 @@ Decisions made while building Phase 0:
 - **Capture shortcuts are ⌘1–9**, not bare 1–9, so digits can still be typed in task titles.
 - **Ink choice** = whichever ink has the best worst-case contrast across the whole gradient (not just the lower half).
 - Phase 0 opts out of Next's instant-navigation validation (`instant = false`); remove in Slice 1.
+- **Tasks tab = Open ∣ Done** segmented control. Search and the why-filter share one bar (filter is a menu behind the sliders button; the active filter shows as a removable token). Done is grouped by Logical Day, newest first.
 - Review URLs: `?at=HH:MM` pins time of day, `?reset=1` reloads fixtures, `?fresh=1` starts the first run.
 
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
