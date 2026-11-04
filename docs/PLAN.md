@@ -66,7 +66,7 @@ Decisions made while building Phase 0:
 - **Capture shortcuts are ⌘1–9**, not bare 1–9, so digits can still be typed in task titles.
 - **Ink choice** = whichever ink has the best worst-case contrast across the whole gradient (not just the lower half).
 - Phase 0 opts out of Next's instant-navigation validation (`instant = false`); remove in Slice 1.
-- **Tasks tab = Open ∣ Done** segmented control. Search and the why-filter share one bar (filter is a menu behind the sliders button; the active filter shows as a removable token). Done is grouped by Logical Day, newest first.
+- **Tasks tab = Open ∣ Done** segmented control. A search button beside the tabs opens the search bar on demand (`/` on desktop); the why-filter lives inside it as a menu, the active filter as a removable token. Closing search clears both. Done shows the last 7 Logical Days only, grouped by day, newest first.
 - Review URLs: `?at=HH:MM` pins time of day, `?reset=1` reloads fixtures, `?fresh=1` starts the first run.
 
 ## Slices (each one demoable end-to-end: schema + action + UI + test)

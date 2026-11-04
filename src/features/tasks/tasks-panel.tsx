@@ -18,12 +18,14 @@ type Option = { filter: Filter; label: string; dot?: TaskKind };
 const sameFilter = (a: Filter, b: Filter) =>
   a.kind === b.kind && (a.kind !== "objective" || (b.kind === "objective" && a.id === b.id));
 
-/** Open and Done tasks behind a segmented control; search and the "why" filter share one bar. */
+/** Open tasks and this week’s Done behind a segmented control. Search (with the "why" filter inside) opens on demand. */
 export function TasksPanel({ keyboard = false, title = true }: { keyboard?: boolean; title?: boolean }) {
   const { state, open, activeObjectives, today } = useStore();
   const [tab, setTab] = useState<Tab>("open");
   const [filter, setFilter] = useState<Filter>({ kind: "all" });
   const [query, setQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [focusTick, setFocusTick] = useState(0);
   const { timeZone, dayEndHour } = state.settings;
 
   const matches = useMemo(() => {
@@ -37,10 +39,30 @@ export function TasksPanel({ keyboard = false, title = true }: { keyboard?: bool
   const done = useMemo(
     () =>
       state.tasks
-        .filter((t) => t.doneAt)
+        .filter((t) => t.doneAt && logicalDate(new Date(t.doneAt), timeZone, dayEndHour) >= addDays(today, -6))
         .sort((a, b) => (b.doneAt! > a.doneAt! ? 1 : -1)),
-    [state.tasks],
+    [state.tasks, timeZone, dayEndHour, today],
   );
+
+  const closeSearch = () => {
+    setSearching(false);
+    setQuery("");
+    setFilter({ kind: "all" });
+  };
+
+  // "/" opens search on desktop.
+  useEffect(() => {
+    if (!keyboard) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || (t && ["INPUT", "TEXTAREA"].includes(t.tagName)) || document.querySelector("dialog[open]")) return;
+      e.preventDefault();
+      setSearching(true);
+      setFocusTick((n) => n + 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [keyboard]);
 
   const openGroups = useMemo(() => {
     const g: { key: string; label: string; kind: TaskKind; tasks: Task[] }[] = [];
@@ -76,23 +98,63 @@ export function TasksPanel({ keyboard = false, title = true }: { keyboard?: bool
     <div className="flex flex-col gap-5">
       {title && <h1 className="serif text-[40px] leading-none">{copy.tasks.title}</h1>}
 
-      <Segmented
-        value={tab}
-        onChange={setTab}
-        items={[
-          { value: "open", label: copy.tasks.open, count: open.length },
-          { value: "done", label: copy.tasks.done, count: done.length },
-        ]}
-      />
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <Segmented
+            value={tab}
+            onChange={setTab}
+            items={[
+              { value: "open", label: copy.tasks.open, count: open.length },
+              { value: "done", label: copy.tasks.done, count: done.length },
+            ]}
+          />
+        </div>
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.92 }}
+          onClick={() => (searching ? closeSearch() : setSearching(true))}
+          aria-label={searching ? copy.tasks.closeSearch : copy.tasks.search}
+          aria-expanded={searching}
+          className={clsx(
+            "grid size-12 shrink-0 place-items-center rounded-full transition-colors duration-200",
+            searching ? "bg-solid text-solid-ink shadow-[0_8px_24px_-12px_rgb(0_0_0/0.5)]" : "glass text-ink-2 hover:text-ink",
+          )}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={searching ? "x" : "s"}
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {searching ? <X size={18} /> : <Search size={18} />}
+            </motion.span>
+          </AnimatePresence>
+        </motion.button>
+      </div>
 
-      <SearchBar
-        query={query}
-        onQuery={setQuery}
-        options={options}
-        filter={filter}
-        onFilter={setFilter}
-        hotkey={keyboard}
-      />
+      <AnimatePresence initial={false}>
+        {searching && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, marginTop: -20 }}
+            animate={{ height: "auto", opacity: 1, marginTop: 0 }}
+            exit={{ height: 0, opacity: 0, marginTop: -20 }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-20"
+          >
+            <SearchBar
+              query={query}
+              onQuery={setQuery}
+              options={options}
+              filter={filter}
+              onFilter={setFilter}
+              focusTick={focusTick}
+              onClose={closeSearch}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {groups.length === 0 && (
         <p className="serif py-10 text-center text-2xl text-ink-2">
@@ -176,32 +238,25 @@ function SearchBar({
   options,
   filter,
   onFilter,
-  hotkey,
+  focusTick,
+  onClose,
 }: {
   query: string;
   onQuery: (q: string) => void;
   options: Option[];
   filter: Filter;
   onFilter: (f: Filter) => void;
-  hotkey: boolean;
+  focusTick: number;
+  onClose: () => void;
 }) {
   const [menu, setMenu] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const active = options.find((o) => sameFilter(o.filter, filter) && o.filter.kind !== "all");
 
-  // "/" jumps to search on desktop.
   useEffect(() => {
-    if (!hotkey) return;
-    const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (e.key !== "/" || e.metaKey || e.ctrlKey || (t && ["INPUT", "TEXTAREA"].includes(t.tagName)) || document.querySelector("dialog[open]")) return;
-      e.preventDefault();
-      input.current?.focus();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [hotkey]);
+    input.current?.focus();
+  }, [focusTick]);
 
   useEffect(() => {
     if (!menu) return;
@@ -244,8 +299,8 @@ function SearchBar({
           onChange={(e) => onQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
-              onQuery("");
-              e.currentTarget.blur();
+              if (query) onQuery("");
+              else onClose();
             }
             if (e.key === "Backspace" && !query && active) onFilter({ kind: "all" });
           }}
