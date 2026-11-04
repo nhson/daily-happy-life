@@ -50,7 +50,7 @@ Usage alone is not success.
 ```
 Compass (yearly)
   └─ Active Odyssey Plan (1 of 3; switchable at quarterly review)
-       └─ Objectives (at most 5 active per quarter, ideally ≥ 3)
+       └─ Objectives (at most 3 active per quarter)
             └─ Tasks (daily)
 
 Other 2 Odyssey Plans ──> Prototype tasks (cheap experiments: a conversation, a trial weekend)
@@ -107,7 +107,7 @@ Phone-first PWA; desktop is a wider layout of the same screens. **Three tabs + c
 |---|---|
 | **Today** | Compass line, Top 3, if-then intention, remaining tasks. Switches to evening check-in mode in the evening. |
 | **Tasks** | List, filter by objective / Maintenance / Prototype. |
-| **Life** | One scrolling page with sections: **Compass** (Workview, Lifeview, 5 mindsets as reference) · **Odyssey** (3 plans: 6-word title, questions, 4 gauges 0–10, one active) · **Objectives** (at most 5 active this quarter, done/total) · **Decisions** (date, decision, what drove it, optional plan). |
+| **Life** | One scrolling page with sections: **Compass** (Workview, Lifeview, 5 mindsets as reference) · **Odyssey** (3 plans: 6-word title, questions, 4 gauges 0–10, one active) · **Objectives** (at most 3 active this quarter, done/total) · **Decisions** (date, decision, what drove it, optional plan). |
 
 - **Settings** behind the avatar: reminder time, timezone, evening-mode hour, day-ends-at hour, push opt-in, **Export all (JSON)**.
 - **Capture:** floating ＋ on phone, ⌘K on desktop. Title + kind chips (active Objectives…, Maintenance, Prototype →); the last-used kind is preselected so the common case is type + Enter. No "unsorted" kind.

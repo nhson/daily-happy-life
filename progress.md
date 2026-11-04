@@ -42,6 +42,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - Unwritten Odyssey cards became invitations: slot hue and icon (footprints / signpost / dice), prompt, "No need to be right, only honest. About ten minutes.", a real button.
 - Each Odyssey card opens with a drawn SVG scene in its hue (`src/features/life/plan-scene.tsx`): road into sunrise / fork with signpost / balloons under stars; gently animated, reduced-motion safe. Plan B is "Lối rẽ khác" in Vietnamese.
 - Objectives: quarter strip (sun travelling along week N of 13, `quarterProgress` in domain, test-first), card grid with a glowing progress bar, finished objectives glow, a dashed "room for N more" tile. Decisions: glowing timeline of cards, "what drove it" as a quote, plan chip in its hue; empty state localized (was hard-coded English) with a CTA.
+- Objectives capped at 3 active per quarter (was 5): `objectiveRoom` in `src/domain/objectives.ts` (test-first), enforced in the store; full quarter shows a quiet note. Open for Slice 6: "Fold into a new objective" on plan promotion must respect the cap.
 
 ### 2026-11-04 — Vietnamese localization (default language)
 

@@ -13,6 +13,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { compassLineFor, type CompassLine } from "@/domain/compass-line";
 import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
+import { objectiveRoom } from "@/domain/objectives";
 import { freshOnboarding, snoozeNudge, todayCard, type PlanSlot, type TipId } from "@/domain/onboarding";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
@@ -245,18 +246,24 @@ function useStoreState() {
 
   const addObjective = useCallback(
     (title: string) => {
+      if (objectiveRoom(state.objectives, quarter) === 0) return null;
       const planId = state.plans.find((p) => p.isActive)?.id ?? "plan_1";
       const o: Objective = { id: uid(), planId, title: title.trim(), quarter, status: "active" };
       setState((s) => ({ ...s, objectives: [...s.objectives, o] }));
       return o;
     },
-    [state.plans, quarter],
+    [state.plans, state.objectives, quarter],
   );
 
   const setObjectiveStatus = useCallback(
     (id: string, status: Objective["status"]) =>
-      setState((s) => ({ ...s, objectives: s.objectives.map((o) => (o.id === id ? { ...o, status } : o)) })),
-    [],
+      setState((s) =>
+        // Reactivating one only fits while there is room.
+        status === "active" && objectiveRoom(s.objectives, quarter) === 0
+          ? s
+          : { ...s, objectives: s.objectives.map((o) => (o.id === id ? { ...o, status } : o)) },
+      ),
+    [quarter],
   );
 
   const addDecision = useCallback(

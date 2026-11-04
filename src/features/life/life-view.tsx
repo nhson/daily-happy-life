@@ -11,6 +11,7 @@ import { useStore } from "@/data/mock-store";
 import { Button, Chip, GaugeDial } from "@/ui/controls";
 import { KindDot } from "@/ui/glyphs";
 import { quarterProgress } from "@/domain/logical-day";
+import { objectiveRoom } from "@/domain/objectives";
 import { Sheet } from "@/ui/sheet";
 import { Tip } from "@/ui/tip";
 import { PlanScene } from "./plan-scene";
@@ -512,18 +513,18 @@ function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void
 
 function ObjectivesSection() {
   const copy = useCopy();
-  const { state, activeObjectives, quarter, today, actions } = useStore();
+  const { state, quarter, today, actions } = useStore();
   const [draft, setDraft] = useState("");
   const [adding, setAdding] = useState(false);
   const all = state.objectives.filter((o) => o.quarter === quarter);
-  const room = 5 - activeObjectives.length;
+  const room = objectiveRoom(state.objectives, quarter);
   const qp = quarterProgress(today);
 
   return (
     <section aria-label={copy.life.objectives}>
       <SectionHead title={copy.life.objectives} hint={copy.life.objectivesHint} />
       <QuarterStrip label={quarter.replace("-", " · ")} week={copy.life.quarterWeek(qp.week, qp.weeks)} fraction={qp.fraction} />
-      <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+      <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {all.map((o, i) => {
           const tasks = state.tasks.filter((t) => t.objectiveId === o.id && !t.closedAt);
           const done = tasks.filter((t) => t.doneAt).length;
@@ -551,7 +552,7 @@ function ObjectivesSection() {
                     </IconButton>
                   </div>
                 ) : (
-                  <button type="button" onClick={() => actions.setObjectiveStatus(o.id, "active")} className="-my-2 h-9 px-2 text-xs text-ink-3 hover:text-ink">
+                  room > 0 && <button type="button" onClick={() => actions.setObjectiveStatus(o.id, "active")} className="-my-2 h-9 px-2 text-xs text-ink-3 hover:text-ink">
                     {copy.common.undo}
                   </button>
                 )}
@@ -625,6 +626,7 @@ function ObjectivesSection() {
           </li>
         )}
       </ul>
+      {room === 0 && <p className="serif mt-4 text-lg italic text-ink-2">{copy.life.objectivesFull}</p>}
     </section>
   );
 }

@@ -40,7 +40,7 @@ _Not to be confused with_: the Wonder Source of Meaning — the Mindset is an at
 ## Work
 
 **Objective**:
-A result the user commits to for one quarter under the Active Plan; at most five active at a time, ideally at least three.
+A result the user commits to for one quarter under the Active Plan; at most three active at a time.
 _Avoid_: Goal, OKR, project
 
 **Task**:

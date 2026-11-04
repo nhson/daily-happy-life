@@ -72,7 +72,7 @@
     {
       "id": "feat-007",
       "name": "Slice 6 — Life page live",
-      "description": "Compass edit, Odyssey (gauges, set active + promotion sheet), Objectives, Decisions. Done when: promoting a plan with open Prototypes forces convert/close. Plan switch also settles old plan Objectives (Drop/Keep) and ends with a pre-filled Decision; max 5 active Objectives; Objective Done asks close/move open tasks.",
+      "description": "Compass edit, Odyssey (gauges, set active + promotion sheet), Objectives, Decisions. Done when: promoting a plan with open Prototypes forces convert/close. Plan switch also settles old plan Objectives (Drop/Keep) and ends with a pre-filled Decision; max 3 active Objectives (reactivating or folding Prototypes into a new Objective respects the cap); Objective Done asks close/move open tasks.",
       "dependencies": [
         "feat-006"
       ],
