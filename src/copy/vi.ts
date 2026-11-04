@@ -173,7 +173,7 @@ export const vi: Copy = {
     editLabel: (label) => `Sửa ${label}`,
     editPlan: "Sửa kế hoạch",
     changeActive: "Đổi Kế hoạch đang theo",
-    slotNames: { 1: "Con đường hiện tại", 2: "Kế hoạch B", 3: "Lá bài bất ngờ" },
+    slotNames: { 1: "Con đường hiện tại", 2: "Lối rẽ khác", 3: "Lá bài bất ngờ" },
     planLabel: (slot, name) => `Kế hoạch ${slot} · ${name}`,
     sixWordTitle: "Tên ngắn",
     titleRange: { min: 6, max: 10 },

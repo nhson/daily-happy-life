@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
-import { Check, Dices, Feather, Footprints, HeartHandshake, Palette, Pencil, Plus, Signpost, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
+import { Check, Feather, HeartHandshake, Palette, Pencil, Plus, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
@@ -12,6 +12,7 @@ import { Button, Chip, GaugeDial } from "@/ui/controls";
 import { KindDot, kindColor } from "@/ui/glyphs";
 import { Sheet } from "@/ui/sheet";
 import { Tip } from "@/ui/tip";
+import { PlanScene } from "./plan-scene";
 import { useToast } from "@/ui/toast";
 
 export function LifeView() {
@@ -39,8 +40,6 @@ const MINDSET_LOOK: Record<MindsetKey, { icon: LucideIcon; tint: string }> = {
   "create-your-world": { icon: Palette, tint: "var(--kind-objective)" },
 };
 const PLAN_TINT: Record<1 | 2 | 3, string> = { 1: "var(--kind-objective)", 2: "var(--m-wonder)", 3: "var(--kind-prototype)" };
-/** The path you walk, the fork in the road, the roll of the dice. */
-const PLAN_ICON: Record<1 | 2 | 3, LucideIcon> = { 1: Footprints, 2: Signpost, 3: Dices };
 const wash = (tint: string, at = "0% 0%", strength = 26) =>
   `radial-gradient(120% 90% at ${at}, color-mix(in oklab, ${tint} ${strength}%, transparent), transparent 62%)`;
 
@@ -311,32 +310,22 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
 
   if (!written) {
     const tint = PLAN_TINT[plan.slot];
-    const Icon = PLAN_ICON[plan.slot];
     return (
       <motion.button
         type="button"
         onClick={onEdit}
         whileHover={{ y: -3 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
-        className="group flex min-h-[22rem] w-[82vw] max-w-sm shrink-0 snap-center flex-col rounded-[30px] border-[1.5px] border-dashed p-6 text-left lg:w-auto lg:max-w-none"
+        className="group flex min-h-[22rem] w-[82vw] max-w-sm shrink-0 snap-center flex-col overflow-hidden rounded-[30px] border-[1.5px] border-dashed p-6 text-left lg:w-auto lg:max-w-none"
         style={{
           borderColor: `color-mix(in oklab, ${tint} 55%, transparent)`,
           backgroundColor: "color-mix(in oklab, var(--glass) 55%, transparent)",
           backgroundImage: wash(tint, "100% 0%", 30),
         }}
       >
+        <PlanScene slot={plan.slot} tint={tint} className="scene-fade -mx-6 -mt-6 mb-4 h-40 w-[calc(100%+3rem)] rounded-t-[28px] transition-transform duration-700 group-hover:scale-[1.02]" />
         <p className="eyebrow">{copy.life.planLabel(plan.slot, slotName)}</p>
-        <span className="relative mt-8 grid size-14 place-items-center">
-          <span
-            aria-hidden
-            className="absolute inset-0 rounded-full blur-md transition-opacity duration-500 group-hover:opacity-100"
-            style={{ background: tint, opacity: 0.45 }}
-          />
-          <span className="relative grid size-14 place-items-center rounded-full" style={{ background: `color-mix(in oklab, ${tint} 45%, var(--glass-strong))` }}>
-            <Icon size={22} className="text-ink" aria-hidden />
-          </span>
-        </span>
-        <p className="serif mt-auto pt-8 text-balance text-[28px] leading-[1.12] text-ink">{copy.life.planPrompts[plan.slot]}</p>
+        <p className="serif mt-auto pt-6 text-balance text-[28px] leading-[1.12] text-ink">{copy.life.planPrompts[plan.slot]}</p>
         <p className="mt-3 text-sm leading-relaxed text-ink-2">{copy.life.planInvite}</p>
         <span
           className="mt-6 inline-flex h-11 items-center gap-2 self-start rounded-full px-5 text-sm font-medium text-[#0b1230] transition-transform group-hover:translate-x-0.5"
@@ -351,7 +340,7 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
   return (
     <motion.article
       layout
-      className={clsx("glass relative flex min-h-[22rem] w-[82vw] max-w-sm shrink-0 snap-center flex-col rounded-[30px] p-6 lg:w-auto lg:max-w-none")}
+      className={clsx("glass relative flex min-h-[22rem] w-[82vw] max-w-sm shrink-0 snap-center flex-col overflow-hidden rounded-[30px] p-6 lg:w-auto lg:max-w-none")}
       style={{
         // Each life has its own horizon: dawn for the one you live, open sky, then dusk for the wild card.
         backgroundImage: wash(PLAN_TINT[plan.slot], "100% 0%", plan.isActive ? 34 : 22),
@@ -360,7 +349,8 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
         }),
       }}
     >
-      <div className="flex items-center justify-between">
+      <PlanScene slot={plan.slot} tint={PLAN_TINT[plan.slot]} className="scene-fade -mx-6 -mt-6 mb-3 h-32 w-[calc(100%+3rem)] rounded-t-[29px]" />
+      <div className="flex items-center justify-between gap-3">
         <p className="eyebrow">
           {copy.life.planLabel(plan.slot, slotName)}
         </p>
@@ -370,13 +360,13 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
           </span>
         ) : (
           prototypes > 0 && (
-            <span className="flex items-center gap-1.5 text-xs text-ink-2">
+            <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs text-ink-2">
               <KindDot kind="prototype" /> {copy.life.prototypes(prototypes)}
             </span>
           )
         )}
       </div>
-      <h3 className="serif mt-5 text-balance text-[32px] leading-[1.04]">{plan.title}</h3>
+      <h3 className="serif mt-4 text-balance text-[32px] leading-[1.04]">{plan.title}</h3>
       {plan.questions && <p className="mt-3 text-sm leading-relaxed text-ink-2">{plan.questions}</p>}
       <div className="mt-auto grid grid-cols-4 gap-1 pt-6">
         {GAUGE_KEYS.map((k) => (

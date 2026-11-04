@@ -174,6 +174,18 @@ textarea.serif:focus-visible {
 .strike[data-on="true"] { background-size: 100% 1.5px; }
 @media (prefers-reduced-motion: reduce) { .strike { transition: none; } }
 
+/* Odyssey plan scenes: slow, barely-there life */
+.scene-bob { animation: scene-bob 6s ease-in-out infinite; }
+.scene-drift { animation: scene-drift 14s ease-in-out infinite alternate; }
+.scene-twinkle { animation: scene-twinkle 3.2s ease-in-out infinite; }
+.scene-pulse { animation: scene-pulse 7s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes scene-bob { 50% { transform: translateY(-4px); } }
+@keyframes scene-drift { to { transform: translateX(10px); } }
+@keyframes scene-twinkle { 50% { opacity: 0.25; } }
+@keyframes scene-pulse { 50% { transform: scale(1.08); opacity: 0.8; } }
+/* Scenes fade into the card below them */
+.scene-fade { -webkit-mask-image: linear-gradient(to bottom, black 62%, transparent); mask-image: linear-gradient(to bottom, black 62%, transparent); }
+
 /* Hide scrollbars on horizontal carousels */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
