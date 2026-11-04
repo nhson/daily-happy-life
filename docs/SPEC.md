@@ -113,16 +113,28 @@ Phone-first PWA; desktop is a wider layout of the same screens. **Three tabs + c
 - **Capture:** floating ＋ on phone, ⌘K on desktop. Title + kind chips (active Objectives…, Maintenance, Prototype →); the last-used kind is preselected so the common case is type + Enter. No "unsorted" kind.
 - **Offline:** writes need a connection (no background sync in v1). Offline, capture keeps the draft and says so quietly; it saves when you're back.
 
-**First run (progressive):**
-- Day 1: short Compass (one sentence each for Workview and Lifeview) → one Objective → first tasks. Usable immediately.
-- Days 2–7: Today nudges you to fill Odyssey Plans 1, 2, 3 one at a time (one every couple of days). Until a plan is active, objectives sit under an implicit "Current path" plan (slot 1).
+**First run (progressive):** setup is the only thing up front; everything else is taught in context.
+- **Day 1 setup (required, ~3 min):** short Compass (one sentence each for Workview and Lifeview) → one Objective → up to three first tasks → **"Which of these is for today?"** (all preselected; tap to deselect) → sunrise. The picks become today's Top 3 — chosen by the user, never automatic. Day 1 counts as Morning Ritual done, with no Intention; the real ritual starts on day 2. Lands on a calm Today.
+- **Tips:** six one-time inline cards (one or two quiet sentences + "Got it"; no overlays, no arrows), each shown the first time you reach its moment:
+  1. first Top 3 on Today — tap the circle or swipe right to finish; the star or a long-press sets Top 3;
+  2. first capture — every task needs a why; the last one is preselected (desktop also: ⌘K, ⌘1–9);
+  3. first Morning Ritual (day 2) — the Compass Line, why only three, why an if-then plan;
+  4. first evening — what the check-in is for, ~60 s;
+  5. first closed day — the week dots and Life Share; a missed day breaks nothing;
+  6. first visit to Life — Compass, Odyssey, Objectives in two lines.
+  At most one tip per screen visit. Settings has **Show tips again**.
+- **Odyssey nudges:** a Today card asks you to write Plan 1 (Current Path) on Logical Day 2 since setup, Plan 2 on day 4, Plan 3 on day 6 — or the next visit after. **Write it** opens that plan on Life; **Not now** hides it for 2 days; after 3 "not now"s that plan's nudge stops for good (the dashed ghost card on Life remains). Until a plan is active, objectives sit under an implicit "Current path" plan (slot 1).
+- **Reminder ask:** once, after the first closed day — "Want one quiet note each morning?", with Home-Screen install steps on iOS. Never in setup, never repeated (Settings still has it).
+- **One card at a time:** Today shows at most one onboarding card, in priority tip → reminder ask → Odyssey nudge; the rest wait for a later visit.
 
 ## 8. Data model
 
 ```
 users         (id, clerkId, timezone, reminderTime, eveningHour, dayEndHour default 4,
                theme sky|light|dark, pushSubscription jsonb, reminderScheduleId?,
-               onboardedAt?, createdAt)
+               onboardedAt?, onboarding jsonb, createdAt)
+               -- onboarding: { setupDate, seenTips[], reminderAskedAt?,
+               --   nudges: { "<slot>": { snoozedUntil?, notNowCount } } } — UI progress only
 compass       (userId PK, workview, lifeview, updatedAt)
 odyssey_plans (id, userId, slot 1..3, title, questions, resources 0-10, likability 0-10,
                confidence 0-10, coherence 0-10, isActive, createdAt, updatedAt)

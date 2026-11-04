@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
+import { clsx } from "clsx";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,7 +12,7 @@ import { AppMark } from "@/ui/glyphs";
 import { useSky } from "@/ui/sky";
 
 /** Pre-dawn → sunrise: each step brightens the sky. Minutes of day per step. */
-const DAWN = [255, 300, 345, 390];
+const DAWN = [255, 290, 325, 360, 395];
 const SUNRISE = 480;
 
 export function FirstRun() {
@@ -24,6 +25,8 @@ export function FirstRun() {
   const [lifeview, setLifeview] = useState("");
   const [objective, setObjective] = useState("");
   const [tasks, setTasks] = useState(["", "", ""]);
+  /** "Which of these is for today?" — all picked unless the user taps one off. */
+  const [notToday, setNotToday] = useState<number[]>([]);
   const [rising, setRising] = useState(false);
 
   useEffect(() => {
@@ -32,10 +35,14 @@ export function FirstRun() {
   useEffect(() => () => setOverride(null), [setOverride]);
 
   const finish = () => {
-    actions.completeOnboarding({ compass: { workview: workview.trim(), lifeview: lifeview.trim() }, objective, tasks });
+    actions.completeOnboarding({
+      compass: { workview: workview.trim(), lifeview: lifeview.trim() },
+      objective,
+      tasks: tasks.map((title, i) => ({ title, today: !notToday.includes(i) })),
+    });
     setRising(true);
     // Walk the sky up to sunrise, then hand over to the real clock.
-    let m = DAWN[3];
+    let m = DAWN[DAWN.length - 1];
     const id = setInterval(() => {
       m += 15;
       setOverride(m);
@@ -49,7 +56,9 @@ export function FirstRun() {
     }, reduce ? 20 : 320);
   };
 
-  const canNext = [true, !!(workview.trim() && lifeview.trim()), !!objective.trim(), tasks.some((t) => t.trim())][step];
+  const LAST = 4;
+  const canNext = [true, !!(workview.trim() && lifeview.trim()), !!objective.trim(), tasks.some((t) => t.trim()), true][step];
+  const filled = tasks.map((t, i) => ({ t: t.trim(), i })).filter((x) => x.t);
   const slide = { initial: { opacity: 0, y: 24, filter: "blur(6px)" }, animate: { opacity: 1, y: 0, filter: "blur(0px)" }, exit: { opacity: 0, y: -24, filter: "blur(6px)" } };
 
   return (
@@ -81,7 +90,7 @@ export function FirstRun() {
             onSubmit={(e) => {
               e.preventDefault();
               if (!canNext) return;
-              if (step < 3) setStep(step + 1);
+              if (step < LAST) setStep(step + 1);
               else finish();
             }}
           >
@@ -117,6 +126,37 @@ export function FirstRun() {
                 </div>
               </div>
             )}
+            {step === 4 && (
+              <div>
+                <p className="serif text-[clamp(1.8rem,6.4vw,2.4rem)] leading-tight">{copy.welcome.todayQ}</p>
+                <p className="mt-2 text-sm text-ink-3">{copy.welcome.todayHint}</p>
+                <div className="mt-6 flex flex-col gap-2">
+                  {filled.map(({ t, i }) => {
+                    const on = !notToday.includes(i);
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setNotToday((cur) => (on ? [...cur, i] : cur.filter((x) => x !== i)))}
+                        className={clsx("glass flex min-h-14 items-center gap-3 rounded-2xl px-5 py-3 text-left transition-opacity", !on && "opacity-60")}
+                      >
+                        <Star
+                          size={20}
+                          strokeWidth={1.8}
+                          aria-hidden
+                          className="shrink-0"
+                          fill={on ? "var(--kind-objective)" : "none"}
+                          color={on ? "var(--kind-objective)" : "currentColor"}
+                        />
+                        <span className="line-clamp-2 min-w-0 flex-1 text-[16px] text-ink">{t}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {filled.every(({ i }) => notToday.includes(i)) && <p className="mt-3 text-sm text-ink-3">{copy.welcome.todayNone}</p>}
+              </div>
+            )}
             <div className="flex items-center justify-between">
               {step > 0 ? (
                 <button type="button" onClick={() => setStep(step - 1)} className="h-11 px-1 text-sm text-ink-2">
@@ -126,7 +166,7 @@ export function FirstRun() {
                 <span />
               )}
               <Button type="submit" size="lg" disabled={!canNext}>
-                {step === 0 ? copy.welcome.start : step === 3 ? copy.welcome.finish : copy.welcome.next} <ArrowRight size={18} />
+                {step === 0 ? copy.welcome.start : step === LAST ? copy.welcome.finish : copy.welcome.next} <ArrowRight size={18} />
               </Button>
             </div>
           </motion.form>

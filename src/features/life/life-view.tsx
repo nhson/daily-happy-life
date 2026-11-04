@@ -3,7 +3,7 @@
 import { clsx } from "clsx";
 import { Check, Pencil, Plus, X } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { copy } from "@/copy/en";
 import { MINDSETS } from "@/domain/mindsets";
 import { GAUGE_KEYS, type OdysseyPlan } from "@/domain/types";
@@ -11,6 +11,7 @@ import { useStore } from "@/data/mock-store";
 import { Button, Chip, GaugeDial } from "@/ui/controls";
 import { KindDot, kindColor } from "@/ui/glyphs";
 import { Sheet } from "@/ui/sheet";
+import { Tip } from "@/ui/tip";
 import { useToast } from "@/ui/toast";
 
 export function LifeView() {
@@ -19,11 +20,23 @@ export function LifeView() {
       <header>
         <h1 className="serif text-[clamp(2.6rem,9vw,4.2rem)] leading-none">{copy.life.title}</h1>
         <p className="mt-2 text-ink-2">{copy.life.subtitle}</p>
+        <LifeTip />
       </header>
       <CompassSection />
       <OdysseySection />
       <ObjectivesSection />
       <DecisionsSection />
+    </div>
+  );
+}
+
+function LifeTip() {
+  const { tipUnseen, actions } = useStore();
+  return (
+    <div className="mt-6 max-w-xl empty:hidden">
+      <Tip show={tipUnseen("life")} onDismiss={() => actions.dismissTip("life")}>
+        {copy.tips.life}
+      </Tip>
     </div>
   );
 }
@@ -129,6 +142,23 @@ function OdysseySection() {
   const toast = useToast();
   const [editing, setEditing] = useState<OdysseyPlan | null>(null);
   const [promoting, setPromoting] = useState<OdysseyPlan | null>(null);
+  const section = useRef<HTMLElement>(null);
+
+  // An Odyssey nudge on Today links here as /life?plan=N: open that plan's editor.
+  useEffect(() => {
+    const slot = Number(new URLSearchParams(window.location.search).get("plan"));
+    const plan = state.plans.find((p) => p.slot === slot);
+    if (!plan) return;
+    section.current?.scrollIntoView({ block: "start" });
+    // Clear ?plan only when the editor actually opens, so a re-run effect still finds it.
+    const t = setTimeout(() => {
+      window.history.replaceState(null, "", window.location.pathname);
+      setEditing(plan);
+    }, 350);
+    return () => clearTimeout(t);
+    // Only on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const promote = (p: OdysseyPlan) => {
     if (actions.openPrototypesOf(p.id).length) setPromoting(p);
@@ -139,7 +169,7 @@ function OdysseySection() {
   };
 
   return (
-    <section aria-label={copy.life.odyssey}>
+    <section ref={section} aria-label={copy.life.odyssey} className="scroll-mt-6">
       <SectionHead title={copy.life.odyssey} hint={copy.life.odysseyHint} />
       <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-3 lg:overflow-visible">
         {state.plans.map((p) => (

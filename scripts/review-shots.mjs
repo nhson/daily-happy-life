@@ -81,6 +81,55 @@ for (const [name, opts] of Object.entries(sizes)) {
   await page.waitForTimeout(900);
   await shot("13-welcome-compass");
 
+  // Onboarding: finish setup, then the in-context tips, nudge and reminder ask (SPEC §7).
+  await page.locator("textarea").nth(0).fill("Work is how I turn curiosity into useful tools.");
+  await page.locator("textarea").nth(1).fill("Life is for the people I love and learning slowly.");
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.waitForTimeout(700);
+  await page.locator("textarea").first().fill("Run three mornings a week");
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.waitForTimeout(700);
+  for (const [i, t] of ["Buy running shoes", "Map a 5k loop by the river", "Ask Minh to join on Saturdays"].entries())
+    await page.getByLabel(`Step ${i + 1}`).fill(t);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.waitForTimeout(700);
+  await page.getByRole("button", { name: "Ask Minh to join on Saturdays" }).click();
+  await shot("14-welcome-for-today");
+  await page.getByRole("button", { name: "Watch the sun come up" }).click();
+  await page.waitForTimeout(6500);
+
+  await go("/today?at=11:30", 2400);
+  await shot("15-day1-today-tip");
+  await page.keyboard.press(process.platform === "darwin" ? "Meta+k" : "Control+k");
+  await page.waitForTimeout(800);
+  await shot("16-capture-tip");
+  await page.keyboard.press("Escape");
+
+  await go("/today?day=2&at=11:30", 2400);
+  await page.getByRole("button", { name: "Got it" }).click();
+  await page.waitForTimeout(900);
+  await shot("17-day2-odyssey-nudge");
+  await page.getByRole("button", { name: "Morning ritual" }).click();
+  await page.waitForTimeout(3000);
+  await shot("18-morning-tip");
+
+  await go("/life?at=16:10", 2200);
+  await shot("19-life-tip");
+  await go("/life?plan=1&at=16:10", 2600);
+  await shot("20-plan-editor-from-nudge");
+
+  await go("/today?at=19:20", 2000);
+  // The sheet rises by itself only once per evening, and step 09 already used that.
+  await page.getByRole("button", { name: "Check in" }).click();
+  await page.waitForTimeout(900);
+  await shot("21-evening-tip");
+  await page.getByRole("button", { name: "Close the day" }).last().click();
+  await page.waitForTimeout(3200);
+  await shot("22-closed-day-tip");
+  await page.getByRole("button", { name: "Got it" }).click();
+  await page.waitForTimeout(900);
+  await shot("23-reminder-ask");
+
   // Sky states for the contrast review
   for (const at of ["05:30", "06:00", "07:30", "12:00", "17:45", "18:15", "19:00", "23:00"]) {
     await go(`/tasks?reset=1&at=${at}`, 1400);

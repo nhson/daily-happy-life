@@ -1,5 +1,6 @@
 import { addDays, quarterOf } from "@/domain/logical-day";
 import type { DailyLog, LogicalDate, Task } from "@/domain/types";
+import { freshOnboarding } from "@/domain/onboarding";
 import type { AppState } from "./state";
 
 /** A lived-in week for design review. Dates are relative to `today`. */
@@ -41,6 +42,13 @@ export function fixtures(today: LogicalDate, timeZone: string): AppState {
     version: 1,
     userId: "user_owner",
     onboarded: true,
+    // The owner onboarded a month ago: every tip seen, reminder already offered.
+    onboarding: {
+      setupDate: addDays(today, -30),
+      seenTips: ["top3", "capture", "morning", "evening", "closedDay", "life"],
+      reminderAskedAt: at(addDays(today, -29), 21),
+      nudges: {},
+    },
     settings: { timeZone, reminderTime: "07:00", eveningHour: 19, dayEndHour: 4, theme: "sky", sound: true },
     compass: {
       workview: "Work is how I turn curiosity into tools that make other people’s days a little lighter.",
@@ -123,6 +131,7 @@ export function blank(timeZone: string): AppState {
     version: 1,
     userId: "user_owner",
     onboarded: false,
+    onboarding: freshOnboarding(null),
     settings: { timeZone, reminderTime: "07:00", eveningHour: 19, dayEndHour: 4, theme: "sky", sound: true },
     compass: null,
     plans: [1, 2, 3].map((slot) => ({

@@ -33,6 +33,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 ## Log
 
+### 2026-11-04 — Onboarding & tutorial prototype (feat-006 design, on mock data)
+
+- Grilled and settled the design (SPEC §7 "First run", §8 `users.onboarding`).
+- Built on mock data: "Which of these is for today?" setup step (day 1 = morning done), six one-time tips (`src/ui/tip.tsx`), one-card-at-a-time Today slot (`src/features/onboarding/today-card.tsx`), Odyssey nudges with `/life?plan=N`, reminder ask, Settings "Show tips again".
+- Rules in `src/domain/onboarding.ts`, test-first (19 tests). Review: `?day=N`; review script shots 14–23.
+- Also: UX pass on the prototype (wrapping task titles, multi-line strike, wrapping capture chips, pinned "Close the day", one-line date).
+
 ### 2026-11-04 — Spec/plan grilling
 
 - Settled 17 edge-case decisions (plan switch, Quarter Close, Done vs Closed, missed check-in, carry-over lookback, Top 3 history, due dates, offline capture, term disambiguation).

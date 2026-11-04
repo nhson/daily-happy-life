@@ -1,16 +1,18 @@
 "use client";
 
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { copy } from "@/copy/en";
 import { useStore } from "@/data/mock-store";
 import { Button, Chip } from "@/ui/controls";
+import { useToast } from "@/ui/toast";
 
 const hours = Array.from({ length: 24 }, (_, h) => h);
 const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
 export function SettingsView() {
   const { state, actions } = useStore();
+  const toast = useToast();
   const s = state.settings;
   const zones = Intl.supportedValuesOf?.("timeZone") ?? [s.timeZone];
 
@@ -30,7 +32,7 @@ export function SettingsView() {
       </Link>
       <h1 className="serif text-[44px] leading-none">{copy.settings.title}</h1>
 
-      <div className="glass flex flex-col divide-y divide-[color:var(--hairline)] rounded-[28px]">
+      <div id="reminder" className="glass flex scroll-mt-24 flex-col divide-y divide-[color:var(--hairline)] rounded-[28px]">
         <Row label={copy.settings.reminder} hint={copy.settings.reminderHint}>
           <input type="time" value={s.reminderTime} onChange={(e) => actions.updateSettings({ reminderTime: e.target.value })} className="tabular rounded-xl bg-fill px-3 py-2 font-mono text-sm text-ink outline-none" />
         </Row>
@@ -66,6 +68,15 @@ export function SettingsView() {
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button variant="glass" onClick={exportAll}>
           <Download size={16} /> {copy.settings.export}
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            actions.showTipsAgain();
+            toast(copy.settings.tipsShown);
+          }}
+        >
+          <Lightbulb size={16} /> {copy.settings.showTips}
         </Button>
         <Button variant="ghost" onClick={actions.resetFixtures}>
           {copy.settings.reset}

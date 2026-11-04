@@ -4,6 +4,7 @@ import { ArrowUp, Plus } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { copy } from "@/copy/en";
+import { Tip } from "@/ui/tip";
 import { useStore } from "@/data/mock-store";
 import type { KindChoice } from "@/data/state";
 import { Chip } from "@/ui/controls";
@@ -46,7 +47,7 @@ export function CaptureProvider({ children }: { children: ReactNode }) {
 }
 
 function CaptureForm({ onDone }: { onDone: () => void }) {
-  const { state, activeObjectives, actions } = useStore();
+  const { state, activeObjectives, tipUnseen, actions } = useStore();
   const input = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -126,6 +127,13 @@ function CaptureForm({ onDone }: { onDone: () => void }) {
         </motion.button>
       </div>
 
+      <div className="mt-3">
+        <Tip show={tipUnseen("capture")} onDismiss={() => actions.dismissTip("capture")}>
+          {copy.tips.capture}
+          <span className="hidden lg:inline">{copy.tips.captureDesktop}</span>
+        </Tip>
+      </div>
+
       <div className="mt-3 flex items-center justify-between">
         <p className="eyebrow">{copy.capture.why}</p>
         <AnimatePresence mode="popLayout">
@@ -136,7 +144,8 @@ function CaptureForm({ onDone }: { onDone: () => void }) {
           )}
         </AnimatePresence>
       </div>
-      <div className="no-scrollbar -mx-5 mt-2 flex gap-2 overflow-x-auto px-5 pb-1 sm:-mx-7 sm:flex-wrap sm:px-7">
+      {/* Wrap, never scroll sideways: every "why" stays visible on a phone. */}
+      <div className="mt-2 flex flex-wrap gap-2 pb-1">
         {options.map((o, i) => (
           <Chip key={i} selected={same(choice, o.choice)} color={o.color} onClick={() => setChoice(o.choice)} title={i < 9 ? `⌘${i + 1}` : undefined}>
             <KindDot kind={o.kind} />

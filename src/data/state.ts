@@ -1,3 +1,4 @@
+import type { OnboardingState } from "@/domain/onboarding";
 import type { Compass, DailyLog, Decision, LogicalDate, Objective, OdysseyPlan, Task, UserSettings } from "@/domain/types";
 
 /** The "why" chosen in capture. */
@@ -10,6 +11,8 @@ export interface AppState {
   version: 1;
   userId: string;
   onboarded: boolean;
+  /** Tips seen, nudges snoozed, reminder asked — UI progress only (users.onboarding in prod). */
+  onboarding: OnboardingState;
   settings: UserSettings & { sound: boolean };
   compass: Compass | null;
   /** Always three slots. */

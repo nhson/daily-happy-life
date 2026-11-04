@@ -5,12 +5,14 @@
  * real Server Actions will use; deleted after Slice 3.
  *
  * Review URLs:  ?reset=1 (fresh fixtures) · ?fresh=1 (first run) · ?at=HH:MM (time of day)
+ *                ?day=N (pretend it is Logical Day N since setup — Odyssey nudges)
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { compassLineFor, type CompassLine } from "@/domain/compass-line";
 import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
+import { freshOnboarding, snoozeNudge, todayCard, type PlanSlot, type TipId } from "@/domain/onboarding";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
 import { useClock } from "@/ui/clock";
@@ -25,14 +27,28 @@ function load(): AppState {
   const params = new URLSearchParams(window.location.search);
   const tz = deviceTz();
   const today = logicalDate(new Date(), tz, 4);
-  if (params.has("fresh")) return blank(tz);
-  if (!params.has("reset")) {
+  let state: AppState | null = params.has("fresh") ? blank(tz) : null;
+  if (!state && !params.has("reset")) {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) return JSON.parse(raw) as AppState;
+      if (raw) state = JSON.parse(raw) as AppState;
     } catch {}
   }
-  return fixtures(today, tz);
+  state ??= fixtures(today, tz);
+
+  // Saved before onboarding state existed: an onboarded user has seen it all.
+  if (!state.onboarding)
+    state = {
+      ...state,
+      onboarding: state.onboarded
+        ? { setupDate: addDays(today, -30), seenTips: ["top3", "capture", "morning", "evening", "closedDay", "life"], reminderAskedAt: new Date().toISOString(), nudges: {} }
+        : freshOnboarding(null),
+    };
+
+  const day = Number(params.get("day"));
+  if (day >= 1 && state.onboarding.setupDate)
+    state = { ...state, onboarding: { ...state.onboarding, setupDate: addDays(today, -(day - 1)) } };
+  return state;
 }
 
 function emptyLog(date: LogicalDate): DailyLog {
@@ -44,7 +60,9 @@ function useStoreState() {
   const { now } = useClock();
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).has("fresh")) return; // keep the review state pristine
+    // Keep the saved review state pristine while a ?fresh first run is in progress; once setup
+    // finishes, save it so day 2+ (?day=N) can be reviewed.
+    if (new URLSearchParams(window.location.search).has("fresh") && !state.onboarded) return;
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
     } catch {}
@@ -75,6 +93,16 @@ function useStoreState() {
   const carryOver = state.tasks.filter((t) => t.top3Date === addDays(today, -1) && !t.doneAt && !t.closedAt);
   const quarter = quarterOf(today);
   const activeObjectives = state.objectives.filter((o) => o.status === "active" && o.quarter === quarter);
+
+  const card = todayCard({
+    onboarding: state.onboarding,
+    today,
+    plans: state.plans,
+    mode,
+    hasTop3: top3.length > 0,
+    hasClosedDay: Object.values(state.logs).some((l) => l.closedAt),
+  });
+  const tipUnseen = (tip: TipId) => state.onboarding.setupDate !== null && !state.onboarding.seenTips.includes(tip);
 
   const share: LifeShare = useMemo(
     () => lifeShare(state.tasks, { today, timeZone, dayEndHour }),
@@ -236,22 +264,41 @@ function useStoreState() {
     [],
   );
 
+  const dismissTip = useCallback(
+    (tip: TipId) =>
+      setState((s) =>
+        s.onboarding.seenTips.includes(tip) ? s : { ...s, onboarding: { ...s.onboarding, seenTips: [...s.onboarding.seenTips, tip] } },
+      ),
+    [],
+  );
+  const showTipsAgain = useCallback(() => setState((s) => ({ ...s, onboarding: { ...s.onboarding, seenTips: [] } })), []);
+  const notNowNudge = useCallback(
+    (slot: PlanSlot) => setState((s) => ({ ...s, onboarding: snoozeNudge(s.onboarding, slot, today) })),
+    [today],
+  );
+  /** The reminder is offered once, whatever the answer. */
+  const answerReminder = useCallback(
+    () => setState((s) => ({ ...s, onboarding: { ...s.onboarding, reminderAskedAt: new Date().toISOString() } })),
+    [],
+  );
+
   const completeOnboarding = useCallback(
-    (input: { compass: Compass; objective: string; tasks: string[] }) => {
+    (input: { compass: Compass; objective: string; tasks: { title: string; today: boolean }[] }) => {
       setState((s) => {
         const plan = s.plans.find((p) => p.isActive) ?? s.plans[0];
         const objective: Objective = { id: uid(), planId: plan.id, title: input.objective.trim(), quarter, status: "active" };
         const nowIso = new Date().toISOString();
         const tasks: Task[] = input.tasks
-          .filter((t) => t.trim())
-          .map((title) => ({
+          .filter((t) => t.title.trim())
+          .map((t) => ({
             id: uid(),
-            title: title.trim(),
+            title: t.title.trim(),
             kind: "objective",
             objectiveId: objective.id,
             prototypePlanId: null,
             dueDate: null,
-            top3Date: null,
+            // "Which of these is for today?" — the user's own picks become today's Top 3.
+            top3Date: t.today ? today : null,
             doneAt: null,
             closedAt: null,
             createdAt: nowIso,
@@ -259,6 +306,9 @@ function useStoreState() {
         return {
           ...s,
           onboarded: true,
+          onboarding: freshOnboarding(today),
+          // Day 1 counts as the Morning Ritual done — setup asked enough. The ritual starts on day 2.
+          logs: { ...s.logs, [today]: { ...(s.logs[today] ?? emptyLog(today)), morningAt: nowIso } },
           compass: input.compass,
           objectives: [...s.objectives, objective],
           tasks: [...tasks, ...s.tasks],
@@ -266,7 +316,7 @@ function useStoreState() {
         };
       });
     },
-    [quarter],
+    [quarter, today],
   );
 
   const resetFixtures = useCallback(() => setState(fixtures(today, timeZone)), [today, timeZone]);
@@ -286,6 +336,8 @@ function useStoreState() {
     activeObjectives,
     share,
     dots,
+    card,
+    tipUnseen,
     actions: {
       addTask,
       toggleDone,
@@ -305,6 +357,10 @@ function useStoreState() {
       addDecision,
       updateSettings,
       completeOnboarding,
+      dismissTip,
+      showTipsAgain,
+      notNowNudge,
+      answerReminder,
       resetFixtures,
     },
   };

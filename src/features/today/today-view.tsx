@@ -14,8 +14,10 @@ import { CheckInForm } from "./checkin-sheet";
 import { CompassHero } from "./compass-hero";
 import { MorningFlow } from "./morning-flow";
 import { TasksPanel } from "@/features/tasks/tasks-panel";
+import { TodayOnboardingCard } from "@/features/onboarding/today-card";
 
-const fmt = (d: Date) => d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+// Short month keeps the header on one line beside the week dots on a phone.
+const fmt = (d: Date) => d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" });
 
 export function TodayView() {
   const store = useStore();
@@ -54,9 +56,9 @@ export function TodayView() {
           animate={{ opacity: flowOpen ? 0 : 1, y: flowOpen ? 16 : 0 }}
           transition={{ duration: 0.6, delay: flowOpen ? 0 : 0.2 }}
         >
-          <header className="flex items-center justify-between pt-2">
-            <div>
-              <p className="eyebrow">{fmt(now)}</p>
+          <header className="flex items-center justify-between gap-3 pt-2">
+            <div className="min-w-0">
+              <p className="eyebrow whitespace-nowrap">{fmt(now)}</p>
             </div>
             <div className="flex items-center gap-3">
               <WeekDots dots={dots} label={copy.today.weekLabel(checked)} />
@@ -73,6 +75,8 @@ export function TodayView() {
           ) : (
             <NightSummary />
           )}
+
+          <TodayOnboardingCard />
 
           {mode === "evening" && (
             <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-[28px] p-5">

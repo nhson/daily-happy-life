@@ -4,6 +4,7 @@ import { clsx } from "clsx";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { copy } from "@/copy/en";
+import { Tip } from "@/ui/tip";
 import { logicalDate } from "@/domain/logical-day";
 import { MEANING_SOURCES, type MeaningSource } from "@/domain/types";
 import { useStore } from "@/data/mock-store";
@@ -14,7 +15,7 @@ import { MeaningGlyph, meaningColor } from "@/ui/glyphs";
 
 /** The Evening Check-in — one sheet, one commit. ~60 seconds. */
 export function CheckInForm({ onClosed }: { onClosed: () => void }) {
-  const { state, today, top3, log, actions } = useStore();
+  const { state, today, top3, log, tipUnseen, actions } = useStore();
   const [energy, setEnergy] = useState<number | null>(log.energy);
   const [engagement, setEngagement] = useState<number | null>(log.engagement);
   const [sources, setSources] = useState<MeaningSource[]>(log.meaningSources);
@@ -42,6 +43,9 @@ export function CheckInForm({ onClosed }: { onClosed: () => void }) {
   return (
     <div className="flex flex-col gap-7 pb-2 pt-2">
       <h2 className="serif text-[34px] leading-none">{copy.checkIn.title}</h2>
+      <Tip show={tipUnseen("evening")} onDismiss={() => actions.dismissTip("evening")}>
+        {copy.tips.evening}
+      </Tip>
 
       {list.length > 0 && (
         <section>
@@ -96,9 +100,15 @@ export function CheckInForm({ onClosed }: { onClosed: () => void }) {
         />
       </label>
 
-      <Button size="lg" onClick={close} className="w-full">
-        {copy.checkIn.close}
-      </Button>
+      {/* The one commit stays in reach while the sheet scrolls. */}
+      <div
+        className="sticky bottom-0 -mx-5 -mb-2 px-5 pb-2 pt-5 sm:-mx-7 sm:px-7"
+        style={{ background: "linear-gradient(to top, var(--glass-strong) 65%, transparent)" }}
+      >
+        <Button size="lg" onClick={close} className="w-full">
+          {copy.checkIn.close}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -155,18 +155,12 @@ export function TaskRow({
         </button>
 
         <div className="min-w-0 flex-1 py-0.5">
-          <div className="relative w-fit max-w-full">
-            <span className={clsx("block truncate text-[15px] leading-snug transition-colors duration-500", done ? "text-ink-3" : "text-ink")}>
+          {/* Titles wrap to two lines — they are the user's own words, never an ellipsis after one. */}
+          <span className={clsx("line-clamp-2 text-[15px] leading-snug transition-colors duration-500", done ? "text-ink-3" : "text-ink")}>
+            <span className="strike" data-on={done}>
               {task.title}
             </span>
-            <motion.span
-              aria-hidden
-              className="absolute left-0 top-1/2 h-[1.5px] w-full origin-left rounded-full bg-ink-3"
-              initial={false}
-              animate={{ scaleX: done ? 1 : 0 }}
-              transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </div>
+          </span>
           {showWhy && (
             <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-ink-3">
               <KindDot kind={task.kind} />

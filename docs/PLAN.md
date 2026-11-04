@@ -69,6 +69,8 @@ Decisions made while building Phase 0:
 - **Tasks tab = Open ∣ Done** segmented control. A search button beside the tabs opens the search bar on demand (`/` on desktop); the why-filter lives inside it as a menu, the active filter as a removable token. Closing search clears both. Done shows the last 7 Logical Days only, grouped by day, newest first.
 - Review URLs: `?at=HH:MM` pins time of day, `?reset=1` reloads fixtures, `?fresh=1` starts the first run.
 
+Onboarding & tutorial (settled 2026-11-04, SPEC §7 "First run"): built in the Phase 0 prototype on mock data first, wired to the backend in Slice 5. Review URL `?day=N` pretends it is Logical Day N since setup.
+
 Edge-case rules settled 2026-11-04 (plan switch, Quarter Close, task endings, missed check-in, carry-over, Top 3 history, due dates, offline) live in SPEC §6–8 and are folded into the slices below.
 
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
@@ -79,7 +81,7 @@ Edge-case rules settled 2026-11-04 (plan switch, Quarter Close, task endings, mi
 | 2 | **Tasks + Capture** live: create (kind required, last kind preselected), complete, edit, **close** (history) vs **delete** (mistakes only), due date via edit + due/overdue on Today, filters; optimistic | Phone capture is type + Enter; DB rejects a kind/link mismatch |
 | 3 | **Morning ritual** live: Compass line, Top 3 + carry-over (last Top 3 day within 7 days), Intention → `daily_logs`; final Top 3 snapshot in `top3TaskIds` | Flow runs once per Logical Day; mock store deleted |
 | 4 | **Evening check-in** live: sheet, close the day, Life Share bar, week dots; "Close yesterday?" step next morning (once, no task ticking) | Check-in at 00:40 lands on the previous day |
-| 5 | **First run**: Compass → Objective → tasks under the implicit Current Path; days 2–7 Odyssey nudges | Fresh account usable in < 3 min |
+| 5 | **First run**: Compass → Objective → tasks → "for today" (Top 3) under the implicit Current Path; six in-context tips; Odyssey nudges days 2/4/6; reminder ask after first closed day; `users.onboarding` jsonb | Fresh account usable in < 3 min; tips and nudges follow you across devices |
 | 6 | **Life page** live: Compass edit, Odyssey (gauges, set active + promotion sheet settling old Objectives and new Prototypes, ending with a pre-filled Decision), Objectives (max 5 active; Done asks close/move open tasks), Decisions | Promoting a plan with open Prototypes forces convert/close |
 | 7 | **Quarter Close** card: non-blocking; carry forward moves open tasks, drop closes them; ends with Decision prompt + "add one?" if < 3 | Q4 leftovers on 1 Jan get Done / Drop / Carry forward, stay usable until settled |
 | 8 | **Settings + Export**: times, timezone, day-ends-at, theme, JSON export | Export round-trips every table |

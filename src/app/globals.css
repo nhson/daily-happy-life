@@ -155,6 +155,19 @@ textarea.serif:focus-visible {
 /* Compass line glow when all Top 3 are done */
 .glow { text-shadow: 0 0 28px color-mix(in oklab, var(--kind-objective) 70%, transparent), 0 0 2px color-mix(in oklab, var(--kind-objective) 40%, transparent); transition: text-shadow 1.2s ease; }
 
+/* Completion strike — drawn left to right on every wrapped line of a task title */
+.strike {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 58%;
+  background-size: 0% 1.5px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-size 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.strike[data-on="true"] { background-size: 100% 1.5px; }
+@media (prefers-reduced-motion: reduce) { .strike { transition: none; } }
+
 /* Hide scrollbars on horizontal carousels */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }

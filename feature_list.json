@@ -62,7 +62,7 @@
     {
       "id": "feat-006",
       "name": "Slice 5 — First run",
-      "description": "Compass → Objective → tasks under the implicit Current Path; days 2–7 Odyssey nudges. Done when: a fresh account is usable in < 3 min.",
+      "description": "Compass → Objective → tasks → \"Which of these is for today?\" (picks become Top 3; day 1 counts as morning done) under the implicit Current Path. Six one-time in-context tips (first Top 3, capture, Morning Ritual, evening, closed day, Life) + Settings \"Show tips again\". Odyssey nudges on Logical Day 2/4/6 (Not now = 2-day snooze, stops after 3). Reminder ask once after first closed day. One onboarding card at a time on Today (tip → reminder → nudge). State in users.onboarding jsonb. Prototyped on mock data first. Done when: a fresh account is usable in < 3 min.",
       "dependencies": [
         "feat-005"
       ],

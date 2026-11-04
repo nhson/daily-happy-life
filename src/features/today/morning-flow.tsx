@@ -5,6 +5,7 @@ import { ArrowRight, Plus } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { copy } from "@/copy/en";
+import { Tip } from "@/ui/tip";
 import { useStore } from "@/data/mock-store";
 import { useCapture } from "@/features/capture/capture";
 import { Button } from "@/ui/controls";
@@ -17,7 +18,7 @@ const fmtDate = (d: Date) => d.toLocaleDateString(undefined, { weekday: "long", 
 
 /** The Morning Ritual: Compass Line → Top 3 → Intention. Full-screen, once per Logical Day. */
 export function MorningFlow({ onClose }: { onClose: () => void }) {
-  const { now, compassLine, open, carryOver, log, actions } = useStore();
+  const { now, compassLine, open, carryOver, log, tipUnseen, actions } = useStore();
   const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
   const [picked, setPicked] = useState<string[]>(() => carryOver.map((t) => t.id).slice(0, 3));
@@ -94,6 +95,11 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
                 <Button size="lg" onClick={() => setStep(1)}>
                   {copy.morning.begin} <ArrowRight size={18} />
                 </Button>
+                <div className="mt-8">
+                  <Tip show={tipUnseen("morning")} onDismiss={() => actions.dismissTip("morning")}>
+                    {copy.tips.morning}
+                  </Tip>
+                </div>
               </motion.div>
             </motion.section>
           )}
@@ -211,7 +217,7 @@ function Top3Picker({
           {on ? n + 1 : ""}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[15px] text-ink">{t.title}</span>
+          <span className="line-clamp-2 text-[15px] leading-snug text-ink">{t.title}</span>
           <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-ink-3">
             <KindDot kind={t.kind} /> <span className="truncate">{why(t)}</span>
           </span>
