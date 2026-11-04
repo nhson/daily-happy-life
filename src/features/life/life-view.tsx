@@ -1,11 +1,11 @@
 "use client";
 
 import { clsx } from "clsx";
-import { Check, Pencil, Plus, X } from "lucide-react";
-import { motion } from "motion/react";
+import { Check, Feather, HeartHandshake, Palette, Pencil, Plus, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
-import { MINDSET_KEYS } from "@/domain/mindsets";
+import { MINDSET_KEYS, type MindsetKey } from "@/domain/mindsets";
 import { GAUGE_KEYS, type OdysseyPlan } from "@/domain/types";
 import { useStore } from "@/data/mock-store";
 import { Button, Chip, GaugeDial } from "@/ui/controls";
@@ -17,17 +17,81 @@ import { useToast } from "@/ui/toast";
 export function LifeView() {
   const copy = useCopy();
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-16 pt-4 lg:pt-8">
-      <header>
-        <h1 className="serif text-[clamp(2.6rem,9vw,4.2rem)] leading-none">{copy.life.title}</h1>
-        <p className="mt-2 text-ink-2">{copy.life.subtitle}</p>
-        <LifeTip />
-      </header>
+    <div className="mx-auto flex max-w-5xl flex-col gap-20 pt-4 lg:pt-8">
+      <Hero />
       <CompassSection />
       <OdysseySection />
       <ObjectivesSection />
       <DecisionsSection />
+      <p className="serif mx-auto max-w-md text-balance pb-10 text-center text-[clamp(1.4rem,3.6vw,1.9rem)] italic leading-snug text-ink-2">
+        {copy.life.closing}
+      </p>
     </div>
+  );
+}
+
+/** Each part of a life gets its own light: the same hues the rest of the app uses for meaning. */
+const MINDSET_LOOK: Record<MindsetKey, { icon: LucideIcon; tint: string }> = {
+  wonder: { icon: Sparkles, tint: "var(--m-wonder)" },
+  availability: { icon: HeartHandshake, tint: "var(--m-community)" },
+  "radical-acceptance": { icon: Sunrise, tint: "var(--m-coherence)" },
+  "engaged-detached": { icon: Feather, tint: "var(--m-flow)" },
+  "create-your-world": { icon: Palette, tint: "var(--kind-objective)" },
+};
+const PLAN_TINT: Record<1 | 2 | 3, string> = { 1: "var(--kind-objective)", 2: "var(--m-wonder)", 3: "var(--kind-prototype)" };
+const wash = (tint: string, at = "0% 0%", strength = 26) =>
+  `radial-gradient(120% 90% at ${at}, color-mix(in oklab, ${tint} ${strength}%, transparent), transparent 62%)`;
+
+function Hero() {
+  const copy = useCopy();
+  const { activePlan } = useStore();
+  const reduce = useReducedMotion();
+  const words = copy.life.subtitle.split(" ");
+  return (
+    <header className="pt-4 lg:pt-10">
+      <p className="eyebrow">{copy.life.title}</p>
+      <h1 className="serif mt-3 max-w-3xl text-balance text-[clamp(2.8rem,9.5vw,5.6rem)] leading-[0.98]">
+        {words.map((w, i) => (
+          <motion.span
+            key={`${w}-${i}`}
+            className="inline-block whitespace-pre"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: "0.3em", filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ delay: 0.1 + i * 0.08, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {w}
+            {i < words.length - 1 ? " " : ""}
+          </motion.span>
+        ))}
+      </h1>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 + words.length * 0.08, duration: 0.9 }}
+        className="serif mt-5 max-w-xl text-[clamp(1.2rem,3vw,1.5rem)] italic leading-snug text-ink-2"
+      >
+        {copy.life.intro}
+      </motion.p>
+      {activePlan?.title && (
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 + words.length * 0.08, duration: 0.7 }}
+          className="glass mt-7 inline-flex max-w-full items-center gap-3 rounded-[26px] py-2.5 pl-2.5 pr-6"
+        >
+          <span
+            aria-hidden
+            className="size-9 shrink-0 rounded-full"
+            style={{ background: "radial-gradient(circle at 35% 35%, #fff6e0, var(--kind-objective) 70%)", boxShadow: "0 0 18px var(--kind-objective)" }}
+          />
+          <span className="flex min-w-0 flex-col">
+            <span className="text-[11px] text-ink-3">{copy.life.livingToward}</span>
+            <span className="serif text-balance text-xl leading-tight text-ink">{activePlan.title}</span>
+          </span>
+        </motion.p>
+      )}
+      <LifeTip />
+    </header>
   );
 }
 
@@ -59,35 +123,64 @@ function SectionHead({ title, hint, action }: { title: string; hint?: string; ac
 
 function CompassSection() {
   const copy = useCopy();
-  const { state, actions } = useStore();
+  const { state, actions, compassLine } = useStore();
   const compass = state.compass ?? { workview: "", lifeview: "" };
   return (
     <section aria-label={copy.life.compass}>
-      <SectionHead title={copy.life.compass} />
+      <SectionHead title={copy.life.compass} hint={copy.life.compassHint} />
       <div className="grid gap-4 md:grid-cols-2">
-        <ViewCard label={copy.life.workview} prompt={copy.life.workviewPrompt} value={compass.workview} onSave={(workview) => actions.updateCompass({ ...compass, workview })} />
-        <ViewCard label={copy.life.lifeview} prompt={copy.life.lifeviewPrompt} value={compass.lifeview} onSave={(lifeview) => actions.updateCompass({ ...compass, lifeview })} />
+        <ViewCard label={copy.life.workview} prompt={copy.life.workviewPrompt} tint="var(--kind-objective)" value={compass.workview} onSave={(workview) => actions.updateCompass({ ...compass, workview })} />
+        <ViewCard label={copy.life.lifeview} prompt={copy.life.lifeviewPrompt} tint="var(--m-coherence)" value={compass.lifeview} onSave={(lifeview) => actions.updateCompass({ ...compass, lifeview })} />
       </div>
-      <p className="eyebrow mb-3 mt-8">{copy.life.mindsets}</p>
-      <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-5">
-        {MINDSET_KEYS.map((key, i) => (
-          <div key={key} className="glass w-56 shrink-0 snap-start rounded-[22px] p-4 lg:w-auto">
-            <p className="tabular font-mono text-[11px] text-ink-3">0{i + 1}</p>
-            <p className="mt-1 text-sm font-medium">{copy.mindsets[key].name}</p>
-            <p className="serif mt-2 text-lg leading-snug text-ink-2">{copy.mindsets[key].line}</p>
-          </div>
+      <div className="mb-4 mt-12">
+        <h3 className="serif text-[26px] leading-none">{copy.life.mindsets}</h3>
+        <p className="mt-1.5 text-sm text-ink-2">{copy.life.mindsetsHint}</p>
+      </div>
+      <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-5">
+        {MINDSET_KEYS.map((key) => (
+          <MindsetCard key={key} mindset={key} today={compassLine.source === "mindset" && compassLine.mindset === key} />
         ))}
       </div>
     </section>
   );
 }
 
-function ViewCard({ label, prompt, value, onSave }: { label: string; prompt: string; value: string; onSave: (v: string) => void }) {
+function MindsetCard({ mindset, today }: { mindset: MindsetKey; today: boolean }) {
+  const copy = useCopy();
+  const { icon: Icon, tint } = MINDSET_LOOK[mindset];
+  return (
+    <div
+      className="glass flex w-60 shrink-0 snap-start flex-col rounded-[24px] p-5 lg:w-auto"
+      style={{
+        backgroundImage: wash(tint, "50% 0%", today ? 40 : 24),
+        ...(today && { boxShadow: `var(--shadow), 0 0 0 1.5px color-mix(in oklab, ${tint} 75%, transparent), 0 0 40px -12px ${tint}` }),
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <span className="grid size-9 place-items-center rounded-full" style={{ background: `color-mix(in oklab, ${tint} 30%, transparent)` }}>
+          <Icon size={17} className="text-ink" aria-hidden />
+        </span>
+        {today && (
+          <span className="rounded-full px-2.5 py-0.5 text-[11px] font-medium text-[#0b1230]" style={{ background: tint }}>
+            {copy.life.todaysMindset}
+          </span>
+        )}
+      </div>
+      <p className="serif mt-4 text-[21px] leading-snug text-ink">{copy.mindsets[mindset].line}</p>
+      <p className="mt-auto pt-4 text-xs font-medium text-ink-2">{copy.mindsets[mindset].name}</p>
+    </div>
+  );
+}
+
+function ViewCard({ label, prompt, tint, value, onSave }: { label: string; prompt: string; tint: string; value: string; onSave: (v: string) => void }) {
   const copy = useCopy();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   return (
-    <div className="glass relative flex min-h-48 flex-col rounded-[28px] p-6">
+    <div className="glass relative flex min-h-56 flex-col overflow-hidden rounded-[30px] p-7" style={{ backgroundImage: wash(tint) }}>
+      <span aria-hidden className="serif pointer-events-none absolute -bottom-20 right-5 select-none text-[180px] leading-none" style={{ color: tint, opacity: 0.4 }}>
+        ”
+      </span>
       <div className="flex items-center justify-between">
         <p className="eyebrow">{label}</p>
         {!editing && (
@@ -131,7 +224,10 @@ function ViewCard({ label, prompt, value, onSave }: { label: string; prompt: str
           </div>
         </form>
       ) : value ? (
-        <p className="serif mt-3 text-[clamp(1.4rem,4.4vw,1.75rem)] leading-snug">{value}</p>
+        <>
+          <p className="serif relative mt-4 text-balance text-[clamp(1.6rem,4.6vw,2.2rem)] leading-[1.15]">{value}</p>
+          <p className="serif mt-auto pt-5 text-sm italic text-ink-3">— {copy.life.yourWords}</p>
+        </>
       ) : (
         <p className="serif mt-3 text-2xl leading-snug text-ink-3">{prompt}</p>
       )}
@@ -232,11 +328,13 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
     <motion.article
       layout
       className={clsx("glass relative flex min-h-[22rem] w-[82vw] max-w-sm shrink-0 snap-center flex-col rounded-[30px] p-6 lg:w-auto lg:max-w-none")}
-      style={
-        plan.isActive
-          ? { boxShadow: "var(--shadow), 0 0 0 1.5px color-mix(in oklab, var(--kind-objective) 80%, transparent), 0 0 60px -10px color-mix(in oklab, var(--kind-objective) 60%, transparent)" }
-          : undefined
-      }
+      style={{
+        // Each life has its own horizon: dawn for the one you live, open sky, then dusk for the wild card.
+        backgroundImage: wash(PLAN_TINT[plan.slot], "100% 0%", plan.isActive ? 34 : 22),
+        ...(plan.isActive && {
+          boxShadow: "var(--shadow), 0 0 0 1.5px color-mix(in oklab, var(--kind-objective) 80%, transparent), 0 0 60px -10px color-mix(in oklab, var(--kind-objective) 60%, transparent)",
+        }),
+      }}
     >
       <div className="flex items-center justify-between">
         <p className="eyebrow">
@@ -254,7 +352,7 @@ function PlanCard({ plan, prototypes, onEdit, onPromote }: { plan: OdysseyPlan; 
           )
         )}
       </div>
-      <h3 className="serif mt-5 text-[30px] leading-[1.05]">{plan.title}</h3>
+      <h3 className="serif mt-5 text-balance text-[32px] leading-[1.04]">{plan.title}</h3>
       {plan.questions && <p className="mt-3 text-sm leading-relaxed text-ink-2">{plan.questions}</p>}
       <div className="mt-auto grid grid-cols-4 gap-1 pt-6">
         {GAUGE_KEYS.map((k) => (

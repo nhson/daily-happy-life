@@ -33,6 +33,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 ## Log
 
+### 2026-11-04 — Life page: more emotional and inspiring (owner request)
+
+- Hero: "Who you are becoming" as the headline (word-by-word reveal), a reflective intro, and a "Living toward" pill with the Active Plan.
+- Compass cards read as the user's manifesto: warm/rose wash, large quote mark, "— in your own words".
+- Mindsets: "Five ways to meet a day", each with its own hue and icon, the line first; today's Compass Line mindset is marked "Today".
+- Odyssey cards get a horizon wash per slot (dawn / sky / dusk); a closing line ends the page. Copy in en + vi.
+
 ### 2026-11-04 — Vietnamese localization (default language)
 
 - Grilled and settled (Q1–Q7): Vietnamese default, English in Settings, `users.locale`; "bạn"; typed dictionaries + `useCopy()`; everything the user reads follows the language, user content and export field names don't.
