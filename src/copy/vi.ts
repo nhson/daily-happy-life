@@ -207,7 +207,9 @@ export const vi: Copy = {
   },
   promotion: {
     title: (plan) => `Chọn “${plan}” làm Kế hoạch đang theo?`,
-    body: "Những thử nghiệm còn mở của nó giờ thành việc thật. Gộp chúng vào một mục tiêu mới, hoặc buông chúng như những thử nghiệm đã làm xong phần mình.",
+    body: "Những thử nghiệm còn mở của nó giờ thành việc thật. Gộp chúng vào một mục tiêu, hoặc buông chúng như những thử nghiệm đã làm xong phần mình.",
+    full: "Quý này bạn đã có ba mục tiêu. Gộp chúng vào một mục tiêu đang có; mục tiêu đó sẽ chuyển sang kế hoạch này.",
+    convertInto: "Gộp vào mục tiêu này",
     convert: "Gộp vào một mục tiêu mới",
     close: "Buông chúng",
     objectiveName: "Mục tiêu mới",

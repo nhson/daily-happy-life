@@ -456,10 +456,14 @@ function PlanEditor({ plan, onSave }: { plan: OdysseyPlan; onSave: (p: OdysseyPl
 
 function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void }) {
   const copy = useCopy();
-  const { actions } = useStore();
+  const { state, quarter, actions } = useStore();
   const toast = useToast();
   const affected = actions.openPrototypesOf(plan.id);
   const [name, setName] = useState(plan.title);
+  // Three objectives already: fold into one of them instead of making a fourth.
+  const active = state.objectives.filter((o) => o.status === "active" && o.quarter === quarter);
+  const full = objectiveRoom(state.objectives, quarter) === 0;
+  const [into, setInto] = useState(active[0]?.id ?? null);
   return (
     <div className="flex flex-col gap-5 py-2">
       <h2 className="serif text-3xl leading-tight">{copy.promotion.title(plan.title)}</h2>
@@ -471,31 +475,44 @@ function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void
           </li>
         ))}
       </ul>
-      <label className="block">
-        <span className="eyebrow">{copy.promotion.objectiveName}</span>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="mt-2 w-full rounded-2xl bg-fill px-4 py-3 text-[15px] text-ink outline-none ring-1 ring-hairline focus:ring-ink-3"
-        />
-      </label>
-      <div className="flex flex-col gap-2 sm:flex-row-reverse">
+      {full ? (
+        <div>
+          <p className="text-sm text-ink-2">{copy.promotion.full}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {active.map((o) => (
+              <Chip key={o.id} selected={into === o.id} onClick={() => setInto(o.id)}>
+                {o.title}
+              </Chip>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <label className="block">
+          <span className="eyebrow">{copy.promotion.objectiveName}</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-2 w-full rounded-2xl bg-fill px-4 py-3 text-[15px] text-ink outline-none ring-1 ring-hairline focus:ring-ink-3"
+          />
+        </label>
+      )}
+      <div className="flex shrink-0 flex-col gap-2 sm:flex-row-reverse">
         <Button
           size="lg"
-          className="flex-1"
-          disabled={!name.trim()}
+          className="sm:flex-1"
+          disabled={full ? !into : !name.trim()}
           onClick={() => {
-            actions.setActivePlan(plan.id, { fold: name.trim() });
+            actions.setActivePlan(plan.id, full && into ? { into } : { fold: name.trim() });
             toast(copy.life.nowActive(plan.title));
             onDone();
           }}
         >
-          {copy.promotion.convert}
+          {full ? copy.promotion.convertInto : copy.promotion.convert}
         </Button>
         <Button
           size="lg"
           variant="glass"
-          className="flex-1"
+          className="sm:flex-1"
           onClick={() => {
             actions.setActivePlan(plan.id, "close");
             toast(copy.life.nowActive(plan.title));

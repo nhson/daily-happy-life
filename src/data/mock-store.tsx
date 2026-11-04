@@ -13,7 +13,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { compassLineFor, type CompassLine } from "@/domain/compass-line";
 import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
-import { objectiveRoom } from "@/domain/objectives";
+import { checkFold, objectiveRoom, type FoldResolution } from "@/domain/objectives";
 import { freshOnboarding, snoozeNudge, todayCard, type PlanSlot, type TipId } from "@/domain/onboarding";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
@@ -215,16 +215,25 @@ function useStoreState() {
 
   const openPrototypesOf = useCallback((planId: string) => promotionEffects(planId, state.tasks), [state.tasks]);
 
-  /** Switch the Active Plan; its open prototypes are folded into a new objective or closed. */
+  /**
+   * Switch the Active Plan. Its open prototypes are folded into a new objective (only while there
+   * is room), into an active one (which moves under the new plan), or closed.
+   */
   const setActivePlan = useCallback(
-    (planId: string, resolution: { fold: string } | "close" | null) => {
+    (planId: string, resolution: FoldResolution | null) => {
       setState((s) => {
         const affected = new Set(promotionEffects(planId, s.tasks).map((t) => t.id));
-        const objectives = [...s.objectives];
+        if (resolution && affected.size && checkFold(resolution, s.objectives, quarter) !== "ok") return s;
+        let objectives = [...s.objectives];
         let foldId: string | null = null;
         if (resolution && resolution !== "close" && affected.size) {
-          foldId = uid();
-          objectives.push({ id: foldId, planId, title: resolution.fold, quarter, status: "active" });
+          if ("fold" in resolution) {
+            foldId = uid();
+            objectives.push({ id: foldId, planId, title: resolution.fold, quarter, status: "active" });
+          } else {
+            foldId = resolution.into;
+            objectives = objectives.map((o) => (o.id === foldId ? { ...o, planId } : o));
+          }
         }
         const nowIso = new Date().toISOString();
         return {

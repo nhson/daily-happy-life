@@ -22,7 +22,7 @@ _Avoid_: Scenario, path, goal
 Odyssey Plan slot 1 — the life the user is already living, extended five years. Exists implicitly before the user writes it out.
 
 **Active Plan**:
-The one Odyssey Plan the user is currently pursuing; objectives hang under it. Switching it settles both sides at once: each still-active Objective of the old plan is Dropped or kept under the new plan, and the new plan's open Prototypes become Objective tasks or are Closed. The switch is itself offered as a Decision to record.
+The one Odyssey Plan the user is currently pursuing; objectives hang under it. Switching it settles both sides at once: each still-active Objective of the old plan is Dropped or kept under the new plan, and the new plan's open Prototypes become Objective tasks (under a new Objective, or an existing one when three are already active) or are Closed. The switch is itself offered as a Decision to record.
 _Avoid_: Main plan, primary plan
 
 **Gauge**:

@@ -204,7 +204,9 @@ export const en = {
   },
   promotion: {
     title: (plan: string) => `Make “${plan}” your Active Plan?`,
-    body: "Its open prototypes become real work now. Fold them into a new objective, or close them as experiments that did their job.",
+    body: "Its open prototypes become real work now. Fold them into an objective, or close them as experiments that did their job.",
+    full: "You already have three objectives this quarter. Fold these into one of them; it moves under this plan.",
+    convertInto: "Fold into this objective",
     convert: "Fold into a new objective",
     close: "Close them",
     objectiveName: "New objective",
