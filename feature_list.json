@@ -1,0 +1,101 @@
+{
+  "$comment": "Source of truth for feature state. Mirrors the phases/slices in docs/PLAN.md. Status: not-started | in-progress | blocked | done. Only one feature in-progress at a time. 'done' requires evidence (command + result).",
+  "features": [
+    {
+      "id": "feat-000",
+      "name": "Phase 0 — Design prototype on mock data",
+      "description": "PLAN.md Phase 0 steps 1–6: scaffold, domain core (test-first), Sky, primitives, all screens on mock data, copy deck.",
+      "dependencies": [],
+      "status": "done",
+      "evidence": "2026-11-04: ./init.sh green — typecheck, lint, vitest 6 files / 44 tests passed, next build OK (7 static routes). Commits d5695fd..079a1d5."
+    },
+    {
+      "id": "feat-001",
+      "name": "Phase 0 gate — owner design review",
+      "description": "Playwright screenshots of every screen × sky state at phone + desktop (bun run review → review/*.png) plus a morning-ritual recording. Owner approves or redirects.",
+      "dependencies": ["feat-000"],
+      "status": "in-progress",
+      "evidence": ""
+    },
+    {
+      "id": "feat-002",
+      "name": "Slice 1 — Foundation",
+      "description": "Clerk (restricted, passkey + Google), Neon + Drizzle schema with check constraints, user row on first sign-in, Vercel deploy + GitHub previews. Remove Phase 0 `instant = false` opt-out. Done when: owner signs in on a deployed URL; others cannot sign up.",
+      "dependencies": ["feat-001"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-003",
+      "name": "Slice 2 — Tasks + Capture live",
+      "description": "Create (kind required, last kind preselected), complete, edit, delete, filters; optimistic. Done when: phone capture is type + Enter; DB rejects a kind/link mismatch.",
+      "dependencies": ["feat-002"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-004",
+      "name": "Slice 3 — Morning ritual live",
+      "description": "Compass line, Top 3 + carry-over, Intention → daily_logs. Done when: flow runs once per Logical Day; mock store deleted.",
+      "dependencies": ["feat-003"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-005",
+      "name": "Slice 4 — Evening check-in live",
+      "description": "Sheet, close the day, Life Share bar, week dots. Done when: a check-in at 00:40 lands on the previous day.",
+      "dependencies": ["feat-004"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-006",
+      "name": "Slice 5 — First run",
+      "description": "Compass → Objective → tasks under the implicit Current Path; days 2–7 Odyssey nudges. Done when: a fresh account is usable in < 3 min.",
+      "dependencies": ["feat-005"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-007",
+      "name": "Slice 6 — Life page live",
+      "description": "Compass edit, Odyssey (gauges, set active + promotion sheet), Objectives, Decisions. Done when: promoting a plan with open Prototypes forces convert/close.",
+      "dependencies": ["feat-006"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-008",
+      "name": "Slice 7 — Quarter Close card",
+      "description": "Done when: Q4 leftovers on 1 Jan get Done / Drop / Carry forward.",
+      "dependencies": ["feat-007"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-009",
+      "name": "Slice 8 — Settings + Export",
+      "description": "Times, timezone, day-ends-at, theme, JSON export. Done when: export round-trips every table.",
+      "dependencies": ["feat-008"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-010",
+      "name": "Slice 9 — PWA + Reminder",
+      "description": "Manifest, icons, SW cache of Today, install prompt, web push, QStash schedule per user (ADR 0001). Done when: push arrives at the chosen minute on the iPhone Home-Screen app.",
+      "dependencies": ["feat-009"],
+      "status": "not-started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-011",
+      "name": "Slice 10 — Finish",
+      "description": "Perf budget, a11y audit in all sky states, Playwright ritual smoke test, polish. Done when: every budget in PLAN.md's design table is met.",
+      "dependencies": ["feat-010"],
+      "status": "not-started",
+      "evidence": ""
+    }
+  ]
+}
