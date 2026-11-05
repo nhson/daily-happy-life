@@ -1,42 +1,15 @@
 # Session Handoff
 
-Overwrite this file at the end of any session that leaves work mid-flight.
-
 ## Current Objective
 
-- Goal: Phase 0 gate (feat-001) — owner design review
-- Current status: prototype complete; harness set up; awaiting owner review
-- Branch / commit: main
+- v1 (Slices 1–10) built and proven on production. feat-010 (PWA + Reminder) and feat-011 (Finish) are **pending-confirmation**: waiting on the owner's iPhone check.
 
-## Completed This Session
+## Owner check (closes feat-010 and feat-011)
 
-- [x] Agent harness: `AGENTS.md` workflow section, `feature_list.json`, `progress.md`, `init.sh`, this file
+1. Safari → https://daily-happy-life.vercel.app → Share → Add to Home Screen.
+2. Open from the Home Screen, sign in, Settings → turn reminders on, allow notifications, set the time a few minutes ahead.
+3. The reminder arrives at that minute → mark both done. If it doesn't: QStash logs (Upstash console, dhl-qstash, eu-central-1) for the `remind-<userId>` schedule; `bun run check:qstash` re-proves signed delivery.
 
-## Verification Evidence
+## Next
 
-| Check | Command | Result | Notes |
-|---|---|---|---|
-| Full gate | `./init.sh` | pass | typecheck, lint, 44 Vitest tests, `next build` |
-
-## Files Changed
-
-- `AGENTS.md`, `CLAUDE.md`, `feature_list.json`, `progress.md`, `session-handoff.md`, `init.sh`
-
-## Decisions Made
-
-- Feature IDs map 1:1 to PLAN.md (feat-000 = Phase 0, feat-001 = gate, feat-002..011 = Slices 1–10).
-
-## Blockers / Risks
-
-- Owner approval is a human gate before Slice 1.
-
-## Next Session Startup
-
-1. Read `AGENTS.md`.
-2. Read `feature_list.json` and `progress.md`.
-3. Review this handoff.
-4. Run `./init.sh` before editing.
-
-## Recommended Next Step
-
-- Ask the owner for the Phase 0 review verdict; apply redirects or mark feat-001 done and begin feat-002.
+- Phase 2 (SPEC §10) starts "after v1 is in daily use"; the owner picks which item first.

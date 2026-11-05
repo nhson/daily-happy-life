@@ -24,8 +24,8 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-007: Slice 6 — Life page live (E2E local + production)
 - [x] feat-008: Slice 7 — Quarter Close (E2E local + production)
 - [x] feat-009: Slice 8 — Settings + Export (E2E local + production)
-- [ ] feat-010: Slice 9 — PWA + Reminder (built, proven on production except push; VAPID + QStash live, signed round trip proven; waits on owner's iPhone)
-- [ ] feat-011: Slice 10 — Finish (perf + a11y budgets met on production; iOS install check with the owner)
+- [~] feat-010 (pending owner confirm): Slice 9 — PWA + Reminder (built, proven on production except push; VAPID + QStash live, signed round trip proven; waits on owner's iPhone)
+- [~] feat-011 (pending owner confirm): Slice 10 — Finish (perf + a11y budgets met on production; iOS install check with the owner)
 
 ### What's Next
 
@@ -43,6 +43,8 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Log
 
 ### 2026-11-05 — Slice 10: budgets measured and met
+
+- Slices 9 and 10 marked **pending-confirmation**: all agent-verifiable checks pass on production; the owner's iPhone check (Home-Screen install + a reminder arriving at the chosen minute) is the one thing left. v1 (Slices 1–10) is otherwise complete.
 
 - Perf on production (mid phone, 4G, CPU 4×): Today interactive 1.28 s cold / 1.15 s repeat; INP 72 ms worst. A11y: axe WCAG 2.2 AA clean in every sky state/theme and the ritual; 44px targets everywhere (mindset strip made focusable; `.hit` touch areas). Chromium installability clean on production. `bun run smoke` = the ritual spec.
 - Slice 9: VAPID keys in Vercel env; QStash install waits on the owner accepting Upstash's Marketplace terms (https://vercel.com/hoang-son-ngs-projects/~/integrations/accept-terms/upstash?source=cli).

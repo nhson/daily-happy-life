@@ -1,5 +1,5 @@
 {
-  "$comment": "Source of truth for feature state. Mirrors the phases/slices in docs/PLAN.md. Status: not-started | in-progress | blocked | done. Only one feature in-progress at a time. 'done' requires evidence (command + result).",
+  "$comment": "Source of truth for feature state. Mirrors the phases/slices in docs/PLAN.md. Status: not-started | in-progress | blocked | pending-confirmation | done. 'pending-confirmation' = built and proven by agent; only the owner's on-device check is left. Only one feature in-progress at a time. 'done' requires evidence (command + result).",
   "features": [
     {
       "id": "feat-000",
@@ -106,7 +106,7 @@
       "dependencies": [
         "feat-009"
       ],
-      "status": "in-progress",
+      "status": "pending-confirmation",
       "evidence": "Partial, 2026-11-05: manifest + icons, service worker (Today offline, push handler), install prompt, push opt-in in Settings, /api/remind (QStash-signed only), per-user QStash schedule kept in step with time/zone, offline capture draft. e2e/pwa.spec.ts 3/3 locally; Vitest src/data/reminders.test.ts with fakes. Blocked: Upstash QStash + VAPID keys not provisioned (owner decision); done-criterion (push at the chosen minute on the owner's iPhone Home-Screen app) needs the owner's phone. Production (commit e6966f5): `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/pwa.spec.ts` → 4 passed (manifest/icons, Chromium installability errors = [], Today offline, offline capture draft, /api/remind refuses unsigned). VAPID keys added to Vercel env (all environments) 2026-11-05. QStash provisioned 2026-11-05 (Upstash via Vercel Marketplace, region eu-central-1; client now passes QSTASH_URL). `bun run check:qstash` against production: schedule create/get/delete OK; signed publish to /api/remind → DELIVERED, HTTP 200 (signature verified, services configured; test user has no subscription so result 'off'). Open: owner enables reminders on the iPhone Home-Screen app and receives one."
     },
     {
@@ -116,7 +116,7 @@
       "dependencies": [
         "feat-010"
       ],
-      "status": "in-progress",
+      "status": "pending-confirmation",
       "evidence": "2026-11-05, production, Lighthouse mobile profile (150 ms RTT, 1.6 Mbps, CPU 4×), `bunx playwright test e2e/perf.spec.ts`: Today interactive (first tap on capture opens the sheet, hydration included) 1277 ms cold / 1152 ms repeat visit (budget 1500); INP slowest of 17 interactions 72 ms, most 16 ms = one frame (budget 100). A11y e2e/a11y.spec.ts 8/8: axe WCAG 2.0/2.1/2.2 A+AA, no serious/critical issues on Today/Tasks/Life/Settings at dawn, day, dusk, night, forced light and dark, and in the morning ritual; every control offers a 44px target (fixed: mindset strip keyboard-scrollable; .hit areas, 44px icon buttons). Install: Chromium reports no installability errors on production. Ritual smoke test: `bun run smoke` (e2e/day-one.spec.ts). Full local `bun run e2e` 31/31. Re-run on production after deploying 1e8b965: `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/a11y.spec.ts e2e/pwa.spec.ts e2e/perf.spec.ts` → 14 passed (interactive 1417 ms cold / 1161 ms repeat, INP worst 88 ms). Open: clean install on iOS checked on the owner's iPhone, together with Slice 9's push."
     }
   ]
