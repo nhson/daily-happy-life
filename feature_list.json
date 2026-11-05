@@ -156,8 +156,8 @@
       "dependencies": [
         "feat-014"
       ],
-      "status": "in-progress",
-      "evidence": "2026-11-05 (in progress). Unit: domain reviewStep compass step only for the review of Q4 + data src/data/quarterly-review.test.ts (PGlite): rewrite replaces the Compass and archives the old pair, 'Still true' archives nothing, once per review, Q4 only, no blank half, owner-only, cascade; export round trip incl. compass_versions; `./init.sh` green 260/260. Visual: review mode with Date shifted to 2027-01-03 (vi + en, phone): Q1 card opens on the Compass step with last year's words, rewrite → moves on to the dashboard → Life shows 'Earlier Compasses'. NOT YET: migration 0005 on Neon (needs owner OK), Slice 13 E2E regression, push. A live Q1 run can only happen from 1 Jan 2027 (server derives the quarter from its own clock)."
+      "status": "pending-confirmation",
+      "evidence": "2026-11-05. Unit: domain reviewStep (Compass step only in the review of Q4, then dashboard via dashboard_at) + data src/data/quarterly-review.test.ts (PGlite): rewrite replaces the Compass and archives the old pair, 'Still true' archives nothing, once per review, Q4 only, no blank half, owner-only, cascade; export round trip incl. compass_versions; `./init.sh` green 260/260. Migration 0005 applied to Neon (owner OK). E2E regression after the step markers changed: quarterly-review + quarter-close + life + settings (Export round trip on real Neon) 9/9 local; quarterly-review + quarter-close + settings 6/6 on production (deploy of 76fb9af). Visual: review mode with Date shifted to 2027-01-03 (vi + en, phone): Q1 card opens on the Compass step with last year's words → rewrite → dashboard → Life 'Earlier Compasses'. Pending: the live Q1 run, possible only from 1 Jan 2027 (the server derives the quarter from its own clock)."
     }
   ]
 }

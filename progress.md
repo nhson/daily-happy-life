@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-015 Slice 14 — Rewrite your Compass (built, unit + visual checked; waits on migration 0005 → E2E → push)
+**Active Feature:** none in progress — Slice 14 live; its Q1 step can only be seen live from 1 Jan 2027
 **Branch:** main
 
 ### What's Done
@@ -29,12 +29,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-012: Slice 11 — Focus timer (Phase 2 · 1), proven on production
 - [x] feat-013: Slice 12 — Weekly Review with AI (Phase 2 · 2), proven on production with a real free model
 - [x] feat-014: Slice 13 — Quarterly Review (Phase 2 · 3), proven on production
-- [~] feat-015: Slice 14 — Rewrite your Compass (Phase 2 · 4): built; migration 0005 not yet on Neon
+- [~] feat-015 (pending January): Slice 14 — Rewrite your Compass (Phase 2 · 4), live; regression E2E green on production
 
 ### What's Next
 
 1. Owner: on the iPhone Home-Screen app, turn on reminders and confirm one arrives (closes feat-010 and feat-011); a Focus Session's end push can be checked the same way
-2. Owner: pick the next Phase 2 item (yearly Compass rewrite; whether to open the app to others)
+2. Owner: next Phase 2 item — whether to open the app to others (SPEC Phase 2 · 5); habits/calendar only if real use asks
+2b. January 2027: open Today and check the Compass step live (closes feat-015)
 3. Fix the time-of-day dependence in `e2e/focus.spec.ts` (seed sessions relative to the real now)
 3. Owner (optional): enable passkeys in the Clerk dashboard
 
@@ -53,7 +54,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - Owner picked: first step of Q1's Quarterly Review; keep every version; blank boxes with last year's words shown, "Still true" keeps it.
 - `compass_versions` + `quarterly_reviews.compass_reviewed_at/dashboard_at` (migration 0005, backfills dashboard_at). Life: "Earlier Compasses" under the Compass. In Export.
 - Proof limits: the server works out the quarter from its own clock, so the Q1 path can't run live before 1 Jan 2027; it is proven by PGlite tests + a review-mode walk with the browser date shifted to 2027-01-03. Check it live in January.
-- Blocked: migration 0005 needs the owner's OK (permission check). Committed locally, not pushed.
+- Migration 0005 applied with the owner's OK; regression E2E 9/9 local, 6/6 on production; pushed.
 
 ### 2026-11-05 — Slice 13: Quarterly Review (Phase 2 · 3)
 
