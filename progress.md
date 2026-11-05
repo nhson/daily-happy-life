@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** none in progress — Slice 13 (Quarterly Review) done; feat-010/011 pending the owner's iPhone check
+**Active Feature:** feat-015 Slice 14 — Rewrite your Compass (built, unit + visual checked; waits on migration 0005 → E2E → push)
 **Branch:** main
 
 ### What's Done
@@ -29,6 +29,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-012: Slice 11 — Focus timer (Phase 2 · 1), proven on production
 - [x] feat-013: Slice 12 — Weekly Review with AI (Phase 2 · 2), proven on production with a real free model
 - [x] feat-014: Slice 13 — Quarterly Review (Phase 2 · 3), proven on production
+- [~] feat-015: Slice 14 — Rewrite your Compass (Phase 2 · 4): built; migration 0005 not yet on Neon
 
 ### What's Next
 
@@ -46,6 +47,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 14: Rewrite your Compass (Phase 2 · 4)
+
+- Owner picked: first step of Q1's Quarterly Review; keep every version; blank boxes with last year's words shown, "Still true" keeps it.
+- `compass_versions` + `quarterly_reviews.compass_reviewed_at/dashboard_at` (migration 0005, backfills dashboard_at). Life: "Earlier Compasses" under the Compass. In Export.
+- Proof limits: the server works out the quarter from its own clock, so the Q1 path can't run live before 1 Jan 2027; it is proven by PGlite tests + a review-mode walk with the browser date shifted to 2027-01-03. Check it live in January.
+- Blocked: migration 0005 needs the owner's OK (permission check). Committed locally, not pushed.
 
 ### 2026-11-05 — Slice 13: Quarterly Review (Phase 2 · 3)
 

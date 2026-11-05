@@ -75,6 +75,7 @@ function fromLive(live: LiveData, device: Device): AppState {
     focus: live.focus,
     reviews: live.reviews,
     quarterReviews: live.quarterReviews,
+    pastCompasses: live.pastCompasses,
     lastKind: stillValid(device.lastKind, live),
   };
 }
@@ -96,7 +97,7 @@ function loadReview(): AppState {
   state ??= fixtures(today, tz, asked);
   if (asked) state = { ...state, settings: { ...state.settings, locale: asked } };
   // Sample data saved before Focus Sessions existed.
-  state = { ...state, focus: state.focus ?? [], reviews: state.reviews ?? [], quarterReviews: state.quarterReviews ?? [] };
+  state = { ...state, focus: state.focus ?? [], reviews: state.reviews ?? [], quarterReviews: state.quarterReviews ?? [], pastCompasses: state.pastCompasses ?? [] };
 
   const day = Number(params.get("day"));
   if (day >= 1 && state.onboarding.setupDate)
@@ -107,6 +108,20 @@ function loadReview(): AppState {
 function emptyLog(date: LogicalDate): DailyLog {
   return { date, intention: null, energy: null, engagement: null, meaningSources: [], note: "", top3TaskIds: [], morningAt: null, closedAt: null };
 }
+
+/** A Quarterly Review with no step taken yet. */
+const blankReview = (quarterLabel: string, at: string): QuarterlyReview => ({
+  quarter: quarterLabel,
+  dashboard: { health: null, work: null, play: null, love: null },
+  plans: null,
+  activePlanId: null,
+  compassReviewedAt: null,
+  dashboardAt: null,
+  plansReviewedAt: null,
+  completedAt: null,
+  createdAt: at,
+});
+
 
 type Saved = { ok: boolean };
 
@@ -177,7 +192,7 @@ function useStoreState(live: LiveData | null) {
   /** The quarter waiting for its Quarterly Review (which runs Quarter Close too), and how far it got. */
   const reviewQuarter = quarterToReview({ today, setupDate: state.onboarding.setupDate, leftoverCount: leftoverObjectives.length, reviews: state.quarterReviews });
   const quarterReview = reviewQuarter ? state.quarterReviews.find((r) => r.quarter === reviewQuarter) : undefined;
-  const quarterStep = reviewQuarter ? reviewStep(quarterReview, leftoverObjectives.length) : null;
+  const quarterStep = reviewQuarter ? reviewStep(quarterReview, leftoverObjectives.length, reviewQuarter) : null;
   const activeObjectives = state.objectives.filter((o) => o.status === "active" && o.quarter <= quarter);
 
   const card = todayCard({
@@ -616,13 +631,31 @@ function useStoreState(live: LiveData | null) {
     [],
   );
 
+  /** The yearly Compass: a rewrite keeps the old pair as a past Compass; null keeps it as it is. */
+  const reviewCompass = useCallback(
+    (next: Compass | null) => {
+      if (!reviewQuarter || quarterReview?.compassReviewedAt) return;
+      const at = new Date().toISOString();
+      if (next) {
+        const fresh = { workview: next.workview.trim(), lifeview: next.lifeview.trim() };
+        if (!fresh.workview || !fresh.lifeview) return;
+        setState((s) => ({
+          ...s,
+          compass: fresh,
+          pastCompasses: s.compass ? [{ ...s.compass, writtenAt: s.onboarding.setupDate ?? at, replacedAt: at }, ...s.pastCompasses] : s.pastCompasses,
+        }));
+      }
+      putQuarterReview(reviewQuarter, (r) => ({ ...(r ?? blankReview(reviewQuarter, at)), compassReviewedAt: at }));
+      save(() => server.reviewCompassAction(next));
+    },
+    [reviewQuarter, quarterReview, putQuarterReview, save],
+  );
+
   const saveDashboard = useCallback(
     (dashboard: Dashboard) => {
       if (!reviewQuarter) return;
       const at = new Date().toISOString();
-      putQuarterReview(reviewQuarter, (r) =>
-        r ? { ...r, dashboard } : { quarter: reviewQuarter, dashboard, plans: null, activePlanId: null, plansReviewedAt: null, completedAt: null, createdAt: at },
-      );
+      putQuarterReview(reviewQuarter, (r) => ({ ...(r ?? blankReview(reviewQuarter, at)), dashboard, dashboardAt: at }));
       save(() => server.saveDashboardAction(dashboard));
     },
     [reviewQuarter, putQuarterReview, save],
@@ -707,6 +740,7 @@ function useStoreState(live: LiveData | null) {
       setActivePlan,
       finishObjective,
       settleLeftover,
+      reviewCompass,
       saveDashboard,
       finishQuarterPlans,
       completeQuarterReview,

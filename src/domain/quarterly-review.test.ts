@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  asksCompass,
   parseDashboard,
   parseRerated,
   previousQuarter,
@@ -16,6 +17,8 @@ const review = (quarter: string, v: Partial<QuarterlyReview> = {}): QuarterlyRev
   dashboard: { health: 6, work: 7, play: 3, love: 8 },
   plans: null,
   activePlanId: null,
+  compassReviewedAt: null,
+  dashboardAt: "2027-01-02T01:00:00.000Z",
   plansReviewedAt: null,
   completedAt: null,
   createdAt: "2027-01-02T01:00:00.000Z",
@@ -74,15 +77,24 @@ describe("quarterToReview", () => {
 });
 
 describe("reviewStep", () => {
+  const Q3 = "2026-Q3";
   it("starts at the dashboard, then the plans, then the leftovers, then the wrap-up", () => {
-    expect(reviewStep(undefined, 2)).toBe("dashboard");
-    expect(reviewStep(review("2026-Q4"), 2)).toBe("plans");
-    expect(reviewStep(review("2026-Q4", { plansReviewedAt: "2027-01-02T01:05:00.000Z" }), 2)).toBe("settle");
-    expect(reviewStep(review("2026-Q4", { plansReviewedAt: "2027-01-02T01:05:00.000Z" }), 0)).toBe("wrapUp");
+    expect(reviewStep(undefined, 2, Q3)).toBe("dashboard");
+    expect(reviewStep(review(Q3), 2, Q3)).toBe("plans");
+    expect(reviewStep(review(Q3, { plansReviewedAt: "2027-01-02T01:05:00.000Z" }), 2, Q3)).toBe("settle");
+    expect(reviewStep(review(Q3, { plansReviewedAt: "2027-01-02T01:05:00.000Z" }), 0, Q3)).toBe("wrapUp");
   });
   it("a finished review is done, even if leftovers came back", () => {
-    expect(reviewStep(review("2026-Q4", { plansReviewedAt: "x", completedAt: "y" }), 1)).toBe("settle");
-    expect(reviewStep(review("2026-Q4", { plansReviewedAt: "x", completedAt: "y" }), 0)).toBe("done");
+    expect(reviewStep(review(Q3, { plansReviewedAt: "x", completedAt: "y" }), 1, Q3)).toBe("settle");
+    expect(reviewStep(review(Q3, { plansReviewedAt: "x", completedAt: "y" }), 0, Q3)).toBe("done");
+  });
+  it("looking back on Q4 (in Q1), the Compass comes first, once a year", () => {
+    expect(reviewStep(undefined, 0, "2026-Q4")).toBe("compass");
+    expect(reviewStep(review("2026-Q4", { dashboardAt: null }), 0, "2026-Q4")).toBe("compass");
+    expect(reviewStep(review("2026-Q4", { compassReviewedAt: "x", dashboardAt: null }), 0, "2026-Q4")).toBe("dashboard");
+    expect(reviewStep(review("2026-Q4", { compassReviewedAt: "x" }), 0, "2026-Q4")).toBe("plans");
+    expect(asksCompass("2026-Q4")).toBe(true);
+    expect(asksCompass("2027-Q1")).toBe(false);
   });
 });
 

@@ -2,7 +2,7 @@
 
 import { ReviewsSection } from "@/features/weekly/weekly-review";
 import { clsx } from "clsx";
-import { Check, Feather, HeartHandshake, Milestone, Palette, Pencil, Plus, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
+import { Check, ChevronDown, Feather, HeartHandshake, Milestone, Palette, Pencil, Plus, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
@@ -140,6 +140,7 @@ function CompassSection() {
         <ViewCard label={copy.life.workview} prompt={copy.life.workviewPrompt} tint="var(--kind-objective)" value={compass.workview} onSave={(workview) => actions.updateCompass({ ...compass, workview })} />
         <ViewCard label={copy.life.lifeview} prompt={copy.life.lifeviewPrompt} tint="var(--m-coherence)" value={compass.lifeview} onSave={(lifeview) => actions.updateCompass({ ...compass, lifeview })} />
       </div>
+      <PastCompasses />
       <div className="mb-4 mt-12">
         <h3 className="serif text-[26px] leading-none">{copy.life.mindsets}</h3>
         <p className="mt-1.5 text-sm text-ink-2">{copy.life.mindsetsHint}</p>
@@ -802,5 +803,31 @@ function QuartersSection() {
         })}
       </ul>
     </section>
+  );
+}
+
+/** Compasses replaced by a yearly rewrite, readable under the current one. */
+function PastCompasses() {
+  const copy = useCopy();
+  const fmt = useFormatDate();
+  const { state } = useStore();
+  if (!state.pastCompasses.length) return null;
+  return (
+    <details className="group mt-6 rounded-2xl">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm text-ink-2 hover:text-ink [&::-webkit-details-marker]:hidden">
+        <ChevronDown size={15} aria-hidden className="transition-transform group-open:rotate-180" /> {copy.compassRewrite.pastTitle}
+      </summary>
+      <ul className="mt-2 flex flex-col gap-3">
+        {state.pastCompasses.map((v) => (
+          <li key={v.replacedAt} className="glass-lite rounded-2xl px-4 py-3">
+            <p className="eyebrow">{copy.compassRewrite.until(fmt(new Date(v.replacedAt), { month: "long", year: "numeric" }))}</p>
+            <p className="mt-2 text-sm text-ink-3">{copy.life.workview}</p>
+            <p className="serif text-lg leading-snug text-ink-2">{v.workview}</p>
+            <p className="mt-2 text-sm text-ink-3">{copy.life.lifeview}</p>
+            <p className="serif text-lg leading-snug text-ink-2">{v.lifeview}</p>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

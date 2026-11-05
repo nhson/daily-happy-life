@@ -1,5 +1,5 @@
 import type { FocusSession } from "@/domain/focus";
-import type { QuarterlyReview } from "@/domain/quarterly-review";
+import type { CompassVersion, QuarterlyReview } from "@/domain/quarterly-review";
 import type { WeeklyReview } from "@/domain/weekly-review";
 import type { OnboardingState } from "@/domain/onboarding";
 import type { Compass, DailyLog, Decision, LogicalDate, Objective, OdysseyPlan, Task, UserSettings } from "@/domain/types";
@@ -30,6 +30,8 @@ export interface AppState {
   reviews: WeeklyReview[];
   /** The latest Quarterly Reviews, newest quarter first. */
   quarterReviews: QuarterlyReview[];
+  /** Compasses replaced by a yearly rewrite, the latest first. */
+  pastCompasses: CompassVersion[];
   lastKind: KindChoice | null;
 }
 

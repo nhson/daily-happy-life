@@ -21,7 +21,8 @@ export function quarterLabel(quarter: string): string {
 }
 
 /**
- * The Quarterly Review on Today, at the start of a quarter; never blocking. In order: the Life
+ * The Quarterly Review on Today, at the start of a quarter; never blocking. In order: (in Q1 only)
+ * rewriting the Compass, the Life
  * Dashboard, the plans' Gauges and the Active Plan, Quarter Close of last quarter's leftovers, one
  * question about a Decision, and "add one?". Each step is saved, so a reload picks up where it was.
  */
@@ -52,6 +53,7 @@ export function QuarterlyReviewCard() {
       <p className="eyebrow flex items-center gap-1.5">
         <CalendarCheck size={13} aria-hidden /> {copy.quarterReview.eyebrow(label)}
       </p>
+      {step === "compass" && <CompassStep />}
       {step === "dashboard" && <DashboardStep />}
       {step === "plans" && <PlansStep onSwitched={() => setSwitched(true)} />}
       {step === "settle" && <SettleStep />}
@@ -85,6 +87,57 @@ function Rating({ label, hint, value, before, onChange }: { label: string; hint?
         className="mt-2 w-full accent-[var(--kind-objective)]"
       />
     </label>
+  );
+}
+
+/** Once a year (the review of Q4): rewrite the Compass from blank, last year's words in view. */
+function CompassStep() {
+  const copy = useCopy();
+  const { state, actions } = useStore();
+  const [workview, setWorkview] = useState("");
+  const [lifeview, setLifeview] = useState("");
+  const old = state.compass;
+  const box =
+    "mt-2 w-full resize-none rounded-2xl bg-fill px-4 py-3 text-[15px] text-ink outline-none ring-1 ring-hairline placeholder:text-ink-3 focus:ring-ink-3";
+  const halves = [
+    { key: "workview", label: copy.life.workview, prompt: copy.life.workviewPrompt, value: workview, set: setWorkview, before: old?.workview },
+    { key: "lifeview", label: copy.life.lifeview, prompt: copy.life.lifeviewPrompt, value: lifeview, set: setLifeview, before: old?.lifeview },
+  ];
+  return (
+    <form
+      className="mt-3 flex flex-col gap-5"
+      onSubmit={(e) => {
+        e.preventDefault();
+        actions.reviewCompass({ workview, lifeview });
+      }}
+    >
+      <div>
+        <p className="serif text-2xl leading-tight">{copy.compassRewrite.title}</p>
+        <p className="mt-1 text-sm text-ink-2">{copy.compassRewrite.body}</p>
+      </div>
+      {halves.map((h) => (
+        <label key={h.key} className="block">
+          <span className="eyebrow">{h.label}</span>
+          {h.before && (
+            <span className="mt-2 block border-l-2 border-hairline pl-3 text-sm italic text-ink-2">
+              <span className="not-italic text-xs text-ink-3">{copy.compassRewrite.lastYear} · </span>
+              {h.before}
+            </span>
+          )}
+          <textarea value={h.value} onChange={(e) => h.set(e.target.value)} rows={3} placeholder={h.prompt} className={box} />
+        </label>
+      ))}
+      <div className="flex flex-wrap justify-end gap-2">
+        {old && (
+          <Button type="button" variant="ghost" onClick={() => actions.reviewCompass(null)}>
+            {copy.compassRewrite.keep}
+          </Button>
+        )}
+        <Button type="submit" disabled={!workview.trim() || !lifeview.trim()}>
+          {copy.compassRewrite.save}
+        </Button>
+      </div>
+    </form>
   );
 }
 

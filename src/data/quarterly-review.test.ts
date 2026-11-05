@@ -5,7 +5,8 @@ import { migrate } from "drizzle-orm/pglite/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import * as schema from "./db/schema";
 import { ensurePlans, listPlans, savePlan } from "./plans";
-import { completeQuarterReview, finishQuarterPlans, listQuarterReviews, saveDashboard } from "./quarterly-review";
+import { getCompass, saveCompass } from "./life";
+import { completeQuarterReview, finishQuarterPlans, listCompassVersions, listQuarterReviews, reviewCompass, saveDashboard } from "./quarterly-review";
 import { ensureUser, type Db } from "./users";
 
 let db: Db;
@@ -111,5 +112,53 @@ describe("whose review", () => {
     await saveDashboard(db, me, Q, { health: 6, work: 8, play: 3, love: 9 });
     await db.delete(schema.users).where(eq(schema.users.id, me));
     expect(await db.select().from(schema.quarterlyReviews)).toEqual([]);
+  });
+});
+
+describe("the yearly Compass (the review of Q4)", () => {
+  const OLD = { workview: "Công việc là để học.", lifeview: "Cuộc sống là gia đình." };
+  const NEW = { workview: "Công việc là để giúp người khác lớn lên.", lifeview: "Cuộc sống là chậm lại và có mặt." };
+  beforeEach(async () => {
+    await saveCompass(db, me, OLD);
+  });
+
+  it("a rewrite replaces the Compass and keeps the old one, then the review goes on to the dashboard", async () => {
+    expect(await reviewCompass(db, me, Q, T0, NEW)).toEqual({ ok: true });
+    expect(await getCompass(db, me)).toEqual(NEW);
+    const [v] = await listCompassVersions(db, me);
+    expect(v).toMatchObject({ ...OLD, replacedAt: T0 });
+    expect(v.writtenAt < T0).toBe(true);
+    const [r] = await listQuarterReviews(db, me);
+    expect(r).toMatchObject({ quarter: Q, compassReviewedAt: T0, dashboardAt: null, dashboard: { health: null } });
+
+    await saveDashboard(db, me, Q, { health: 6, work: 6, play: 6, love: 6 }, T1);
+    expect((await listQuarterReviews(db, me))[0]).toMatchObject({ compassReviewedAt: T0, dashboardAt: T1 });
+  });
+
+  it("“Still true” keeps the Compass and archives nothing", async () => {
+    expect(await reviewCompass(db, me, Q, T0, null)).toEqual({ ok: true });
+    expect(await getCompass(db, me)).toEqual(OLD);
+    expect(await listCompassVersions(db, me)).toEqual([]);
+    expect((await listQuarterReviews(db, me))[0].compassReviewedAt).toBe(T0);
+  });
+
+  it("only once per review: a second rewrite (a double tap) archives nothing more", async () => {
+    await reviewCompass(db, me, Q, T0, NEW);
+    await reviewCompass(db, me, Q, T1, { workview: "khác", lifeview: "khác" });
+    expect(await getCompass(db, me)).toEqual(NEW);
+    expect(await listCompassVersions(db, me)).toHaveLength(1);
+  });
+
+  it("only in the review of Q4, and never with a blank half", async () => {
+    expect(await reviewCompass(db, me, "2026-Q3", T0, NEW)).toEqual({ ok: false, error: "not_now" });
+    expect(await reviewCompass(db, me, Q, T0, { workview: "  ", lifeview: "x" })).toEqual({ ok: false, error: "empty" });
+    expect(await getCompass(db, me)).toEqual(OLD);
+  });
+
+  it("each user's own; they go with the user", async () => {
+    await reviewCompass(db, me, Q, T0, NEW);
+    expect(await listCompassVersions(db, other)).toEqual([]);
+    await db.delete(schema.users).where(eq(schema.users.id, me));
+    expect(await db.select().from(schema.compassVersions)).toEqual([]);
   });
 });

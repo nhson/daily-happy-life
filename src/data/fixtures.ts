@@ -213,6 +213,7 @@ export function fixtures(today: LogicalDate, timeZone: string, locale: Locale = 
     focus: [],
     reviews: [],
     quarterReviews: [],
+    pastCompasses: [],
     lastKind: { kind: "objective", objectiveId: "obj_1" },
   };
 }
@@ -241,6 +242,7 @@ export function blank(timeZone: string): AppState {
     focus: [],
     reviews: [],
     quarterReviews: [],
+    pastCompasses: [],
     lastKind: null,
   };
 }

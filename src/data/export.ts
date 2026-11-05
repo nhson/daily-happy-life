@@ -11,7 +11,7 @@ import { settingsOf, type Db } from "./users";
  * Clerk id) and no push subscription. `importAll` writes it back, which is what proves it complete.
  */
 
-const { users, compass, odysseyPlans, objectives, tasks, dailyLogs, decisions, focusSessions, weeklyReviews, quarterlyReviews } = schema;
+const { users, compass, odysseyPlans, objectives, tasks, dailyLogs, decisions, focusSessions, weeklyReviews, quarterlyReviews, compassVersions } = schema;
 
 type Owned<T> = Omit<T, "userId">;
 export interface Export {
@@ -33,13 +33,15 @@ export interface Export {
   weeklyReviews?: Owned<typeof weeklyReviews.$inferSelect>[];
   /** Older exports have none. */
   quarterlyReviews?: Owned<typeof quarterlyReviews.$inferSelect>[];
+  /** Older exports have none. */
+  compassVersions?: Owned<typeof compassVersions.$inferSelect>[];
 }
 
 const owned = <T extends { userId: string }>(rows: T[]): Owned<T>[] =>
   rows.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== "userId")) as Owned<T>);
 
 export async function exportAll(db: Db, userId: string): Promise<Export> {
-  const [[user], [c], ps, os, ts, ls, ds, fs, ws, qs] = await Promise.all([
+  const [[user], [c], ps, os, ts, ls, ds, fs, ws, qs, cvs] = await Promise.all([
     db.select().from(users).where(eq(users.id, userId)),
     db.select().from(compass).where(eq(compass.userId, userId)),
     db.select().from(odysseyPlans).where(eq(odysseyPlans.userId, userId)).orderBy(asc(odysseyPlans.slot)),
@@ -50,6 +52,7 @@ export async function exportAll(db: Db, userId: string): Promise<Export> {
     db.select().from(focusSessions).where(eq(focusSessions.userId, userId)).orderBy(asc(focusSessions.startedAt), asc(focusSessions.id)),
     db.select().from(weeklyReviews).where(eq(weeklyReviews.userId, userId)).orderBy(asc(weeklyReviews.weekEnd)),
     db.select().from(quarterlyReviews).where(eq(quarterlyReviews.userId, userId)).orderBy(asc(quarterlyReviews.quarter)),
+    db.select().from(compassVersions).where(eq(compassVersions.userId, userId)).orderBy(asc(compassVersions.replacedAt), asc(compassVersions.id)),
   ]);
   if (!user) throw new Error("No such user");
   return {
@@ -68,6 +71,7 @@ export async function exportAll(db: Db, userId: string): Promise<Export> {
     focusSessions: owned(fs).map((f) => ({ id: f.id, taskId: f.taskId, startedAt: f.startedAt, plannedMinutes: f.plannedMinutes, endedAt: f.endedAt })),
     weeklyReviews: owned(ws),
     quarterlyReviews: owned(qs),
+    compassVersions: owned(cvs),
   };
 }
 
@@ -84,6 +88,7 @@ export async function importAll(db: Db, userId: string, x: Export): Promise<void
       d.delete(focusSessions).where(eq(focusSessions.userId, userId)),
       d.delete(weeklyReviews).where(eq(weeklyReviews.userId, userId)),
       d.delete(quarterlyReviews).where(eq(quarterlyReviews.userId, userId)),
+      d.delete(compassVersions).where(eq(compassVersions.userId, userId)),
       d.delete(decisions).where(eq(decisions.userId, userId)),
       d.delete(dailyLogs).where(eq(dailyLogs.userId, userId)),
       d.delete(tasks).where(eq(tasks.userId, userId)),
@@ -99,6 +104,7 @@ export async function importAll(db: Db, userId: string, x: Export): Promise<void
     if (x.focusSessions?.length) qs.push(d.insert(focusSessions).values(mine(x.focusSessions)));
     if (x.weeklyReviews?.length) qs.push(d.insert(weeklyReviews).values(mine(x.weeklyReviews)));
     if (x.quarterlyReviews?.length) qs.push(d.insert(quarterlyReviews).values(mine(x.quarterlyReviews)));
+    if (x.compassVersions?.length) qs.push(d.insert(compassVersions).values(mine(x.compassVersions)));
     if (x.compass) qs.push(d.insert(compass).values({ ...x.compass, userId }));
     const s = x.settings;
     qs.push(

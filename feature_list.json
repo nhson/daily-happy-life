@@ -148,6 +148,16 @@
       ],
       "status": "done",
       "evidence": "2026-11-05. Unit: src/domain/quarterly-review.test.ts 13 (which quarter — incl. a started review staying until finished — step order, rating parsers, plan snapshot) + src/data/quarterly-review.test.ts 9 (PGlite: step by step, resume, re-rated Gauges saved before the snapshot, Active Plan after a switch, owner-only, cascade) + export round trip incl. quarterly_reviews; `./init.sh` green, 254/254. Migration 0004 applied to Neon (owner OK). E2E `bunx playwright test e2e/quarterly-review.spec.ts e2e/quarter-close.spec.ts`: 3/3 local and 3/3 on production (`E2E_BASE_URL=https://daily-happy-life.vercel.app`, deploy of 8a14d03): no-leftover user set up last quarter gets the review → dashboard saved (8/5/3/5) → reload resumes at plans → re-rate Likability 10 + switch via the sheet → no second Decision → add one? → row complete with plans snapshot and active_plan_id = the new plan → listed on Life → gone from Today; leftover flow (Quarter Close inside the review) still settles Done/Drop/Carry with Decision; user set up this quarter isn't asked. Visual: review mode walked in vi + en at phone size. Full local E2E: 36 passed; focus.spec 'time is up' fails only after ~21:30 ICT (test seeds yesterday 09:34 vs the server's 36 h window) — pre-existing, test-only."
+    },
+    {
+      "id": "feat-015",
+      "name": "Slice 14 — Rewrite your Compass (Phase 2 · 4)",
+      "description": "First step of the Quarterly Review of Q4 (in Q1): last year's Workview/Lifeview shown, blank boxes; 'Still true' keeps it; a rewrite archives the old pair in compass_versions (in Export); past Compasses on Life. Done when: Q1's review asks first, a rewrite replaces the Compass and keeps the old one on Life, 'Still true' changes nothing but moves on, and a reload resumes.",
+      "dependencies": [
+        "feat-014"
+      ],
+      "status": "in-progress",
+      "evidence": "2026-11-05 (in progress). Unit: domain reviewStep compass step only for the review of Q4 + data src/data/quarterly-review.test.ts (PGlite): rewrite replaces the Compass and archives the old pair, 'Still true' archives nothing, once per review, Q4 only, no blank half, owner-only, cascade; export round trip incl. compass_versions; `./init.sh` green 260/260. Visual: review mode with Date shifted to 2027-01-03 (vi + en, phone): Q1 card opens on the Compass step with last year's words, rewrite → moves on to the dashboard → Life shows 'Earlier Compasses'. NOT YET: migration 0005 on Neon (needs owner OK), Slice 13 E2E regression, push. A live Q1 run can only happen from 1 Jan 2027 (server derives the quarter from its own clock)."
     }
   ]
 }

@@ -315,6 +315,15 @@ export const vi: Copy = {
   reminderPush: {
     title: "Một câu cho hôm nay",
   },
+  compassRewrite: {
+    title: "Một năm mới. La bàn của bạn còn đúng không?",
+    body: "Viết lại từ đầu, với những dòng của năm ngoái bên cạnh. Hoặc giữ nguyên, nếu chúng vẫn đúng.",
+    lastYear: "Năm ngoái",
+    keep: "Vẫn còn đúng",
+    save: "Lưu la bàn mới",
+    pastTitle: "Những la bàn trước",
+    until: (date) => `Đến ${date}`,
+  },
   quarterReview: {
     eyebrow: (quarter) => `Nhìn lại ${quarter}`,
     dashboardTitle: "Quý vừa qua, bốn góc đời bạn thế nào?",

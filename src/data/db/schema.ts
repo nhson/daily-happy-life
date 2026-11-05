@@ -210,8 +210,8 @@ export const weeklyReviews = pgTable(
 );
 
 /**
- * Quarterly Reviews (Phase 2): one per quarter looked back on. Saved step by step — the row appears
- * with the Life Dashboard, `plans_reviewed_at` marks the plans step passed, `completed_at` the end.
+ * Quarterly Reviews (Phase 2): one per quarter looked back on. Saved step by step: each `*_at` marks
+ * a step passed (`compass_reviewed_at` only in the review of Q4), `completed_at` the end.
  */
 export const quarterlyReviews = pgTable(
   "quarterly_reviews",
@@ -224,6 +224,9 @@ export const quarterlyReviews = pgTable(
     love: smallint("love"),
     plans: jsonb("plans").$type<PlanRating[]>(),
     activePlanId: uuid("active_plan_id").references(() => odysseyPlans.id, { onDelete: "set null" }),
+    /** Only when looking back on Q4: the Compass rewritten or kept. */
+    compassReviewedAt: at("compass_reviewed_at"),
+    dashboardAt: at("dashboard_at"),
     plansReviewedAt: at("plans_reviewed_at"),
     completedAt: at("completed_at"),
     createdAt: at("created_at").notNull().defaultNow(),
@@ -236,4 +239,18 @@ export const quarterlyReviews = pgTable(
     check("quarterly_reviews_play", between(t.play, 0, 10)),
     check("quarterly_reviews_love", between(t.love, 0, 10)),
   ],
+);
+
+/** Past Compasses (Phase 2): the pair a yearly rewrite replaced, with when it was written and replaced. */
+export const compassVersions = pgTable(
+  "compass_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: owner(),
+    workview: text("workview").notNull(),
+    lifeview: text("lifeview").notNull(),
+    writtenAt: at("written_at").notNull(),
+    replacedAt: at("replaced_at").notNull(),
+  },
+  (t) => [index("compass_versions_user").on(t.userId, t.replacedAt)],
 );

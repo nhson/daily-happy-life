@@ -312,6 +312,15 @@ export const en = {
   reminderPush: {
     title: "A line for today",
   },
+  compassRewrite: {
+    title: "A new year. Is your Compass still true?",
+    body: "Write it again from scratch, with last year's words beside you. Or keep them, if they still hold.",
+    lastYear: "Last year",
+    keep: "Still true",
+    save: "Save the new Compass",
+    pastTitle: "Earlier Compasses",
+    until: (date: string) => `Until ${date}`,
+  },
   quarterReview: {
     eyebrow: (quarter: string) => `Looking back on ${quarter}`,
     dashboardTitle: "How were the four parts of your life last quarter?",

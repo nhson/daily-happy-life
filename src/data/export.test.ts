@@ -7,7 +7,7 @@ import { patchLog } from "./days";
 import * as schema from "./db/schema";
 import { startFocus } from "./focus";
 import { startReview } from "./weekly-review";
-import { finishQuarterPlans, saveDashboard } from "./quarterly-review";
+import { finishQuarterPlans, reviewCompass, saveDashboard } from "./quarterly-review";
 import { exportAll, importAll, type Export } from "./export";
 import { addDecision } from "./life";
 import { completeOnboarding } from "./onboarding";
@@ -50,6 +50,7 @@ async function livedIn(db: Db): Promise<string> {
   await startReview(db, me, "2026-11-08", new Date("2026-11-09T02:00:00Z"), { review: async () => ({ text: '{"observations":["Một."],"question":"Hai?"}', model: "m" }) });
   await saveDashboard(db, me, "2026-Q3", { health: 6, work: 8, play: 3, love: null });
   await finishQuarterPlans(db, me, "2026-Q3", "2026-10-02T01:00:00.000Z");
+  await reviewCompass(db, me, "2026-Q4", "2027-01-02T01:00:00.000Z", { workview: "Công việc mới.", lifeview: "Cuộc sống mới." });
   await saveSettings(db, me, { reminderTime: "06:45", eveningHour: 20, dayEndHour: 3, theme: "dark", locale: "en" });
   return me;
 }
@@ -68,7 +69,6 @@ describe("export", { timeout: 30_000 }, () => {
     expect(x.format).toBe("daily-happy-life");
     expect(x.version).toBe(1);
     expect(x.settings).toEqual({ timeZone: "Asia/Ho_Chi_Minh", reminderTime: "06:45", eveningHour: 20, dayEndHour: 3, theme: "dark", locale: "en" });
-    expect(x.compass?.workview).toContain("giúp người khác");
     expect(x.odysseyPlans).toHaveLength(3);
     expect(x.objectives).toHaveLength(2);
     expect(x.tasks).toHaveLength(3);
@@ -77,7 +77,9 @@ describe("export", { timeout: 30_000 }, () => {
     expect(x.focusSessions).toMatchObject([{ startedAt: "2026-11-05 02:00:00+00", plannedMinutes: 25, endedAt: null }]);
     expect(x.focusSessions?.[0]).not.toHaveProperty("pushMessageId");
     expect(x.weeklyReviews).toMatchObject([{ weekEnd: "2026-11-08", notes: { observations: ["Một."], question: "Hai?" } }]);
-    expect(x.quarterlyReviews).toMatchObject([{ quarter: "2026-Q3", health: 6, love: null, plans: [{ slot: 2, title: "Mở một studio nhỏ" }] }]);
+    expect(x.quarterlyReviews).toMatchObject([{ quarter: "2026-Q3", health: 6, love: null, plans: [{ slot: 2, title: "Mở một studio nhỏ" }] }, { quarter: "2026-Q4", compassReviewedAt: "2027-01-02 01:00:00+00", dashboardAt: null }]);
+    expect(x.compassVersions).toMatchObject([{ workview: expect.stringContaining("giúp người khác"), replacedAt: "2027-01-02 01:00:00+00" }]);
+    expect(x.compass?.workview).toBe("Công việc mới.");
     expect(x.onboarding?.setupDate).toBe("2026-11-05");
     // No user ids, no Clerk id, no push secrets.
     expect(JSON.stringify(x)).not.toContain(me);

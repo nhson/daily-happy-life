@@ -5,7 +5,7 @@ A purpose-aware task manager: every task traces back to a life direction drawn f
 ## Life direction
 
 **Compass**:
-The user's pair of short statements — Workview and Lifeview — describing what work is for and what life is for. Rewritten roughly yearly.
+The user's pair of short statements — Workview and Lifeview — describing what work is for and what life is for. Rewritten yearly, as the first step of the Quarterly Review that opens the year; each pair it replaces is kept as a past Compass.
 _Avoid_: Mission, vision, values
 
 **Workview**:

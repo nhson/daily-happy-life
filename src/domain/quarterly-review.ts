@@ -27,12 +27,15 @@ export interface QuarterlyReview {
   /** Null until the plans step is passed. */
   plans: PlanRating[] | null;
   activePlanId: string | null;
+  /** Only in the review of Q4: the Compass rewritten or kept. */
+  compassReviewedAt: string | null;
+  dashboardAt: string | null;
   plansReviewedAt: string | null;
   completedAt: string | null;
   createdAt: string;
 }
 
-export type ReviewStep = "dashboard" | "plans" | "settle" | "wrapUp" | "done";
+export type ReviewStep = "compass" | "dashboard" | "plans" | "settle" | "wrapUp" | "done";
 
 /** "2027-Q1" → "2026-Q4". */
 export function previousQuarter(quarter: string): string {
@@ -65,12 +68,26 @@ export function quarterToReview(input: {
   return input.setupDate !== null && input.setupDate < quarterStart(quarter) ? last : null;
 }
 
+/** The review looking back on Q4 — the first one of a new year — begins with the Compass. */
+export function asksCompass(quarter: string): boolean {
+  return quarter.endsWith("-Q4");
+}
+
 /** Where the review stands: settling leftovers can't be skipped, so it waits for them. */
-export function reviewStep(review: QuarterlyReview | undefined, leftoverCount: number): ReviewStep {
-  if (!review) return "dashboard";
+export function reviewStep(review: QuarterlyReview | undefined, leftoverCount: number, quarter: string): ReviewStep {
+  if (asksCompass(quarter) && !review?.compassReviewedAt) return "compass";
+  if (!review?.dashboardAt) return "dashboard";
   if (!review.plansReviewedAt) return "plans";
   if (leftoverCount > 0) return "settle";
   return review.completedAt ? "done" : "wrapUp";
+}
+
+/** A Compass the user rewrote: kept with when it was written and when it was replaced. */
+export interface CompassVersion {
+  workview: string;
+  lifeview: string;
+  writtenAt: string;
+  replacedAt: string;
 }
 
 const rating = (v: unknown): number | null => (typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 10 ? v : null);

@@ -200,3 +200,10 @@ export async function completeQuarterReviewAction() {
   const { user, quarter } = await reviewedQuarter();
   return quarterly.completeQuarterReview(db, user.id, quarter, now());
 }
+
+/** The yearly Compass (review of Q4): a rewrite, or null to keep it. */
+export async function reviewCompassAction(next: Compass | null) {
+  const { user, quarter } = await reviewedQuarter();
+  const c = next && typeof next.workview === "string" && typeof next.lifeview === "string" ? { workview: next.workview.slice(0, 1000), lifeview: next.lifeview.slice(0, 1000) } : null;
+  return quarterly.reviewCompass(db, user.id, quarter, now(), c);
+}
