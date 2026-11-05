@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ShellPlaceholder } from "@/features/shell/app-shell";
 import { LiveShell } from "@/features/shell/live-shell";
 
 /**
@@ -9,7 +10,7 @@ export const instant = false;
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <Suspense>
+    <Suspense fallback={<ShellPlaceholder />}>
       <LiveShell>{children}</LiveShell>
     </Suspense>
   );

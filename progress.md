@@ -39,6 +39,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - Owner chose to pull Objectives (and so Odyssey Plans) forward so real tasks have a real why.
 - Data layer `src/data/{tasks,plans,live,actions}.ts`, every query by userId; store live mode with optimistic changes + resync on refusal.
 - Task sheet (edit title/why/due, let go, delete for mistakes), due labels, "Due" section on Today.
+- Smoothness pass (owner feedback): blur-free task rows, light tab fade, loading placeholder; worst tab-switch frame 117 → 67 ms (dev, 4× CPU).
 - Next: owner verifies on the phone; then Slice 3 (Morning ritual live, mock store deleted).
 
 ### 2026-11-05 — Slice 1 closed

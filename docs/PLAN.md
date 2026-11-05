@@ -94,6 +94,7 @@ Decisions made in Slice 2 (2026-11-05):
 - **One store, two sources.** `mock-store.tsx` takes the server's `LiveData` when signed in; changes apply on screen first, then a Server Action (`src/data/actions.ts`) saves them; a refusal reloads the server's version with a quiet toast. Signed out (design review) it is all sample data, as before.
 - **Client-made ids** (UUIDs): the optimistic row and the saved row are the same; a retried create is a no-op.
 - **Plan switch is one pure function** (`src/domain/plan-switch.ts`) used by both the browser and the server; the server writes it in one transaction (Neon HTTP `batch`).
+- **Smoothness on phones** (owner, 2026-11-05: loading and tab changes felt rough): task rows use `.glass-lite` (same look, no backdrop blur; many blurred layers cost frames on a mid-range Android); tab changes use a 220 ms compositor-only fade/lift instead of a full-page view transition; while loading, a placeholder frame (tab bar, capture, quiet rows) shows instead of an empty sky. `node scripts/perf-nav.mjs` measures frame timing at 4× CPU slowdown.
 - **Task sheet**: tap a task's words to edit title, why and due date; "Let it go" closes it (history); "Delete — added by mistake" needs a second tap. Due today or overdue shows in a "Due" section on Today, never in the Top 3 by itself.
 
 ## Slices (each one demoable end-to-end: schema + action + UI + test)

@@ -5,7 +5,7 @@ import { Mountain, ListChecks, Sun } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ViewTransition, useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { APP_NAME } from "@/config";
 import { useCopy, useLocale } from "@/copy";
 import type { LiveData } from "@/data/live";
@@ -26,7 +26,7 @@ const subscribe = () => () => {};
  */
 export function AppShell({ live, children }: { live: LiveData | null; children: ReactNode }) {
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
-  if (!mounted) return null;
+  if (!mounted) return <ShellPlaceholder />;
   return (
     <ClockProvider>
       <StoreProvider live={live}>
@@ -90,7 +90,7 @@ function Frame({ children }: { children: ReactNode }) {
   if (bare) return <>{children}</>;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} className="min-h-dvh">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-dvh">
       {/* Desktop header */}
       <header data-chrome className="sticky top-0 z-30 hidden items-center justify-between px-8 py-5 lg:flex">
         <Link href="/today" className="flex items-center gap-2.5 text-ink">
@@ -110,11 +110,12 @@ function Frame({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <ViewTransition>
-        <main className="mx-auto w-full max-w-6xl px-4 pb-36 pt-[max(env(safe-area-inset-top),12px)] sm:px-6 lg:px-8 lg:pb-16 lg:pt-0">
+      <main className="mx-auto w-full max-w-6xl px-4 pb-36 pt-[max(env(safe-area-inset-top),12px)] sm:px-6 lg:px-8 lg:pb-16 lg:pt-0">
+        {/* Keyed by tab, so each arriving page fades in once; within a tab nothing re-animates. */}
+        <div key={pathname.split("/")[1]} className="page-enter">
           {children}
-        </main>
-      </ViewTransition>
+        </div>
+      </main>
 
       {/* Phone tab bar + capture */}
       <div data-chrome className="fixed inset-x-0 bottom-0 z-30 flex items-end justify-center gap-3 px-4 pb-[max(env(safe-area-inset-bottom),14px)] lg:hidden">
@@ -170,5 +171,27 @@ function TabLink({
       <Icon size={desktop ? 16 : 19} strokeWidth={active ? 2.1 : 1.7} className="relative" />
       <span className="relative">{label}</span>
     </Link>
+  );
+}
+
+/**
+ * What shows while the app loads: the same frame (tab bar, capture button, a few quiet rows) with
+ * nothing in it, so the real page arrives in place instead of out of an empty sky.
+ * Needs no store or copy: it renders before either exists.
+ */
+export function ShellPlaceholder() {
+  return (
+    <div aria-hidden className="min-h-dvh animate-pulse [animation-duration:2.4s]">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 pt-28 sm:px-6 lg:pt-40">
+        <div className="mb-8 h-24 w-4/5 rounded-3xl bg-[var(--fill)]" />
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="glass-lite h-14 rounded-2xl opacity-60" />
+        ))}
+      </div>
+      <div className="fixed inset-x-0 bottom-0 flex items-end justify-center gap-3 px-4 pb-[max(env(safe-area-inset-bottom),14px)] lg:hidden">
+        <div className="glass-strong h-14 flex-1 rounded-full sm:max-w-sm" />
+        <div className="size-14 rounded-full bg-solid opacity-80" />
+      </div>
+    </div>
   );
 }

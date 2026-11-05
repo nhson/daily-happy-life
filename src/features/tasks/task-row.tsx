@@ -132,7 +132,7 @@ export function TaskRow({
         }}
         onPointerCancel={() => press.current && clearTimeout(press.current.t)}
         className={clsx(
-          "glass relative flex items-center gap-3 rounded-2xl pr-2 transition-shadow",
+          "glass-lite relative flex items-center gap-3 rounded-2xl pr-2 transition-shadow",
           compact ? "min-h-12 py-2 pl-3" : "min-h-14 py-2.5 pl-3",
           focused && "ring-2 ring-ink/60",
         )}
