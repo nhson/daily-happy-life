@@ -7,7 +7,7 @@ import { carryOver } from "@/domain/carry-over";
 import * as schema from "./db/schema";
 import { listLogs, patchLog } from "./days";
 import { addDecision, getCompass, listDecisions, saveCompass } from "./life";
-import { completeOnboarding, saveOnboarding } from "./onboarding";
+import { completeOnboarding } from "./onboarding";
 import { ensurePlans, listObjectives, listPlans } from "./plans";
 import { closeTask, createTask, listTasks, replaceTop3, setTop3 } from "./tasks";
 import { ensureUser, type Db } from "./users";
@@ -124,9 +124,4 @@ describe("Day 1 setup", () => {
     expect(await listObjectives(db, me)).toHaveLength(1);
   });
 
-  it("keeps tip and nudge progress on the user", async () => {
-    await saveOnboarding(db, me, { setupDate: "2026-11-05", seenTips: ["top3"], reminderAskedAt: null, nudges: { "1": { snoozedUntil: "2026-11-08", notNowCount: 1 } } });
-    const [u] = await db.select().from(schema.users).where(eq(schema.users.id, me));
-    expect(u.onboarding?.nudges["1"]?.notNowCount).toBe(1);
-  });
 });

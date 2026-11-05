@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-005 — Slice 4 (Evening check-in live)
+**Active Feature:** feat-006 — Slice 5 (First run)
 **Branch:** main
 
 ### What's Done
@@ -19,10 +19,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-002: Slice 1 — Foundation — done 2026-11-05 (owner signed in on production; users row in Neon)
 - [x] feat-003: Slice 2 — Tasks + Capture live (owner accepted 2026-11-05)
 - [x] feat-004: Slice 3 — Morning ritual live (E2E 4/4 local + production)
+- [x] feat-005: Slice 4 — Evening check-in live (E2E 7/7 local + production)
+- [ ] feat-006: Slice 5 — First run (E2E 10/10 local; production run pending deploy)
 
 ### What's Next
 
-1. feat-005 Slice 4 → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
+1. feat-006 Slice 5 production E2E → feat-007 Slice 6 → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
 2. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
@@ -34,6 +36,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 4 done; Slice 5: onboarding follows you across devices
+
+- Slice 4: "Close yesterday?" step (ratings, sources, note; no task ticking) offered once when the ritual opens by itself; `missedCheckIn` domain rule. E2E `e2e/evening.spec.ts` (00:40 check-in → previous Logical Day; close yesterday counts toward dots; skip is final). 7/7 local and on production.
+- Slice 5: onboarding progress saved as events (`applyOnboarding` / `recordOnboarding`), applied server-side to the stored state with the server's own Logical Day — a stale device can't undo another. E2E `e2e/onboarding.spec.ts` checks each card from a second browser context.
+- Found while testing: Playwright's `page.clock` (setFixedTime too) stops the animation timeline, so every exit transition hung under test. `at()` now shifts `Date` only. Not an app bug.
 
 ### 2026-11-05 — E2E harness; Slice 3 proven
 

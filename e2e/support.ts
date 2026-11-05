@@ -24,11 +24,26 @@ export function hcmDate(days = 0): string {
 }
 
 /**
- * Pin the browser's date and time to a local time in Ho Chi Minh City, `days` from today. Only
- * `Date` is pinned: timers and animation frames stay real, so transitions run as for a person.
+ * Set the browser's clock to a local time in Ho Chi Minh City, `days` from today; it keeps ticking
+ * from there. Only `Date` moves: Playwright's own clock (`setFixedTime`, `install`) also stops the
+ * timeline animations run on, so every exit transition would hang.
  */
 export async function at(page: Page, time: string, days = 0) {
-  await page.clock.setFixedTime(new Date(`${hcmDate(days)}T${time}:00+07:00`));
+  const target = new Date(`${hcmDate(days)}T${time}:00+07:00`).getTime();
+  await page.addInitScript((target: number) => {
+    const Real = Date;
+    const offset = target - Real.now();
+    class Shifted extends Real {
+      constructor(...args: ConstructorParameters<typeof Date> | []) {
+        if (args.length === 0) super(Real.now() + offset);
+        else super(...(args as ConstructorParameters<typeof Date>));
+      }
+      static now() {
+        return Real.now() + offset;
+      }
+    }
+    globalThis.Date = Shifted as DateConstructor;
+  }, target);
 }
 
 export async function signIn(page: Page) {

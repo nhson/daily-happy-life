@@ -3,7 +3,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import type { FoldResolution } from "@/domain/objectives";
-import type { OnboardingState } from "@/domain/onboarding";
+import { logicalDate } from "@/domain/logical-day";
+import { parseOnboardingEvent } from "@/domain/onboarding";
 import type { Compass, Decision, LogicalDate, ObjectiveStatus, OdysseyPlan, UserSettings } from "@/domain/types";
 import * as days from "./days";
 import * as life from "./life";
@@ -13,7 +14,7 @@ import * as schema from "./db/schema";
 import * as plans from "./plans";
 import type { KindChoice } from "./state";
 import * as tasks from "./tasks";
-import { saveSettings, type User } from "./users";
+import { saveSettings, settingsOf, type User } from "./users";
 
 /**
  * Server Actions behind the store's live mode. Each one acts as the signed-in user only; the
@@ -94,9 +95,14 @@ export async function addDecisionAction(d: Decision) {
   return life.addDecision(db, (await me()).id, d);
 }
 
-export async function saveOnboardingAction(state: OnboardingState) {
-  await onboarding.saveOnboarding(db, (await me()).id, state);
-  return { ok: true as const };
+export async function recordOnboardingAction(event: unknown) {
+  const e = parseOnboardingEvent(event);
+  if (!e) return { ok: false as const };
+  const user = await me();
+  const { timeZone, dayEndHour } = settingsOf(user);
+  const at = new Date();
+  const stored = await onboarding.recordOnboarding(db, user.id, e, { today: logicalDate(at, timeZone, dayEndHour), now: at.toISOString() });
+  return stored ? { ok: true as const } : { ok: false as const };
 }
 
 export async function completeOnboardingAction(input: Parameters<typeof onboarding.completeOnboarding>[2]) {

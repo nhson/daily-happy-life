@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { freshOnboarding, type OnboardingState } from "@/domain/onboarding";
+import { applyOnboarding, freshOnboarding, type OnboardingEvent, type OnboardingState } from "@/domain/onboarding";
 import type { Compass, LogicalDate } from "@/domain/types";
 import * as schema from "./db/schema";
 import { patchLog, snapshotTop3 } from "./days";
@@ -7,9 +7,22 @@ import { saveCompass } from "./life";
 import { atomic } from "./rows";
 import type { Db } from "./users";
 
-/** Tips seen, nudges snoozed, reminder asked — UI progress only, following the user across devices. */
-export async function saveOnboarding(db: Db, userId: string, state: OnboardingState): Promise<void> {
-  await db.update(schema.users).set({ onboarding: state }).where(eq(schema.users.id, userId));
+/**
+ * Tips seen, nudges snoozed, reminder asked — UI progress only, following the user across devices.
+ * Applied to what is stored (not replaced), so a stale device can't bring a dismissed tip back.
+ */
+export async function recordOnboarding(
+  db: Db,
+  userId: string,
+  event: OnboardingEvent,
+  at: { today: LogicalDate; now: string },
+): Promise<OnboardingState | null> {
+  const [user] = await db.select({ onboarding: schema.users.onboarding }).from(schema.users).where(eq(schema.users.id, userId));
+  if (!user) return null;
+  const current = user.onboarding ?? freshOnboarding(null);
+  const next = applyOnboarding(current, event, at);
+  if (next !== current) await db.update(schema.users).set({ onboarding: next }).where(eq(schema.users.id, userId));
+  return next;
 }
 
 /**

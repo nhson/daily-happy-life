@@ -107,8 +107,12 @@ Decisions made in Slice 3 (2026-11-05):
 
 Decisions made in Slice 4 (2026-11-05):
 - **"Close yesterday?" is offered only when the ritual opens by itself** (morning mode, first visit of the Logical Day), and only for yesterday: the account existed then and the day isn't closed. Skipping it or opening the ritual by hand never brings it back. Its answers (ratings, sources, note) close yesterday's Daily Log, so the day counts toward the week dots; no task ticking (`src/domain/missed-check-in.ts`).
-- **Step transitions slide over each other** (`AnimatePresence mode="popLayout"`), and the leaving step is `inert` (`src/ui/step.tsx`). `mode="wait"` once got an exit stuck, leaving a blank ritual.
-- **E2E keeps the browser clock within a day of the real one**: Clerk drops a session whose tokens look issued in the future/past by more. Each spec seeds its own account history in the past instead of moving the clock far.
+- **Step transitions slide over each other** (`AnimatePresence mode="popLayout"`), and the leaving step is `inert` (`src/ui/step.tsx`), so only the present step can be acted on.
+- **E2E keeps the browser clock within a day of the real one**: Clerk drops a session whose tokens look issued in the future/past by more. Each spec seeds its own account history in the past instead of moving the clock far. The clock is moved by shifting `Date` only (`e2e/support.ts` `at`): Playwright's `clock.setFixedTime`/`install` also stop the animation timeline, which hung every exit transition under test (not for real users).
+
+Decisions made in Slice 5 (2026-11-05):
+- **Onboarding progress is saved as events, not snapshots.** A device reports "tip seen", "tips reset", "reminder asked" or "not now on Plan N"; the server applies it to what it has stored (`applyOnboarding`, `recordOnboarding`) and works out today from the user's timezone. A stale phone can't bring back a tip dismissed on the laptop, two devices' "not now"s add up, and the server no longer stores whatever shape a client sends.
+- **The first run itself was finished in Slice 3** (Day 1 setup in one transaction); Slice 5 proves the rest end to end: tips, the reminder ask after the first closed day, Odyssey nudges and "Show tips again", each checked from a second browser with no shared storage.
 
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 

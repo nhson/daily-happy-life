@@ -19,7 +19,7 @@ import { missedCheckIn } from "@/domain/missed-check-in";
 import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
 import { objectiveRoom, type FoldResolution } from "@/domain/objectives";
-import { freshOnboarding, snoozeNudge, todayCard, type OnboardingState, type PlanSlot, type TipId } from "@/domain/onboarding";
+import { applyOnboarding, freshOnboarding, todayCard, type OnboardingEvent, type PlanSlot, type TipId } from "@/domain/onboarding";
 import { switchPlan } from "@/domain/plan-switch";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
@@ -400,27 +400,24 @@ function useStoreState(live: LiveData | null) {
     [save],
   );
 
-  /** Tips, nudges and the reminder ask follow the user across devices. */
-  const updateOnboarding = useCallback(
-    (change: (o: OnboardingState) => OnboardingState) => {
-      const next = change(state.onboarding);
+  /**
+   * Tips, nudges and the reminder ask follow the user across devices. The server applies the same
+   * event to what it has stored, so one device never undoes another.
+   */
+  const recordOnboarding = useCallback(
+    (event: OnboardingEvent) => {
+      const next = applyOnboarding(state.onboarding, event, { today, now: new Date().toISOString() });
       if (next === state.onboarding) return;
       setState((s) => ({ ...s, onboarding: next }));
-      save(() => server.saveOnboardingAction(next));
+      save(() => server.recordOnboardingAction(event));
     },
-    [state.onboarding, save],
+    [state.onboarding, today, save],
   );
-  const dismissTip = useCallback(
-    (tip: TipId) => updateOnboarding((o) => (o.seenTips.includes(tip) ? o : { ...o, seenTips: [...o.seenTips, tip] })),
-    [updateOnboarding],
-  );
-  const showTipsAgain = useCallback(() => updateOnboarding((o) => ({ ...o, seenTips: [] })), [updateOnboarding]);
-  const notNowNudge = useCallback((slot: PlanSlot) => updateOnboarding((o) => snoozeNudge(o, slot, today)), [updateOnboarding, today]);
+  const dismissTip = useCallback((tip: TipId) => recordOnboarding({ type: "tipSeen", tip }), [recordOnboarding]);
+  const showTipsAgain = useCallback(() => recordOnboarding({ type: "tipsReset" }), [recordOnboarding]);
+  const notNowNudge = useCallback((slot: PlanSlot) => recordOnboarding({ type: "nudgeNotNow", slot }), [recordOnboarding]);
   /** The reminder is offered once, whatever the answer. */
-  const answerReminder = useCallback(
-    () => updateOnboarding((o) => ({ ...o, reminderAskedAt: new Date().toISOString() })),
-    [updateOnboarding],
-  );
+  const answerReminder = useCallback(() => recordOnboarding({ type: "reminderAsked" }), [recordOnboarding]);
 
   const completeOnboarding = useCallback(
     (input: { compass: Compass; objective: string; tasks: { title: string; today: boolean }[] }) => {

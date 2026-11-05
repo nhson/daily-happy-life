@@ -56,8 +56,8 @@
       "dependencies": [
         "feat-004"
       ],
-      "status": "in-progress",
-      "evidence": ""
+      "status": "done",
+      "evidence": "2026-11-05: `bun run e2e` 7/7 locally (e2e/evening.spec.ts: check-in at 00:40 lands on the previous Logical Day — daily_logs row for D0 closed, none for D+1; missed yesterday offered once next morning, saves ratings/sources/note with no task ticking, week label then reads 2/7; skipped → never offered again, even when the ritual is opened by hand). Production (commit 36b896a, deploy 5kvdbi01l Ready): `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/day-one.spec.ts e2e/evening.spec.ts` → 7 passed (1.9m). ./init.sh green; Vitest 146."
     },
     {
       "id": "feat-006",
@@ -66,7 +66,7 @@
       "dependencies": [
         "feat-005"
       ],
-      "status": "not-started",
+      "status": "in-progress",
       "evidence": ""
     },
     {

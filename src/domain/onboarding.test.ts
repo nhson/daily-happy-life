@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyOnboarding,
   dayNumber,
   dueNudge,
   freshOnboarding,
   snoozeNudge,
+  parseOnboardingEvent,
   todayCard,
   type OnboardingState,
 } from "./onboarding";
@@ -114,5 +116,46 @@ describe("todayCard", () => {
     const plans = [plan(1, "a"), plan(2, "b"), plan(3, "c")];
     const onboarding = setupOn("2026-11-04", { seenTips: ["top3", "closedDay"], reminderAskedAt: "x" });
     expect(todayCard({ ...base, plans, hasClosedDay: true, onboarding })).toBeNull();
+  });
+});
+
+describe("applyOnboarding", () => {
+  const now = "2026-11-05T01:00:00.000Z";
+  const at = { today: "2026-11-05", now };
+
+  it("marks a tip seen once, keeping tips seen elsewhere", () => {
+    const s = setupOn("2026-11-04", { seenTips: ["capture"] });
+    const next = applyOnboarding(s, { type: "tipSeen", tip: "top3" }, at);
+    expect(next.seenTips).toEqual(["capture", "top3"]);
+    expect(applyOnboarding(next, { type: "tipSeen", tip: "top3" }, at)).toBe(next);
+  });
+  it("shows tips again by clearing them all", () => {
+    expect(applyOnboarding(setupOn("2026-11-04", { seenTips: ["top3", "life"] }), { type: "tipsReset" }, at).seenTips).toEqual([]);
+  });
+  it("records the reminder ask once — a second device does not move it", () => {
+    const once = applyOnboarding(setupOn("2026-11-04"), { type: "reminderAsked" }, at);
+    expect(once.reminderAskedAt).toBe(now);
+    expect(applyOnboarding(once, { type: "reminderAsked" }, { ...at, now: "2026-11-06T00:00:00.000Z" })).toBe(once);
+  });
+  it("snoozes a nudge from the stored count, so two devices add up", () => {
+    const s = setupOn("2026-11-04", { nudges: { "1": { snoozedUntil: "2026-11-03", notNowCount: 2 } } });
+    expect(applyOnboarding(s, { type: "nudgeNotNow", slot: 1 }, at).nudges["1"]).toEqual({ snoozedUntil: "2026-11-07", notNowCount: 3 });
+  });
+  it("does nothing before setup", () => {
+    const before = freshOnboarding(null);
+    expect(applyOnboarding(before, { type: "tipSeen", tip: "top3" }, at)).toBe(before);
+  });
+});
+
+describe("parseOnboardingEvent", () => {
+  it("accepts the four events and nothing else", () => {
+    expect(parseOnboardingEvent({ type: "tipSeen", tip: "life" })).toEqual({ type: "tipSeen", tip: "life" });
+    expect(parseOnboardingEvent({ type: "nudgeNotNow", slot: 2 })).toEqual({ type: "nudgeNotNow", slot: 2 });
+    expect(parseOnboardingEvent({ type: "tipsReset" })).toEqual({ type: "tipsReset" });
+    expect(parseOnboardingEvent({ type: "reminderAsked", extra: 1 })).toEqual({ type: "reminderAsked" });
+    expect(parseOnboardingEvent({ type: "tipSeen", tip: "nope" })).toBeNull();
+    expect(parseOnboardingEvent({ type: "nudgeNotNow", slot: 4 })).toBeNull();
+    expect(parseOnboardingEvent({ type: "setupDate", value: "2020-01-01" })).toBeNull();
+    expect(parseOnboardingEvent(null)).toBeNull();
   });
 });

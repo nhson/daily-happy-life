@@ -83,3 +83,44 @@ export function todayCard(input: {
   const slot = dueNudge(onboarding, today, plans);
   return slot ? { type: "nudge", slot } : null;
 }
+
+/** What a device reports; the server applies it to the stored state, so devices never undo each other. */
+export type OnboardingEvent =
+  | { type: "tipSeen"; tip: TipId }
+  | { type: "tipsReset" }
+  | { type: "reminderAsked" }
+  | { type: "nudgeNotNow"; slot: PlanSlot };
+
+const TIPS: readonly TipId[] = ["top3", "capture", "morning", "evening", "closedDay", "life"];
+
+/** Returns the same object when nothing changes. */
+export function applyOnboarding(o: OnboardingState, e: OnboardingEvent, at: { today: LogicalDate; now: string }): OnboardingState {
+  if (!o.setupDate) return o;
+  switch (e.type) {
+    case "tipSeen":
+      return o.seenTips.includes(e.tip) ? o : { ...o, seenTips: [...o.seenTips, e.tip] };
+    case "tipsReset":
+      return o.seenTips.length ? { ...o, seenTips: [] } : o;
+    case "reminderAsked":
+      return o.reminderAskedAt ? o : { ...o, reminderAskedAt: at.now };
+    case "nudgeNotNow":
+      return snoozeNudge(o, e.slot, at.today);
+  }
+}
+
+/** Untrusted input → an event, or null. */
+export function parseOnboardingEvent(x: unknown): OnboardingEvent | null {
+  if (!x || typeof x !== "object") return null;
+  const v = x as Record<string, unknown>;
+  switch (v.type) {
+    case "tipSeen":
+      return TIPS.includes(v.tip as TipId) ? { type: "tipSeen", tip: v.tip as TipId } : null;
+    case "nudgeNotNow":
+      return v.slot === 1 || v.slot === 2 || v.slot === 3 ? { type: "nudgeNotNow", slot: v.slot } : null;
+    case "tipsReset":
+    case "reminderAsked":
+      return { type: v.type };
+    default:
+      return null;
+  }
+}
