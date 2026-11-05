@@ -4,8 +4,8 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 ## Current State
 
-**Last Updated:** 2026-11-04
-**Active Feature:** feat-002 — Slice 1 (Foundation)
+**Last Updated:** 2026-11-05
+**Active Feature:** feat-003 — Slice 2 (Tasks + Capture live)
 **Branch:** main
 
 ### What's Done
@@ -16,13 +16,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ### What's In Progress
 
 - [x] feat-001: owner approved the Phase 0 design on 2026-11-04
-- [ ] feat-002: Slice 1 — Foundation — built and deployed to https://daily-happy-life.vercel.app
-  - Waiting on owner: sign in once on the deployed URL; enable passkeys (and optionally turn off password) in the Clerk dashboard
+- [x] feat-002: Slice 1 — Foundation — done 2026-11-05 (owner signed in on production; users row in Neon)
+- [ ] feat-003: Slice 2 — Tasks + Capture live
 
 ### What's Next
 
-1. Owner signs in on production → check the `users` row in Neon → mark feat-002 done
-2. feat-003 (Slice 2 — Tasks + Capture live)
+1. feat-003 (Slice 2 — Tasks + Capture live)
+2. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
 
@@ -33,6 +33,10 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 1 closed
+
+- Owner signed in on production with Google; `users` row created (timezone Asia/Ho_Chi_Minh, locale vi). feat-002 done; feat-003 started.
 
 ### 2026-11-04 — Slice 1: Foundation
 
