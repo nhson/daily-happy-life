@@ -15,7 +15,8 @@
     "db:migrate": "node --env-file-if-exists=.env.local ./node_modules/drizzle-kit/bin.cjs migrate",
     "dev:review": "DHL_REVIEW=1 next dev --port 3210",
     "e2e": "playwright test",
-    "smoke": "playwright test e2e/day-one.spec.ts"
+    "smoke": "playwright test e2e/day-one.spec.ts",
+    "check:qstash": "bun e2e/qstash-roundtrip.ts"
   },
   "dependencies": {
     "@clerk/localizations": "^4.24.5",
