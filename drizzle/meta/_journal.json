@@ -29,6 +29,13 @@
       "when": 1793866616493,
       "tag": "0003_chemical_terrax",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793890431552,
+      "tag": "0004_windy_slayback",
+      "breakpoints": true
     }
   ]
 }

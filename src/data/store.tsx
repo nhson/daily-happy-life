@@ -24,8 +24,9 @@ import { DEFAULT_FOCUS_MINUTES, endFocus, focusedOn, isFocusMinutes, startFocus 
 import { weekStats, weekToReview, type WeeklyReview } from "@/domain/weekly-review";
 import { finishObjective as finishWith, objectivesToSettle, switchPlan, type Settle } from "@/domain/plan-switch";
 import { leftovers, settleLeftover as settleWith, type LeftoverChoice } from "@/domain/quarter-close";
+import { quarterToReview, ratedPlans, reviewStep, type Dashboard, type QuarterlyReview } from "@/domain/quarterly-review";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
-import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
+import type { Compass, DailyLog, Decision, Gauges, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
 import { useClock } from "@/ui/clock";
 import { blank, fixtures, sampleReviewNotes } from "./fixtures";
 import { ritualMode } from "@/domain/ritual-mode";
@@ -73,6 +74,7 @@ function fromLive(live: LiveData, device: Device): AppState {
     decisions: live.decisions,
     focus: live.focus,
     reviews: live.reviews,
+    quarterReviews: live.quarterReviews,
     lastKind: stillValid(device.lastKind, live),
   };
 }
@@ -94,7 +96,7 @@ function loadReview(): AppState {
   state ??= fixtures(today, tz, asked);
   if (asked) state = { ...state, settings: { ...state.settings, locale: asked } };
   // Sample data saved before Focus Sessions existed.
-  state = { ...state, focus: state.focus ?? [], reviews: state.reviews ?? [] };
+  state = { ...state, focus: state.focus ?? [], reviews: state.reviews ?? [], quarterReviews: state.quarterReviews ?? [] };
 
   const day = Number(params.get("day"));
   if (day >= 1 && state.onboarding.setupDate)
@@ -172,6 +174,10 @@ function useStoreState(live: LiveData | null) {
   const quarter = quarterOf(today);
   /** Last quarter's still-active Objectives, waiting for Quarter Close. They stay usable until then. */
   const leftoverObjectives = leftovers(state.objectives, quarter);
+  /** The quarter waiting for its Quarterly Review (which runs Quarter Close too), and how far it got. */
+  const reviewQuarter = quarterToReview({ today, setupDate: state.onboarding.setupDate, leftoverCount: leftoverObjectives.length, reviews: state.quarterReviews });
+  const quarterReview = reviewQuarter ? state.quarterReviews.find((r) => r.quarter === reviewQuarter) : undefined;
+  const quarterStep = reviewQuarter ? reviewStep(quarterReview, leftoverObjectives.length) : null;
   const activeObjectives = state.objectives.filter((o) => o.status === "active" && o.quarter <= quarter);
 
   const card = todayCard({
@@ -599,6 +605,51 @@ function useStoreState(live: LiveData | null) {
     [save],
   );
 
+  // ── Quarterly Review: each step is saved, so a reload resumes at the next one ──
+
+  const putQuarterReview = useCallback(
+    (quarterLabel: string, change: (r: QuarterlyReview | undefined) => QuarterlyReview) =>
+      setState((s) => {
+        const next = change(s.quarterReviews.find((r) => r.quarter === quarterLabel));
+        return { ...s, quarterReviews: [next, ...s.quarterReviews.filter((r) => r.quarter !== quarterLabel)].sort((a, b) => b.quarter.localeCompare(a.quarter)) };
+      }),
+    [],
+  );
+
+  const saveDashboard = useCallback(
+    (dashboard: Dashboard) => {
+      if (!reviewQuarter) return;
+      const at = new Date().toISOString();
+      putQuarterReview(reviewQuarter, (r) =>
+        r ? { ...r, dashboard } : { quarter: reviewQuarter, dashboard, plans: null, activePlanId: null, plansReviewedAt: null, completedAt: null, createdAt: at },
+      );
+      save(() => server.saveDashboardAction(dashboard));
+    },
+    [reviewQuarter, putQuarterReview, save],
+  );
+
+  /** The plans step is passed: the Gauges as they now stand, and the Active Plan, are kept. */
+  const finishQuarterPlans = useCallback(
+    (rerated: { planId: string; gauges: Gauges }[]) => {
+      if (!reviewQuarter || !quarterReview) return;
+      const at = new Date().toISOString();
+      const now = state.plans.map((p) => ({ ...p, gauges: rerated.find((r) => r.planId === p.id)?.gauges ?? p.gauges }));
+      const plans = ratedPlans(now);
+      const activePlanId = now.find((p) => p.isActive)?.id ?? null;
+      setState((s) => ({ ...s, plans: s.plans.map((p) => ({ ...p, gauges: rerated.find((r) => r.planId === p.id)?.gauges ?? p.gauges })) }));
+      putQuarterReview(reviewQuarter, (r) => ({ ...r!, plans, activePlanId, plansReviewedAt: at }));
+      save(() => server.finishQuarterPlansAction(rerated));
+    },
+    [reviewQuarter, quarterReview, state.plans, putQuarterReview, save],
+  );
+
+  const completeQuarterReview = useCallback(() => {
+    if (!reviewQuarter || !quarterReview?.plansReviewedAt || quarterReview.completedAt) return;
+    const at = new Date().toISOString();
+    putQuarterReview(reviewQuarter, (r) => ({ ...r!, completedAt: at }));
+    save(() => server.completeQuarterReviewAction());
+  }, [reviewQuarter, quarterReview, putQuarterReview, save]);
+
   /** Design review only: start over from the sample data. */
   const resetFixtures = useCallback(() => {
     if (!live) setState((s) => fixtures(today, timeZone, s.settings.locale));
@@ -618,6 +669,9 @@ function useStoreState(live: LiveData | null) {
     carryOver,
     activeObjectives,
     leftoverObjectives,
+    reviewQuarter,
+    quarterReview,
+    quarterStep,
     share,
     dots,
     card,
@@ -653,6 +707,9 @@ function useStoreState(live: LiveData | null) {
       setActivePlan,
       finishObjective,
       settleLeftover,
+      saveDashboard,
+      finishQuarterPlans,
+      completeQuarterReview,
       addObjective,
       setObjectiveStatus,
       addDecision,

@@ -23,7 +23,10 @@ test("leftovers stay usable, then each gets Done / Drop / Carry forward; it ends
   await page.goto("/today");
 
   // Not blocking: the day is all there, and the leftovers are still a "why" in capture.
-  const card = page.getByRole("region", { name: c.quarterClose.eyebrow(lastQuarter().replace(/^(\d{4})-(Q\d)$/, "$2 · $1")) });
+  // Slice 13: Quarter Close runs inside the Quarterly Review, after the dashboard and the plans.
+  const card = page.getByRole("region", { name: c.quarterReview.eyebrow(lastQuarter().replace(/^(\d{4})-(Q\d)$/, "$2 · $1")) });
+  await card.getByRole("button", { name: c.quarterReview.skip, exact: true }).click();
+  await card.getByRole("button", { name: c.quarterReview.next, exact: true }).click();
   await expect(card.getByText(c.quarterClose.title)).toBeVisible();
   await expect(page.locator('section[aria-labelledby="top3-h"]')).toBeVisible();
   await page.getByRole("button", { name: `${c.capture.open} (⌘K)` }).first().click();
@@ -55,6 +58,10 @@ test("leftovers stay usable, then each gets Done / Drop / Carry forward; it ends
   expect(tasks.find((t) => t.title === "Bài về thói quen buổi sáng")).toMatchObject({ quarter: thisQuarter(), closed_at: null });
   expect(tasks.find((t) => t.title === "Bài đầu tiên")).toMatchObject({ quarter: lastQuarter() });
   expect(tasks.find((t) => t.title === "Ôn 50 chữ kanji")?.closed_at).not.toBeNull();
+
+  const [qr] = await sql()`select health, completed_at from quarterly_reviews where user_id = ${me} and quarter = ${lastQuarter()}`;
+  expect(qr.health).toBeNull(); // the dashboard was skipped
+  expect(qr.completed_at).not.toBeNull();
 
   // Settled for good.
   await page.reload();

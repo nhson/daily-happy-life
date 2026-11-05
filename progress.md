@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** none in progress — v1 + Slice 11 (Focus timer) built; feat-010/011 pending the owner's iPhone check
+**Active Feature:** feat-014 Slice 13 — Quarterly Review (built and unit-tested; waits on migration 0004 → E2E → push)
 **Branch:** main
 
 ### What's Done
@@ -28,9 +28,11 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [~] feat-011 (pending owner confirm): Slice 10 — Finish (perf + a11y budgets met on production; iOS install check with the owner)
 - [x] feat-012: Slice 11 — Focus timer (Phase 2 · 1), proven on production
 - [x] feat-013: Slice 12 — Weekly Review with AI (Phase 2 · 2), proven on production with a real free model
+- [~] feat-014: Slice 13 — Quarterly Review (Phase 2 · 3): built, unit + visual checked; migration 0004 not yet on Neon
 
 ### What's Next
 
+0. Owner OK → `bun run db:migrate` (adds `quarterly_reviews`), then E2E `e2e/quarterly-review.spec.ts` + `e2e/quarter-close.spec.ts` locally, push, re-run on production. **Don't push before the migration**: `loadLive` reads the new table.
 1. Owner: on the iPhone Home-Screen app, turn on reminders and confirm one arrives (closes feat-010 and feat-011); a Focus Session's end push can be checked the same way
 2. Owner: pick the next Phase 2 item (quarterly review, yearly Compass rewrite)
 3. Owner (optional): enable passkeys in the Clerk dashboard
@@ -44,6 +46,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 13: Quarterly Review (Phase 2 · 3)
+
+- Owner picked the Quarterly Review, extending Quarter Close. One card on Today: Life Dashboard (Health/Work/Play/Love 0–10) → plans' Gauges (dials; "Re-rate" opens sliders) + keep/switch via the existing switch sheet (moved to `src/features/life/promotion-form.tsx`) → leftovers → Decision (not asked again after a switch) → add one?/closing line. Life lists finished quarters.
+- `quarterly_reviews` (migration 0004), saved step by step so a reload resumes; re-rated Gauges travel with the plans step so the snapshot can't miss them. In Export.
+- Found in the visual walk: once complete, the store has no quarter waiting, so the closing step vanished — the card now keeps its quarter until left.
+- Blocked: applying migration 0004 to Neon was refused by the permission check; needs the owner's OK. Committed locally, not pushed.
 
 ### 2026-11-05 — Slice 12: Weekly Review with AI (Phase 2 · 2)
 

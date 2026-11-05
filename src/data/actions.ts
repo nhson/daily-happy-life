@@ -19,6 +19,8 @@ import * as tasks from "./tasks";
 import { openRouterReviewer } from "./ai";
 import * as focus from "./focus";
 import * as weekly from "./weekly-review";
+import * as quarterly from "./quarterly-review";
+import { parseDashboard, parseRerated, previousQuarter } from "@/domain/quarterly-review";
 import { qstashLater, qstashScheduler } from "./push-services";
 import { savePush, syncReminder, type PushSubscriptionJSON } from "./reminders";
 import { saveSettings, settingsOf, type User } from "./users";
@@ -175,4 +177,26 @@ export async function startReviewAction(weekEnd: string) {
 
 export async function saveTakeawayAction(weekEnd: string, text: string) {
   return weekly.saveTakeaway(db, (await me()).id, String(weekEnd), String(text ?? ""));
+}
+
+/** Quarterly Review: always of the quarter before the user's own Logical Day, by the server's clock. */
+async function reviewedQuarter(): Promise<{ user: User; quarter: string }> {
+  const user = await me();
+  const { timeZone, dayEndHour } = settingsOf(user);
+  return { user, quarter: previousQuarter(quarterOf(logicalDate(new Date(), timeZone, dayEndHour))) };
+}
+
+export async function saveDashboardAction(dashboard: unknown) {
+  const { user, quarter } = await reviewedQuarter();
+  return quarterly.saveDashboard(db, user.id, quarter, parseDashboard(dashboard));
+}
+
+export async function finishQuarterPlansAction(rerated: unknown) {
+  const { user, quarter } = await reviewedQuarter();
+  return quarterly.finishQuarterPlans(db, user.id, quarter, now(), parseRerated(rerated));
+}
+
+export async function completeQuarterReviewAction() {
+  const { user, quarter } = await reviewedQuarter();
+  return quarterly.completeQuarterReview(db, user.id, quarter, now());
 }

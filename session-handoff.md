@@ -2,15 +2,18 @@
 
 ## Current Objective
 
-- v1 (Slices 1–10) built and proven on production. feat-010 (PWA + Reminder) and feat-011 (Finish) are **pending-confirmation**: waiting on the owner's iPhone check.
+- feat-014 Slice 13 — Quarterly Review: code, unit tests, Export and visual checks done; committed locally, **not pushed**.
 
-## Owner check (closes feat-010 and feat-011)
+## To finish
 
-1. Safari → https://daily-happy-life.vercel.app → Share → Add to Home Screen.
-2. Open from the Home Screen, sign in, Settings → turn reminders on, allow notifications, set the time a few minutes ahead.
-3. The reminder arrives at that minute → mark both done. If it doesn't: QStash logs (Upstash console, dhl-qstash, eu-central-1) for the `remind-<userId>` schedule; `bun run check:qstash` re-proves signed delivery.
+1. Owner approves applying migration `drizzle/0004_windy_slayback.sql` (new table `quarterly_reviews`, additive) → `bun run db:migrate`.
+2. `bun run build && bunx playwright test e2e/quarterly-review.spec.ts e2e/quarter-close.spec.ts` (local prod build, real Neon).
+3. Push (Vercel deploys), then `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/quarterly-review.spec.ts e2e/quarter-close.spec.ts`.
+4. Record evidence in feature_list.json, mark feat-014 done.
 
-## Next
+Don't push before step 1: `loadLive` reads `quarterly_reviews` on every page.
 
-- Slices 11 (Focus timer) and 12 (Weekly Review, OpenRouter free models) done. Next Phase 2 item is the owner's pick: quarterly review, yearly Compass rewrite.
-- Watch: INP of the Top-3 star tap is ~80–104 ms on production (budget 100).
+## Still open
+
+- feat-010/011: owner's iPhone reminder check.
+- Watch: INP of the Top-3 star tap (~80–104 ms, budget 100).

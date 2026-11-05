@@ -74,6 +74,14 @@ _Avoid_: Ratio, score, alignment
 The moment at the start of a new quarter when each still-active Objective is marked Done, Dropped, or Carried Forward. A Carried Forward Objective takes its open Tasks into the new quarter; a Dropped Objective's open Tasks are Closed. Until it is done, last quarter's still-active Objectives stay in use. It ends by asking whether the user made any Decision that quarter.
 _Avoid_: Rollover, reset
 
+**Quarterly Review**:
+At the start of a quarter, one look back at the quarter just ended: the Life Dashboard, the Odyssey Plans' Gauges re-rated, the Active Plan kept or switched, then Quarter Close of its leftovers and the Decision question. It contains Quarter Close.
+_Avoid_: Quarterly report, OKR review
+
+**Life Dashboard**:
+Four 0–10 self-ratings of how full each part of life is: Health, Work, Play, Love. Rated once a quarter, in the Quarterly Review.
+_Not to be confused with_: the Gauges, which rate an Odyssey Plan, not the life being lived.
+
 ## Daily ritual
 
 **Logical Day**:
@@ -136,6 +144,9 @@ The approved Vietnamese term for each concept. Vietnamese is the default languag
 | Top 3 | Top 3 |
 | Life Share | Cán cân tuần |
 | Quarter Close | Khép quý |
+| Quarterly Review | Nhìn lại quý |
+| Life Dashboard | Bốn góc đời |
+| Health · Work · Play · Love | Sức khỏe · Công việc · Vui chơi · Yêu thương |
 | Logical Day | Ngày của bạn |
 | Morning Ritual | Nghi thức buổi sáng |
 | Intention | Ý định |

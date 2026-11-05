@@ -1,4 +1,5 @@
 import type { FocusSession } from "@/domain/focus";
+import type { QuarterlyReview } from "@/domain/quarterly-review";
 import type { WeeklyReview } from "@/domain/weekly-review";
 import type { OnboardingState } from "@/domain/onboarding";
 import type { Compass, DailyLog, Decision, LogicalDate, Objective, OdysseyPlan, Task, UserSettings } from "@/domain/types";
@@ -27,6 +28,8 @@ export interface AppState {
   focus: FocusSession[];
   /** The latest Weekly Reviews, newest first. */
   reviews: WeeklyReview[];
+  /** The latest Quarterly Reviews, newest quarter first. */
+  quarterReviews: QuarterlyReview[];
   lastKind: KindChoice | null;
 }
 

@@ -153,6 +153,11 @@ Decisions made in Slice 12 — Weekly Review (2026-11-05, owner picked each):
 - **Asking**: once per week; again only if the AI failed or answered something unreadable, at most 5 times. The numbers are computed on the server and saved either way. A tolerant parser finds the JSON wherever the free model puts it.
 - **Folder**: UI lives in `src/features/weekly/` — `review/` is git-ignored (screenshots), which also hides it from Tailwind.
 
+Decisions made in Slice 13 — Quarterly Review (2026-11-05, owner picked the slice and "extend Quarter Close"):
+- **One card, in order**: Life Dashboard (Health / Work / Play / Love, 0–10 like the Gauges) → re-rate each written plan's Gauges → keep or switch the Active Plan → Quarter Close of the leftovers → the Decision question → "add one?". Only settling leftovers can't be skipped (it never could).
+- **When**: the first Logical Day of a quarter onward, until finished, for a user set up before that quarter began — or whenever last quarter's leftovers wait (as before). It reviews the quarter just ended only; quarters missed entirely are not asked about.
+- **Saved as it goes**: `quarterly_reviews` (user, quarter reviewed, four ratings, the plans' Gauges as rated, the Active Plan, `plansReviewedAt`, `completedAt`), so a reload resumes at the next step. A switch made inside the review already offers its own Decision, so the review's Decision question is not asked again after one.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |
@@ -169,6 +174,7 @@ Decisions made in Slice 12 — Weekly Review (2026-11-05, owner picked each):
 | 10 | **Finish**: perf budget, a11y audit in all sky states, Playwright ritual smoke test, polish | Every budget in the table above is met |
 | 11 | **Focus timer** (Phase 2 · 1): start from a Top 3 row (one tap, last length) or a task's sheet (15/25/50 min); bar above the tab bar; at the end chime + tap if open, a push if not (one delayed QStash message, cancelled on an early stop); "Mark it done / Another round / Leave it"; minutes focused shown in the Evening Check-in; `focus_sessions` table, in Export | A session survives a reload, only one runs, its end asks, and the evening shows today's minutes |
 | 12 | **Weekly Review** (Phase 2 · 2): card on Today Sunday evening–Monday; the week's numbers (Life Share, Energy/Engagement per day, Sources of Meaning, focus, per-Objective and Prototype progress) + 3–4 AI notes and one question from a free OpenRouter model + the user's one-line takeaway; `weekly_reviews`, in Export; past weeks on the Life page | Monday's card opens last week; notes never leave the app; the takeaway is kept |
+| 13 | **Quarterly Review** (Phase 2 · 3): grows out of the Quarter Close card on Today at the start of each quarter (after the user's first full quarter, or whenever leftovers wait): rate Health / Work / Play / Love 0–10 → re-rate the written Odyssey Plans' Gauges → keep or switch the Active Plan (the existing switch sheet) → settle leftovers (Done / Drop / Carry forward) → the Decision question → "add one?"; every step but settling can be skipped; `quarterly_reviews` (dashboard, plans snapshot, active plan), in Export; past quarters on the Life page | A new quarter opens the review even with no leftovers, it resumes where it was left after a reload, and the finished quarter shows on Life |
 
 ## Testing
 

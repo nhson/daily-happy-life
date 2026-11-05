@@ -17,7 +17,7 @@ import { MorningFlow } from "./morning-flow";
 import { TasksPanel } from "@/features/tasks/tasks-panel";
 import { TodayOnboardingCard } from "@/features/onboarding/today-card";
 import { WeeklyReviewCard } from "@/features/weekly/weekly-review";
-import { QuarterCloseCard } from "./quarter-close";
+import { QuarterlyReviewCard } from "./quarterly-review";
 
 
 export function TodayView() {
@@ -94,7 +94,7 @@ export function TodayView() {
             <NightSummary />
           )}
 
-          <QuarterCloseCard />
+          <QuarterlyReviewCard />
           <WeeklyReviewCard />
           <TodayOnboardingCard />
 

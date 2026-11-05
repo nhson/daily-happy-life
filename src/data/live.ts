@@ -2,11 +2,13 @@ import { carryOverSince } from "@/domain/carry-over";
 import { freshOnboarding, type OnboardingState } from "@/domain/onboarding";
 import { logicalDate } from "@/domain/logical-day";
 import type { FocusSession } from "@/domain/focus";
+import type { QuarterlyReview } from "@/domain/quarterly-review";
 import type { WeeklyReview } from "@/domain/weekly-review";
 import type { Compass, DailyLog, Decision, Objective, OdysseyPlan, Task, UserSettings } from "@/domain/types";
 import { listLogs } from "./days";
 import { listFocus } from "./focus";
 import { listReviews } from "./weekly-review";
+import { listQuarterReviews } from "./quarterly-review";
 import { getCompass, listDecisions } from "./life";
 import { ensurePlans, listObjectives, listPlans } from "./plans";
 import { listTasks } from "./tasks";
@@ -26,6 +28,7 @@ export interface LiveData {
   decisions: Decision[];
   focus: FocusSession[];
   reviews: WeeklyReview[];
+  quarterReviews: QuarterlyReview[];
 }
 
 /** Done tasks of the last week and a bit: the Done tab and Life Share look back 7 Logical Days. */
@@ -35,7 +38,7 @@ const FOCUS_LOOKBACK_MS = 36 * 3600 * 1000;
 
 export async function loadLive(db: Db, user: User): Promise<LiveData> {
   const today = logicalDate(new Date(), user.timezone, user.dayEndHour);
-  const [found, objectives, tasks, logs, compass, decisions, focus, reviews] = await Promise.all([
+  const [found, objectives, tasks, logs, compass, decisions, focus, reviews, quarterReviews] = await Promise.all([
     listPlans(db, user.id),
     listObjectives(db, user.id),
     listTasks(db, user.id, new Date(Date.now() - DONE_LOOKBACK_MS).toISOString()),
@@ -45,6 +48,7 @@ export async function loadLive(db: Db, user: User): Promise<LiveData> {
     listDecisions(db, user.id),
     listFocus(db, user.id, new Date(Date.now() - FOCUS_LOOKBACK_MS).toISOString()),
     listReviews(db, user.id),
+    listQuarterReviews(db, user.id),
   ]);
   // Plan slots are made once, on the first load; after that this costs no write.
   let plans = found;
@@ -65,5 +69,6 @@ export async function loadLive(db: Db, user: User): Promise<LiveData> {
     decisions,
     focus,
     reviews,
+    quarterReviews,
   };
 }

@@ -15,6 +15,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import type { OnboardingState } from "@/domain/onboarding";
+import type { PlanRating } from "@/domain/quarterly-review";
 import type { ReviewNotes, WeekStats } from "@/domain/weekly-review";
 
 /**
@@ -206,4 +207,33 @@ export const weeklyReviews = pgTable(
     createdAt: at("created_at").notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.weekEnd] }), check("weekly_reviews_takeaway", sql`char_length(${t.takeaway}) <= 280`)],
+);
+
+/**
+ * Quarterly Reviews (Phase 2): one per quarter looked back on. Saved step by step — the row appears
+ * with the Life Dashboard, `plans_reviewed_at` marks the plans step passed, `completed_at` the end.
+ */
+export const quarterlyReviews = pgTable(
+  "quarterly_reviews",
+  {
+    userId: owner(),
+    quarter: text("quarter").notNull(),
+    health: smallint("health"),
+    work: smallint("work"),
+    play: smallint("play"),
+    love: smallint("love"),
+    plans: jsonb("plans").$type<PlanRating[]>(),
+    activePlanId: uuid("active_plan_id").references(() => odysseyPlans.id, { onDelete: "set null" }),
+    plansReviewedAt: at("plans_reviewed_at"),
+    completedAt: at("completed_at"),
+    createdAt: at("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.quarter] }),
+    check("quarterly_reviews_quarter", sql`${t.quarter} ~ '^[0-9]{4}-Q[1-4]$'`),
+    check("quarterly_reviews_health", between(t.health, 0, 10)),
+    check("quarterly_reviews_work", between(t.work, 0, 10)),
+    check("quarterly_reviews_play", between(t.play, 0, 10)),
+    check("quarterly_reviews_love", between(t.love, 0, 10)),
+  ],
 );
