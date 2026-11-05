@@ -40,7 +40,7 @@ Add it to the Home Screen (Safari → Share → Add to Home Screen) and it behav
 
 ```bash
 bun install
-./init.sh              # install, typecheck, lint, unit tests, build: the full gate
+harness/init.sh        # install, typecheck, lint, unit tests, build: the full gate
 bun run dev:review     # the app on sample data, no account needed → http://localhost:3210
 ```
 
@@ -52,7 +52,7 @@ The signed-in app (`bun run dev`) needs environment variables for Neon, Clerk an
 
 | Command | What it does |
 |---|---|
-| `./init.sh` | Full gate: install, typecheck, lint, tests, build |
+| `harness/init.sh` | Full gate: install, typecheck, lint, tests, build |
 | `bun run test` | Unit tests (Vitest; not `bun test`) |
 | `bun run e2e` | End-to-end tests, signed in as a test user against a local production build |
 | `bun run review` | Screenshots of every screen (needs `dev:review` running) |
@@ -76,4 +76,4 @@ drizzle/       SQL migrations
 - [`docs/PLAN.md`](docs/PLAN.md): how it is built, slice by slice, and the decisions made along the way
 - [`GLOSSARY.md`](GLOSSARY.md): the words the app uses, in English and Vietnamese
 - [`docs/adr/`](docs/adr/): architecture decisions
-- [`AGENTS.md`](AGENTS.md): the working rules for coding agents; `feature_list.json`, `progress.md` and `session-handoff.md` are their shared notes between sessions
+- [`AGENTS.md`](AGENTS.md): the working rules for coding agents; [`harness/`](harness/) holds their shared notes between sessions (feature list with test evidence, progress log, handoff)
