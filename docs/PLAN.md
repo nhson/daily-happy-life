@@ -129,6 +129,12 @@ Decisions made in Slice 8 (2026-11-05):
 - **"Round-trips every table" is proven with `importAll`**, which restores an export into an account in one transaction. It is not in the UI (SPEC: no imports) — it is for recovery and for the tests (PGlite: fresh database; E2E: real Neon).
 - **Settings ignore values that aren't real** (bad time, hour out of range, unknown zone/theme/language) instead of letting the database refuse the whole change. The day can end between 00:00 and 06:00.
 
+Decisions made in Slice 9 (2026-11-05):
+- **Reminders stay off until their services are configured**: QStash (`QSTASH_TOKEN`, signing keys) and VAPID keys are read from the environment; without them Settings says reminders aren't on yet and `/api/remind` answers 503. `/api/remind` is the one public API path; it accepts only QStash-signed calls.
+- **One device receives the reminder** — the last one switched on in Settings (one subscription on the user row). A device the push service reports gone is forgotten along with the schedule.
+- **Offline is read-only**: the service worker keeps the last good copy of each page (Today first); capture keeps typed words as a device draft and saves nothing until online. No background sync.
+- **The service worker registers only in production builds**, so dev and design review never serve stale pages.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |

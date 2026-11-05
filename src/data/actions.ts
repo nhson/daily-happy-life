@@ -16,6 +16,8 @@ import * as schema from "./db/schema";
 import * as plans from "./plans";
 import type { KindChoice } from "./state";
 import * as tasks from "./tasks";
+import { qstashScheduler } from "./push-services";
+import { savePush, syncReminder, type PushSubscriptionJSON } from "./reminders";
 import { saveSettings, settingsOf, type User } from "./users";
 
 /**
@@ -110,7 +112,11 @@ export async function setObjectiveStatusAction(id: string, status: ObjectiveStat
 }
 
 export async function saveSettingsAction(patch: Partial<UserSettings>) {
-  await saveSettings(db, (await me()).id, patch);
+  const user = await me();
+  await saveSettings(db, user.id, patch);
+  // The reminder follows a new time or zone.
+  const scheduler = qstashScheduler();
+  if (scheduler && (patch.reminderTime !== undefined || patch.timeZone !== undefined)) await syncReminder(db, user.id, scheduler);
   return { ok: true as const };
 }
 
@@ -141,4 +147,11 @@ export async function recordOnboardingAction(event: unknown) {
 
 export async function completeOnboardingAction(input: Parameters<typeof onboarding.completeOnboarding>[2]) {
   return onboarding.completeOnboarding(db, (await me()).id, input);
+}
+
+/** Reminders on for this device (its push subscription) or off (null). */
+export async function savePushAction(sub: PushSubscriptionJSON | null) {
+  const scheduler = qstashScheduler();
+  if (!scheduler) return { ok: false as const };
+  return savePush(db, (await me()).id, sub, scheduler);
 }

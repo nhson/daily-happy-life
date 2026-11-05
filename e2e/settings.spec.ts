@@ -73,7 +73,8 @@ test.describe.serial("settings and export", () => {
     const ctx = await browser.newContext();
     const res = await ctx.request.get("/api/export", { maxRedirects: 0 });
     expect(res.status()).not.toBe(200);
-    expect(await res.text()).not.toContain("daily-happy-life\"");
+    // No export in the body (a 404 page names the app in its title, so look for the export's own marker).
+    expect(await res.text()).not.toContain('"format": "daily-happy-life"');
     await ctx.close();
   });
 });

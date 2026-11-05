@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { ServiceWorker } from "@/features/pwa/pwa";
 import { Mountain, ListChecks, Sun } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -33,6 +34,7 @@ export function AppShell({ live, children }: { live: LiveData | null; children: 
         <Themed>
           <ToastProvider>
             <SyncNotice />
+            <ServiceWorker />
             <CaptureProvider>
               <TaskSheetProvider>
                 <Frame>{children}</Frame>

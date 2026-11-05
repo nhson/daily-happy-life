@@ -96,8 +96,8 @@
       "dependencies": [
         "feat-008"
       ],
-      "status": "in-progress",
-      "evidence": ""
+      "status": "done",
+      "evidence": "2026-11-05: e2e/settings.spec.ts — reminder time, evening hour, day end, timezone, theme saved to the users row and shown after reload; Export all downloads JSON with every table (incl. a Daily Log from March, a decision, a written plan; no user id), then tasks/decisions deleted, file restored with importAll on Neon, re-export identical; signed out /api/export → 404 with no data. Vitest round trip on a fresh PGlite (src/data/export.test.ts). Local `bun run e2e` 17/17; production (commit 226e162) `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/settings.spec.ts` → 3 passed. Vitest 181."
     },
     {
       "id": "feat-010",
@@ -106,8 +106,8 @@
       "dependencies": [
         "feat-009"
       ],
-      "status": "not-started",
-      "evidence": ""
+      "status": "in-progress",
+      "evidence": "Partial, 2026-11-05: manifest + icons, service worker (Today offline, push handler), install prompt, push opt-in in Settings, /api/remind (QStash-signed only), per-user QStash schedule kept in step with time/zone, offline capture draft. e2e/pwa.spec.ts 3/3 locally; Vitest src/data/reminders.test.ts with fakes. Blocked: Upstash QStash + VAPID keys not provisioned (owner decision); done-criterion (push at the chosen minute on the owner's iPhone Home-Screen app) needs the owner's phone."
     },
     {
       "id": "feat-011",

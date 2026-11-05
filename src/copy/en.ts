@@ -23,6 +23,7 @@ export const en = {
   },
   tabs: { today: "Today", tasks: "Tasks", life: "Life" },
   capture: {
+    offline: "You're offline. It stays here as a draft — nothing is saved until you're back.",
     open: "Add a task",
     placeholder: "What needs doing?",
     why: "Why does it matter?",
@@ -257,6 +258,9 @@ export const en = {
     decisionText: (plan: string) => `Switched to “${plan}”`,
     skipDecision: "Skip",
   },
+  reminderPush: {
+    title: "A line for today",
+  },
   quarterClose: {
     eyebrow: (quarter: string) => `Closing ${quarter}`,
     title: "Last quarter left a few objectives open.",
@@ -324,6 +328,14 @@ export const en = {
     title: "Settings",
     reminder: "Daily reminder",
     reminderHint: "One quiet note with your Compass line. Never a task count.",
+    push: "Send it to this device",
+    pushHint: {
+      unsupported: "This browser can't receive reminders. On iPhone, add the app to the Home Screen first: Share, then Add to Home Screen.",
+      unavailable: "Reminders aren't switched on for this app yet.",
+      denied: "Notifications are blocked for this app in your browser's settings.",
+    },
+    install: "Install the app",
+    installHint: "Opens like an app, and Today still opens offline.",
     timeZone: "Time zone",
     evening: "Evening check-in from",
     dayEnds: "Your day ends at",

@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-009 — Slice 8 (Settings + Export)
+**Active Feature:** feat-010 — Slice 9 (PWA + Reminder) — blocked on QStash/VAPID provisioning
 **Branch:** main
 
 ### What's Done
@@ -23,11 +23,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-006: Slice 5 — First run (E2E local + production)
 - [x] feat-007: Slice 6 — Life page live (E2E local + production)
 - [x] feat-008: Slice 7 — Quarter Close (E2E local + production)
-- [ ] feat-009: Slice 8 — Settings + Export (E2E 17/17 local; production run pending deploy)
+- [x] feat-009: Slice 8 — Settings + Export (E2E local + production)
+- [ ] feat-010: Slice 9 — PWA + Reminder (built; E2E 20/20 local; push delivery needs QStash + VAPID + owner's iPhone)
 
 ### What's Next
 
-1. feat-009 Slice 8 production E2E → feat-010 Slice 9 (PWA + reminder) → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
+1. Owner: approve provisioning Upstash QStash (Vercel Marketplace, free tier) + VAPID keys → then verify push on iPhone → feat-011 Slice 10 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
 2. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
@@ -39,6 +40,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 8 proven on production; Slice 9 built, waiting on services
+
+- Slice 8 production: e2e/settings.spec.ts 3/3 (signed-out check loosened: production's 404 page names the app).
+- Slice 9: manifest + icons (`scripts/make-icons.mjs`), `public/sw.js` (offline pages, push, notification click), install prompt + push opt-in in Settings, `src/data/reminders.ts` (schedule sync, send, forget gone devices; tested with fakes), `src/data/push-services.ts` (QStash/web-push adapters, null until configured), `/api/remind` (public, signature-checked), offline capture draft. E2E e2e/pwa.spec.ts.
+- Blocked: provisioning QStash and VAPID keys is the owner's call; done-criterion needs the owner's iPhone.
 
 ### 2026-11-05 — Slice 7 proven on production; Slice 8: Settings + Export
 

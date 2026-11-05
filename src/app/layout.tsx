@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: "A purpose-aware task manager that keeps your life direction in front of you.",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: APP_NAME },
+  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {

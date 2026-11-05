@@ -1,7 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-/** Owner-only app: everything but the sign-in page needs a session. Sign-up is closed in Clerk (allowlist). */
-const isPublic = createRouteMatcher(["/sign-in(.*)"]);
+/**
+ * Owner-only app: everything but the sign-in page needs a session. Sign-up is closed in Clerk
+ * (allowlist). `/api/remind` is called by QStash, which has no session: it checks QStash's signature.
+ */
+const isPublic = createRouteMatcher(["/sign-in(.*)", "/api/remind"]);
 
 /**
  * Design review (`bun run review`) screenshots the app signed out. Only `next dev` with

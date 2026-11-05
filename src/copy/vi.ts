@@ -25,6 +25,7 @@ export const vi: Copy = {
   },
   tabs: { today: "Hôm nay", tasks: "Việc", life: "Cuộc sống" },
   capture: {
+    offline: "Bạn đang ngoại tuyến. Việc này được giữ lại ở đây như một bản nháp, chưa lưu.",
     open: "Thêm việc",
     placeholder: "Cần làm gì?",
     why: "Vì sao việc này quan trọng?",
@@ -260,6 +261,9 @@ export const vi: Copy = {
     decisionText: (plan) => `Chuyển sang “${plan}”`,
     skipDecision: "Bỏ qua",
   },
+  reminderPush: {
+    title: "Một câu cho hôm nay",
+  },
   quarterClose: {
     eyebrow: (quarter) => `Khép ${quarter}`,
     title: "Quý trước còn vài mục tiêu dang dở.",
@@ -327,6 +331,14 @@ export const vi: Copy = {
     title: "Cài đặt",
     reminder: "Nhắc nhở hằng ngày",
     reminderHint: "Một lời nhắc nhẹ với câu la bàn của bạn. Không bao giờ đếm số việc.",
+    push: "Gửi lời nhắc tới thiết bị này",
+    pushHint: {
+      unsupported: "Trình duyệt này chưa nhận được lời nhắc. Trên iPhone, hãy thêm ứng dụng vào Màn hình chính trước: Chia sẻ, rồi Thêm vào MH chính.",
+      unavailable: "Lời nhắc chưa được bật cho ứng dụng này.",
+      denied: "Thông báo đang bị chặn cho ứng dụng này trong cài đặt của trình duyệt.",
+    },
+    install: "Cài ứng dụng",
+    installHint: "Mở như một ứng dụng, và vẫn xem được Hôm nay khi ngoại tuyến.",
     timeZone: "Múi giờ",
     evening: "Khép ngày từ",
     dayEnds: "Ngày của bạn kết thúc lúc",

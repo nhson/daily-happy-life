@@ -63,11 +63,31 @@ export function useWhyOptions(): WhyOption[] {
   }, [activeObjectives, state.plans, copy]);
 }
 
+const DRAFT_KEY = "dhl:capture-draft";
+function readDraft(): string {
+  try {
+    return localStorage.getItem(DRAFT_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+function writeDraft(t: string) {
+  try {
+    if (t) localStorage.setItem(DRAFT_KEY, t);
+    else localStorage.removeItem(DRAFT_KEY);
+  } catch {}
+}
+
 function CaptureForm({ onDone }: { onDone: () => void }) {
   const copy = useCopy();
-  const { state, tipUnseen, actions } = useStore();
+  const { state, tipUnseen, isLive, actions } = useStore();
   const input = useRef<HTMLInputElement>(null);
-  const [title, setTitle] = useState("");
+  // What was typed survives closing the sheet, a reload, or no connection (it never syncs).
+  const [title, setTitleState] = useState(readDraft);
+  const setTitle = (t: string) => {
+    setTitleState(t);
+    writeDraft(t);
+  };
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(0);
 
@@ -84,6 +104,12 @@ function CaptureForm({ onDone }: { onDone: () => void }) {
 
   const submit = () => {
     if (!title.trim()) return;
+    // Offline nothing is saved: the words stay here as a draft until the connection is back.
+    if (isLive && !navigator.onLine) {
+      setError(copy.capture.offline);
+      tap(30);
+      return;
+    }
     const r = actions.addTask(title, choice);
     if (!r.ok) {
       setError(copy.capture.errors[r.error]);
