@@ -56,7 +56,7 @@ export function Chip({
       onClick={onClick}
       aria-pressed={selected}
       className={clsx(
-        "relative inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-sm transition-colors duration-200",
+        "hit relative inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-sm transition-colors duration-200",
         selected ? "text-ink" : "text-ink-2 hover:text-ink",
         className,
       )}

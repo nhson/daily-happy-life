@@ -79,7 +79,7 @@ export function TodayView() {
             </div>
             <div className="flex items-center gap-3">
               <WeekDots dots={dots} label={copy.today.weekLabel(checked)} />
-              <Link href="/settings" aria-label={copy.settings.title} className="glass grid size-9 place-items-center rounded-full text-xs font-medium lg:hidden">
+              <Link href="/settings" aria-label={copy.settings.title} className="glass hit relative grid size-9 place-items-center rounded-full text-xs font-medium lg:hidden">
                 S
               </Link>
             </div>
@@ -118,7 +118,7 @@ export function TodayView() {
                   {copy.today.top3}
                 </h2>
                 {mode !== "evening" && (
-                  <button type="button" onClick={() => setFlowOpen(true)} className="flex items-center gap-1 text-xs text-ink-3 hover:text-ink">
+                  <button type="button" onClick={() => setFlowOpen(true)} className="hit relative flex items-center gap-1 text-xs text-ink-3 hover:text-ink">
                     <Sunrise size={13} /> {copy.today.ritual}
                   </button>
                 )}
@@ -148,7 +148,7 @@ export function TodayView() {
             <section className="lg:hidden">
               <div className="mb-3 flex items-baseline justify-between">
                 <h2 className="eyebrow">{copy.today.alsoOpen}</h2>
-                <Link href="/tasks" className="text-xs text-ink-3 hover:text-ink">
+                <Link href="/tasks" className="hit relative text-xs text-ink-3 hover:text-ink">
                   {copy.today.allTasks} →
                 </Link>
               </div>
@@ -201,7 +201,7 @@ function IntentionCard() {
             <span className="text-ink-3">, {copy.morning.then} </span>
             <em>{log.intention.then}</em>.
           </p>
-          <button type="button" onClick={() => setFlow(true)} aria-label={copy.today.editIntention} className="absolute right-3 top-3 grid size-9 place-items-center rounded-full text-ink-3 hover:text-ink">
+          <button type="button" onClick={() => setFlow(true)} aria-label={copy.today.editIntention} className="hit absolute right-3 top-3 grid size-9 place-items-center rounded-full text-ink-3 hover:text-ink">
             <Pencil size={14} />
           </button>
         </div>

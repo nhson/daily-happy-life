@@ -20,6 +20,17 @@ test.describe.serial("installable app", () => {
     expect(sw.headers()["cache-control"]).toContain("no-store");
   });
 
+  test("Chromium finds nothing in the way of installing it", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "CDP");
+    await at(page, "10:00");
+    await seedSetUp(page, hcmDate(0));
+    await page.goto("/today");
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
+    const cdp = await page.context().newCDPSession(page);
+    const { installabilityErrors } = (await cdp.send("Page.getInstallabilityErrors")) as { installabilityErrors: { errorId: string }[] };
+    expect(installabilityErrors.map((e) => e.errorId)).toEqual([]);
+  });
+
   test("Today opens offline; capture keeps its draft until the connection is back", async ({ page, context }) => {
     await at(page, "10:00");
     const me = await seedSetUp(page, hcmDate(0));

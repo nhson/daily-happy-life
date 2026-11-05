@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { at, c, capture, e2eUserId, hcmDate, openTask, settled, signIn, sql, taskRow, top3Rows } from "./support";
+import { at, c, capture, e2eUserId, hcmDate, openTask, settled, signIn, sql, taskRow, top3Rows, wipe } from "./support";
 
 /**
  * A new account's first two days, signed in, against the real database:
@@ -11,6 +11,7 @@ test.describe.serial("day one and the morning after", () => {
 
   test("first run: Compass → Objective → tasks → today's picks, saved at once", async ({ page }) => {
     await at(page, "08:00");
+    await wipe(); // a brand-new account, whatever ran before
     await signIn(page);
     await page.goto("/today");
     await expect(page).toHaveURL(/\/welcome/);

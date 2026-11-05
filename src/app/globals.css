@@ -218,3 +218,17 @@ dialog::backdrop { background: transparent; }
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Touch targets of at least 44×44 (PLAN "A11y") for controls that look smaller: an invisible
+ * area centred on the element. The element must be positioned (relative or absolute).
+ */
+.hit::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}

@@ -139,7 +139,13 @@ function CompassSection() {
         <h3 className="serif text-[26px] leading-none">{copy.life.mindsets}</h3>
         <p className="mt-1.5 text-sm text-ink-2">{copy.life.mindsetsHint}</p>
       </div>
-      <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 pt-1 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-5">
+      {/* Scrolls sideways on a phone: focusable so the keyboard can scroll it too. */}
+      <div
+        role="region"
+        aria-label={copy.life.mindsets}
+        tabIndex={0}
+        className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto rounded-2xl px-4 pb-2 pt-1 outline-none focus-visible:ring-2 focus-visible:ring-ink-3 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-5"
+      >
         {MINDSET_KEYS.map((key) => (
           <MindsetCard key={key} mindset={key} today={compassLine.source === "mindset" && compassLine.mindset === key} />
         ))}
@@ -194,7 +200,7 @@ function ViewCard({ label, prompt, tint, value, onSave }: { label: string; promp
               setEditing(true);
             }}
             aria-label={copy.life.editLabel(label)}
-            className="-m-2 grid size-10 place-items-center rounded-full text-ink-3 hover:text-ink"
+            className="-m-2 grid size-11 place-items-center rounded-full text-ink-3 hover:text-ink"
           >
             <Pencil size={15} />
           </button>
@@ -788,7 +794,7 @@ function QuarterStrip({ label, week, fraction }: { label: string; week: string; 
 
 function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" aria-label={label} onClick={onClick} className="grid size-10 place-items-center rounded-full text-ink-3 transition-colors hover:bg-fill hover:text-ink">
+    <button type="button" aria-label={label} onClick={onClick} className="grid size-11 place-items-center rounded-full text-ink-3 transition-colors hover:bg-fill hover:text-ink">
       {children}
     </button>
   );

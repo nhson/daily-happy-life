@@ -92,9 +92,14 @@ export async function openTask(page: Page, title: string) {
  * A clean, set-up account for one spec: wipe the test user's rows, sign in (the app makes the user
  * row and plan slots), then run the real Day 1 setup code against the database, as of `setupDate`.
  */
-export async function seedSetUp(page: Page, setupDate: string, tasks = ["Viết trang giới thiệu", "Gọi hai người dùng thử"]) {
+/** Remove every row of the test user (the users row cascades); the next sign-in starts fresh. */
+export async function wipe() {
   const [u] = (await clerkApi().users.getUserList({ emailAddress: [E2E_EMAIL] })).data;
   await sql()`delete from users where clerk_id = ${u.id}`;
+}
+
+export async function seedSetUp(page: Page, setupDate: string, tasks = ["Viết trang giới thiệu", "Gọi hai người dùng thử"]) {
+  await wipe();
   await signIn(page);
   await page.goto("/today");
   await expect(page).toHaveURL(/\/welcome/);

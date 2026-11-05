@@ -135,6 +135,11 @@ Decisions made in Slice 9 (2026-11-05):
 - **Offline is read-only**: the service worker keeps the last good copy of each page (Today first); capture keeps typed words as a device draft and saves nothing until online. No background sync.
 - **The service worker registers only in production builds**, so dev and design review never serve stale pages.
 
+Decisions made in Slice 10 (2026-11-05):
+- **The budgets are measured, not estimated**: `e2e/perf.spec.ts` runs against production on Lighthouse's mobile profile; "interactive" means a tap on capture actually opens the sheet. `e2e/a11y.spec.ts` runs axe (WCAG 2.2 AA) in every sky state and theme and checks 44px targets.
+- **Small-looking controls keep their look** and get an invisible 44×44 touch area (`.hit` in globals.css) rather than being drawn bigger.
+- **`instant = false` stays**: Today is interactive in ~1.2–1.3 s on the mid-phone profile, inside budget, so server-rendering the shell isn't needed now.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |

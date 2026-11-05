@@ -217,7 +217,7 @@ function Segmented<T extends string>({
             role="tab"
             aria-selected={on}
             onClick={() => onChange(it.value)}
-            className={clsx("relative flex items-center justify-center gap-2 rounded-full text-[15px] font-medium transition-colors", on ? "text-solid-ink" : "text-ink-2 hover:text-ink")}
+            className={clsx("hit relative flex items-center justify-center gap-2 rounded-full text-[15px] font-medium transition-colors", on ? "text-solid-ink" : "text-ink-2 hover:text-ink")}
           >
             {on && (
               <motion.span

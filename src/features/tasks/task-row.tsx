@@ -171,7 +171,7 @@ export function TaskRow({
           type="button"
           onClick={() => openSheet(task.id)}
           aria-haspopup="dialog"
-          className="min-w-0 flex-1 rounded-lg py-0.5 text-left"
+          className="hit relative min-w-0 flex-1 rounded-lg py-0.5 text-left"
         >
           {/* Titles wrap to two lines — they are the user's own words, never an ellipsis after one. */}
           <span className={clsx("line-clamp-2 text-[15px] leading-snug transition-colors duration-500", done ? "text-ink-3" : "text-ink")}>

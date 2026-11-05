@@ -37,7 +37,7 @@ export function SettingsView() {
 
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-8 pt-4 lg:pt-8">
-      <Link href="/today" className="flex h-10 w-fit items-center gap-1.5 text-sm text-ink-2 hover:text-ink">
+      <Link href="/today" className="flex h-11 w-fit items-center gap-1.5 text-sm text-ink-2 hover:text-ink">
         <ArrowLeft size={16} /> {copy.tabs.today}
       </Link>
       <h1 className="serif text-[44px] leading-none">{copy.settings.title}</h1>

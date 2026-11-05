@@ -81,7 +81,7 @@ export function MorningFlow({ onClose, offerYesterday = false }: { onClose: () =
               />
             ))}
           </div>
-          <button type="button" onClick={skip} className="h-10 px-2 text-sm text-ink-2 hover:text-ink">
+          <button type="button" onClick={skip} className="h-11 px-2 text-sm text-ink-2 hover:text-ink">
             {copy.morning.skip}
           </button>
         </div>
@@ -172,7 +172,7 @@ function Slots({ count }: { count: number }) {
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
-          className="grid size-9 place-items-center rounded-full font-mono text-sm"
+          className="hit relative grid size-9 place-items-center rounded-full font-mono text-sm"
           animate={{
             background: i < count ? "var(--kind-objective)" : "var(--fill)",
             color: i < count ? "#0b1230" : "var(--ink-3)",
