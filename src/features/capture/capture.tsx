@@ -15,7 +15,7 @@ import { Sheet } from "@/ui/sheet";
 const CaptureContext = createContext<() => void>(() => {});
 export const useCapture = () => useContext(CaptureContext);
 
-const same = (a: KindChoice | null, b: KindChoice) =>
+export const same = (a: KindChoice | null, b: KindChoice) =>
   !!a &&
   a.kind === b.kind &&
   (a.kind !== "objective" || a.objectiveId === (b as typeof a).objectiveId) &&
@@ -47,22 +47,31 @@ export function CaptureProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function CaptureForm({ onDone }: { onDone: () => void }) {
-  const copy = useCopy();
-  const { state, activeObjectives, tipUnseen, actions } = useStore();
-  const input = useRef<HTMLInputElement>(null);
-  const [title, setTitle] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [added, setAdded] = useState(0);
+export type WhyOption = { choice: KindChoice; label: string; color: string; kind: KindChoice["kind"] };
 
-  const options = useMemo(() => {
-    const list: { choice: KindChoice; label: string; color: string; kind: KindChoice["kind"] }[] = [];
+/** Every "why" a task can have right now: active Objectives, Maintenance, written non-active plans. */
+export function useWhyOptions(): WhyOption[] {
+  const copy = useCopy();
+  const { state, activeObjectives } = useStore();
+  return useMemo(() => {
+    const list: WhyOption[] = [];
     for (const o of activeObjectives) list.push({ choice: { kind: "objective", objectiveId: o.id }, label: o.title, color: kindColor.objective, kind: "objective" });
     list.push({ choice: { kind: "maintenance" }, label: copy.capture.maintenance, color: kindColor.maintenance, kind: "maintenance" });
     for (const p of state.plans.filter((p) => !p.isActive && p.title))
       list.push({ choice: { kind: "prototype", planId: p.id }, label: p.title, color: kindColor.prototype, kind: "prototype" });
     return list;
   }, [activeObjectives, state.plans, copy]);
+}
+
+function CaptureForm({ onDone }: { onDone: () => void }) {
+  const copy = useCopy();
+  const { state, tipUnseen, actions } = useStore();
+  const input = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [added, setAdded] = useState(0);
+
+  const options = useWhyOptions();
 
   const [choice, setChoice] = useState<KindChoice>(
     () => options.find((o) => same(state.lastKind, o.choice))?.choice ?? options[0].choice,

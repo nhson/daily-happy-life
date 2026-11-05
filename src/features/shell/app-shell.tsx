@@ -8,29 +8,35 @@ import { usePathname, useRouter } from "next/navigation";
 import { ViewTransition, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { APP_NAME } from "@/config";
 import { useCopy, useLocale } from "@/copy";
+import type { LiveData } from "@/data/live";
 import { StoreProvider, useStore } from "@/data/mock-store";
 import { CaptureButton, CaptureProvider } from "@/features/capture/capture";
+import { TaskSheetProvider } from "@/features/tasks/task-sheet";
 import { ClockProvider } from "@/ui/clock";
 import { AppMark } from "@/ui/glyphs";
 import { SkyProvider } from "@/ui/sky";
-import { ToastProvider } from "@/ui/toast";
+import { ToastProvider, useToast } from "@/ui/toast";
 
 const subscribe = () => () => {};
 
 /**
- * Phase 0 renders client-only: the store and clock live in the browser.
- * The sky is already correct before this mounts (inline script in the root layout).
+ * Renders client-only: the store and clock live in the browser (`live` is the signed-in user's
+ * data from the server; null in signed-out design review). The sky is already correct before
+ * this mounts (inline script in the root layout).
  */
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ live, children }: { live: LiveData | null; children: ReactNode }) {
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   if (!mounted) return null;
   return (
     <ClockProvider>
-      <StoreProvider>
+      <StoreProvider live={live}>
         <Themed>
           <ToastProvider>
+            <SyncNotice />
             <CaptureProvider>
-              <Frame>{children}</Frame>
+              <TaskSheetProvider>
+                <Frame>{children}</Frame>
+              </TaskSheetProvider>
             </CaptureProvider>
           </ToastProvider>
         </Themed>
@@ -51,6 +57,17 @@ function Themed({ children }: { children: ReactNode }) {
       {children}
     </SkyProvider>
   );
+}
+
+/** A save the server refused is quietly reported; the store has already reloaded. */
+function SyncNotice() {
+  const { syncFailures } = useStore();
+  const toast = useToast();
+  const copy = useCopy();
+  useEffect(() => {
+    if (syncFailures) toast(copy.common.notSaved);
+  }, [syncFailures, toast, copy]);
+  return null;
 }
 
 const TABS = [

@@ -37,7 +37,7 @@
         "feat-002"
       ],
       "status": "in-progress",
-      "evidence": ""
+      "evidence": "2026-11-05: ./init.sh pass (127 Vitest tests: tasks/plans data layer on PGlite incl. DB rejecting a kind/link mismatch, ownership, Top 3 cap, idempotent create, atomic plan switch; plan-switch + dueStatus domain). bun run review vi + en: no console errors; new shot 07b-task-sheet. Objectives + Plans + user-row Settings pulled forward (owner's choice). PENDING: owner checks phone capture (type + Enter) on production and that tasks survive a reload."
     },
     {
       "id": "feat-004",

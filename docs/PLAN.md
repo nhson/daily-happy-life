@@ -88,6 +88,14 @@ Decisions made in Slice 1 (2026-11-04):
 - **Ritual mode reads the user's timezone** (`src/domain/ritual-mode.ts`), not the device clock.
 - **Design review runs signed out**: `bun run dev:review` (`DHL_REVIEW=1`, honoured by `next dev` only) before `bun run review`.
 
+Decisions made in Slice 2 (2026-11-05):
+- **Objectives and Odyssey Plans went live with Tasks** (owner's choice): a real task can't point at a sample Objective. Every user gets three plan rows on first load (slot 1 = implicit Current Path); adding an Objective, Done/Drop, writing a plan and switching the Active Plan save for real. Compass, Decisions, Daily Logs and onboarding stay sample until their slices.
+- **Settings on the user row are live too** (timezone, hours, theme, language, reminder time): the Logical Day the browser shows must match the one the server writes. "Sound" stays per device.
+- **One store, two sources.** `mock-store.tsx` takes the server's `LiveData` when signed in; changes apply on screen first, then a Server Action (`src/data/actions.ts`) saves them; a refusal reloads the server's version with a quiet toast. Signed out (design review) it is all sample data, as before.
+- **Client-made ids** (UUIDs): the optimistic row and the saved row are the same; a retried create is a no-op.
+- **Plan switch is one pure function** (`src/domain/plan-switch.ts`) used by both the browser and the server; the server writes it in one transaction (Neon HTTP `batch`).
+- **Task sheet**: tap a task's words to edit title, why and due date; "Let it go" closes it (history); "Delete — added by mistake" needs a second tap. Due today or overdue shows in a "Due" section on Today, never in the Top 3 by itself.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |

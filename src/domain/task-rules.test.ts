@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { promotionEffects, validateTaskLink } from "./task-rules";
+import { dueStatus, promotionEffects, validateTaskLink } from "./task-rules";
 import type { Task } from "./types";
 
 const plans = [
@@ -60,5 +60,22 @@ describe("promotionEffects", () => {
 
   it("is empty when the plan has no open prototypes", () => {
     expect(promotionEffects("p9", tasks)).toEqual([]);
+  });
+});
+
+describe("dueStatus", () => {
+  const today = "2026-11-05";
+  const open = { doneAt: null, closedAt: null };
+
+  it("is overdue before today, due today on the day, upcoming after", () => {
+    expect(dueStatus({ ...open, dueDate: "2026-11-04" }, today)).toBe("overdue");
+    expect(dueStatus({ ...open, dueDate: "2026-11-05" }, today)).toBe("today");
+    expect(dueStatus({ ...open, dueDate: "2026-11-20" }, today)).toBe("upcoming");
+  });
+
+  it("is nothing without a due date, or once the task has ended", () => {
+    expect(dueStatus({ ...open, dueDate: null }, today)).toBeNull();
+    expect(dueStatus({ dueDate: "2026-11-01", doneAt: "2026-11-02T00:00:00Z", closedAt: null }, today)).toBeNull();
+    expect(dueStatus({ dueDate: "2026-11-01", doneAt: null, closedAt: "2026-11-02T00:00:00Z" }, today)).toBeNull();
   });
 });

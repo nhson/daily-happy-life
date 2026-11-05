@@ -1,20 +1,16 @@
 import { Suspense } from "react";
-import { EnsureUser } from "@/features/auth/ensure-user";
-import { AppShell } from "@/features/shell/app-shell";
+import { LiveShell } from "@/features/shell/live-shell";
 
 /**
- * The app shell still renders client-only (the mock store lives in the browser until Slice 3),
- * so Next can't validate the pages below it. Remove with the mock store, not before.
+ * The app shell still renders client-only (the sample parts of the store live in the browser
+ * until Slice 3), so Next can't validate the pages below it. Remove with the mock store.
  */
 export const instant = false;
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <>
-      <Suspense>
-        <EnsureUser />
-      </Suspense>
-      <AppShell>{children}</AppShell>
-    </>
+    <Suspense>
+      <LiveShell>{children}</LiveShell>
+    </Suspense>
   );
 }

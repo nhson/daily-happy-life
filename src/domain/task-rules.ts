@@ -50,3 +50,12 @@ export function promotionEffects(planId: string, tasks: Task[]): Task[] {
     (t) => t.kind === "prototype" && t.prototypePlanId === planId && !t.doneAt && !t.closedAt,
   );
 }
+
+export type DueStatus = "overdue" | "today" | "upcoming";
+
+/** Where an open task's due date stands on Logical Day `today`. Ended tasks have none. */
+export function dueStatus(task: Pick<Task, "dueDate" | "doneAt" | "closedAt">, today: string): DueStatus | null {
+  if (!task.dueDate || task.doneAt || task.closedAt) return null;
+  if (task.dueDate < today) return "overdue";
+  return task.dueDate === today ? "today" : "upcoming";
+}

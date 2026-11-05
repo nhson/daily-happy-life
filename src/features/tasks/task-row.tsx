@@ -1,16 +1,18 @@
 "use client";
 
 import { clsx } from "clsx";
-import { Star, Check } from "lucide-react";
+import { CalendarDays, Star, Check } from "lucide-react";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useRef } from "react";
-import { useCopy } from "@/copy";
+import { useCopy, useFormatDate } from "@/copy";
+import { dueStatus } from "@/domain/task-rules";
 import type { Task } from "@/domain/types";
 import { useStore } from "@/data/mock-store";
 import { KindDot, kindColor } from "@/ui/glyphs";
 import { tap } from "@/ui/feedback";
 import { useSky } from "@/ui/sky";
 import { useToast } from "@/ui/toast";
+import { useTaskSheet } from "./task-sheet";
 
 export function useWhy() {
   const { state } = useStore();
@@ -44,6 +46,14 @@ export function TaskRow({
   const reduce = useReducedMotion();
   const done = !!task.doneAt;
   const inTop3 = task.top3Date === today;
+  const openSheet = useTaskSheet();
+  const formatDate = useFormatDate();
+  const due = dueStatus(task, today);
+  const dueText =
+    due &&
+    (due === "today"
+      ? copy.due.today
+      : copy.due[due](formatDate(new Date(`${task.dueDate}T12:00:00Z`), { day: "numeric", month: "short", timeZone: "UTC" })));
 
   const x = useMotionValue(0);
   const trackOpacity = useTransform(x, [0, 90], [0, 1]);
@@ -156,20 +166,37 @@ export function TaskRow({
           </span>
         </button>
 
-        <div className="min-w-0 flex-1 py-0.5">
+        {/* Tapping the words opens the task: edit, due date, let it go. */}
+        <button
+          type="button"
+          onClick={() => openSheet(task.id)}
+          aria-haspopup="dialog"
+          className="min-w-0 flex-1 rounded-lg py-0.5 text-left"
+        >
           {/* Titles wrap to two lines — they are the user's own words, never an ellipsis after one. */}
           <span className={clsx("line-clamp-2 text-[15px] leading-snug transition-colors duration-500", done ? "text-ink-3" : "text-ink")}>
             <span className="strike" data-on={done}>
               {task.title}
             </span>
           </span>
-          {showWhy && (
-            <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-ink-3">
-              <KindDot kind={task.kind} />
-              <span className="truncate">{why(task)}</span>
+          {(showWhy || dueText) && (
+            <span className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-3">
+              {showWhy && (
+                <>
+                  <KindDot kind={task.kind} />
+                  <span className="truncate">{why(task)}</span>
+                </>
+              )}
+              {dueText && (
+                <span className={clsx("flex shrink-0 items-center gap-1", due !== "upcoming" && "text-ink-2")}>
+                  {showWhy && <span aria-hidden>·</span>}
+                  <CalendarDays size={11} aria-hidden />
+                  {dueText}
+                </span>
+              )}
             </span>
           )}
-        </div>
+        </button>
 
         <button
           type="button"

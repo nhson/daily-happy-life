@@ -17,7 +17,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 - [x] feat-001: owner approved the Phase 0 design on 2026-11-04
 - [x] feat-002: Slice 1 — Foundation — done 2026-11-05 (owner signed in on production; users row in Neon)
-- [ ] feat-003: Slice 2 — Tasks + Capture live
+- [ ] feat-003: Slice 2 — Tasks + Capture live — built and deployed; waiting on the owner's phone check
 
 ### What's Next
 
@@ -33,6 +33,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 2: Tasks + Capture live
+
+- Owner chose to pull Objectives (and so Odyssey Plans) forward so real tasks have a real why.
+- Data layer `src/data/{tasks,plans,live,actions}.ts`, every query by userId; store live mode with optimistic changes + resync on refusal.
+- Task sheet (edit title/why/due, let go, delete for mistakes), due labels, "Due" section on Today.
+- Next: owner verifies on the phone; then Slice 3 (Morning ritual live, mock store deleted).
 
 ### 2026-11-05 — Slice 1 closed
 

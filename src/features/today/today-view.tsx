@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
 import { useStore } from "@/data/mock-store";
+import { dueStatus } from "@/domain/task-rules";
 import { TaskList } from "@/features/tasks/task-list";
 import { Button, ShareBar, WeekDots } from "@/ui/controls";
 import { KindDot, MeaningGlyph, meaningColor } from "@/ui/glyphs";
@@ -44,7 +45,9 @@ export function TodayView() {
     return () => clearTimeout(t);
   }, [mode, today]);
 
-  const rest = open.filter((t) => t.top3Date !== today).slice(0, 4);
+  // Due today or overdue shows on Today (never added to the Top 3 by itself).
+  const due = open.filter((t) => t.top3Date !== today && (dueStatus(t, today) === "today" || dueStatus(t, today) === "overdue"));
+  const rest = open.filter((t) => t.top3Date !== today && !due.includes(t)).slice(0, 4);
 
   return (
     <>
@@ -113,6 +116,15 @@ export function TodayView() {
                   {copy.today.chooseTop3} <ArrowRight size={16} />
                 </button>
               )}
+            </section>
+          )}
+
+          {mode !== "night" && due.length > 0 && (
+            <section aria-labelledby="due-h">
+              <h2 id="due-h" className="eyebrow mb-3">
+                {copy.today.due}
+              </h2>
+              <TaskList tasks={due} />
             </section>
           )}
 

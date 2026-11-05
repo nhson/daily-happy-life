@@ -88,6 +88,12 @@ for (const [name, opts] of Object.entries(sizes)) {
   await page.keyboard.type(typed.capture);
   await shot("07-capture");
   await page.keyboard.press("Escape");
+  await page.waitForTimeout(500);
+  // A task's own sheet: edit, due date, let it go (the first one with a due date).
+  await page.locator("[data-task] button[aria-haspopup=dialog]").filter({ hasText: /./ }).nth(1).click();
+  await page.waitForTimeout(800);
+  await shot("07b-task-sheet");
+  await page.keyboard.press("Escape");
   await go("/life?at=16:10", 2200);
   await shot("08-life", true);
 

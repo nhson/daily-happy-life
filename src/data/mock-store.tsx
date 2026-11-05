@@ -1,34 +1,63 @@
 "use client";
 
 /**
- * Phase 0 in-memory store (persisted to localStorage). Same shape and domain rules the
- * real Server Actions will use; deleted after Slice 3.
+ * The app's store. Signed in, Tasks, Odyssey Plans, Objectives and the Settings on the user row
+ * are live: they start from the server (`live`), change here first (optimistic) and are saved by
+ * Server Actions; a refused save reloads the server's version. Everything else is still Phase 0
+ * sample data in localStorage until its slice. Signed out (design review), all of it is sample.
  *
  * Review URLs:  ?reset=1 (fresh fixtures) · ?fresh=1 (first run) · ?at=HH:MM (time of day)
  *                ?day=N (pretend it is Logical Day N since setup — Odyssey nudges)
  *                ?lang=vi|en (switch the language, as Settings does)
  */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { compassLineFor, type CompassLine } from "@/domain/compass-line";
 import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
-import { checkFold, objectiveRoom, type FoldResolution } from "@/domain/objectives";
+import { objectiveRoom, type FoldResolution } from "@/domain/objectives";
 import { freshOnboarding, snoozeNudge, todayCard, type PlanSlot, type TipId } from "@/domain/onboarding";
+import { switchPlan } from "@/domain/plan-switch";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
 import { useClock } from "@/ui/clock";
 import { blank, fixtures } from "./fixtures";
 import { ritualMode } from "@/domain/ritual-mode";
+import * as server from "./actions";
+import type { LiveData } from "./live";
 import type { AppState, KindChoice, RitualMode } from "./state";
 
 const KEY = "dhl:mock:v1";
-const uid = () => crypto.randomUUID().slice(0, 8);
+const uid = () => crypto.randomUUID();
 const deviceTz = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-function load(): AppState {
+/** The live slices replace their sample counterparts; a remembered "why" survives only if it still exists. */
+function withLive(state: AppState, live: LiveData): AppState {
+  const k = state.lastKind;
+  const lastKind =
+    k &&
+    ((k.kind === "maintenance") ||
+      (k.kind === "objective" && live.objectives.some((o) => o.id === k.objectiveId && o.status === "active")) ||
+      (k.kind === "prototype" && live.plans.some((p) => p.id === k.planId && !p.isActive)))
+      ? k
+      : null;
+  return {
+    ...state,
+    userId: live.userId,
+    settings: { ...state.settings, ...live.settings },
+    plans: live.plans,
+    objectives: live.objectives,
+    tasks: live.tasks,
+    lastKind,
+  };
+}
+
+function load(live: LiveData | null): AppState {
   const params = new URLSearchParams(window.location.search);
-  const tz = deviceTz();
+  // Review URLs that rewrite data are for sample data only.
+  if (live) for (const k of ["fresh", "reset"]) params.delete(k);
+  const tz = live?.settings.timeZone ?? deviceTz();
   const today = logicalDate(new Date(), tz, 4);
   let state: AppState | null = params.has("fresh") ? blank(tz) : null;
   if (!state && !params.has("reset")) {
@@ -57,16 +86,41 @@ function load(): AppState {
   const day = Number(params.get("day"));
   if (day >= 1 && state.onboarding.setupDate)
     state = { ...state, onboarding: { ...state.onboarding, setupDate: addDays(today, -(day - 1)) } };
-  return state;
+  return live ? withLive(state, live) : state;
 }
 
 function emptyLog(date: LogicalDate): DailyLog {
   return { date, intention: null, energy: null, engagement: null, meaningSources: [], note: "", morningAt: null, closedAt: null };
 }
 
-function useStoreState() {
-  const [state, setState] = useState<AppState>(load);
+type Saved = { ok: boolean };
+
+function useStoreState(live: LiveData | null) {
+  const [state, setState] = useState<AppState>(() => load(live));
   const { now } = useClock();
+  const router = useRouter();
+  const [syncFailures, setSyncFailures] = useState(0);
+
+  // A fresh server snapshot (after a refresh) replaces the live slices.
+  const seen = useRef(live);
+  useEffect(() => {
+    if (!live || live === seen.current) return;
+    seen.current = live;
+    setState((s) => withLive(s, live));
+  }, [live]);
+
+  /** Send a change that is already on screen; if the server says no, reload its version. */
+  const save = useCallback(
+    (call: () => Promise<Saved>) => {
+      if (!live) return;
+      const fail = () => {
+        setSyncFailures((n) => n + 1);
+        router.refresh();
+      };
+      call().then((r) => !r.ok && fail(), fail);
+    },
+    [live, router],
+  );
 
   useEffect(() => {
     // Keep the saved review state pristine while a ?fresh first run is in progress; once setup
@@ -147,17 +201,59 @@ function useStoreState() {
         createdAt: new Date().toISOString(),
       };
       setState((s) => ({ ...s, tasks: [task, ...s.tasks], lastKind: choice }));
+      save(() => server.createTaskAction({ id: task.id, title: task.title, choice }));
       return result;
     },
-    [state.plans, state.objectives],
+    [state.plans, state.objectives, save],
   );
 
-  const toggleDone = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      tasks: s.tasks.map((t) => (t.id === id ? { ...t, doneAt: t.doneAt ? null : new Date().toISOString() } : t)),
-    }));
-  }, []);
+  /** Title, why and due date. The why follows the same rule as capture. */
+  const editTask = useCallback(
+    (id: string, patch: { title?: string; choice?: KindChoice; dueDate?: string | null }): TaskLinkResult => {
+      const change: Partial<Task> = {};
+      if (patch.title !== undefined) change.title = patch.title.trim();
+      if (patch.dueDate !== undefined) change.dueDate = patch.dueDate;
+      if (patch.choice) {
+        const c = patch.choice;
+        const link = {
+          kind: c.kind,
+          objectiveId: c.kind === "objective" ? c.objectiveId : null,
+          prototypePlanId: c.kind === "prototype" ? c.planId : null,
+        };
+        const result = validateTaskLink(link, { plans: state.plans, objectives: state.objectives });
+        if (!result.ok) return result;
+        Object.assign(change, link);
+      }
+      setState((s) => ({ ...s, tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...change } : t)) }));
+      save(() => server.editTaskAction(id, patch));
+      return { ok: true };
+    },
+    [state.plans, state.objectives, save],
+  );
+
+  /** Let it go: it ends without being done and stays as history. */
+  const closeTask = useCallback(
+    (id: string) => {
+      const at = new Date().toISOString();
+      setState((s) => ({ ...s, tasks: s.tasks.map((t) => (t.id === id && !t.doneAt && !t.closedAt ? { ...t, closedAt: at } : t)) }));
+      save(() => server.closeTaskAction(id));
+    },
+    [save],
+  );
+
+  const toggleDone = useCallback(
+    (id: string) => {
+      const t = state.tasks.find((x) => x.id === id);
+      if (!t) return;
+      const done = !t.doneAt;
+      setState((s) => ({
+        ...s,
+        tasks: s.tasks.map((x) => (x.id === id ? { ...x, doneAt: done ? new Date().toISOString() : null } : x)),
+      }));
+      save(() => server.setDoneAction(id, done));
+    },
+    [state.tasks, save],
+  );
 
   /** Returns false when the Top 3 is already full. */
   const toggleTop3 = useCallback(
@@ -167,12 +263,20 @@ function useStoreState() {
       const isIn = t.top3Date === today;
       if (!isIn && top3.length >= 3) return false;
       setState((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, top3Date: isIn ? null : today } : x)) }));
+      save(() => server.setTop3Action(id, isIn ? null : today));
       return true;
     },
-    [state.tasks, today, top3.length],
+    [state.tasks, today, top3.length, save],
   );
 
-  const deleteTask = useCallback((id: string) => setState((s) => ({ ...s, tasks: s.tasks.filter((t) => t.id !== id) })), []);
+  /** Only for mistakes: leaves no trace. */
+  const deleteTask = useCallback(
+    (id: string) => {
+      setState((s) => ({ ...s, tasks: s.tasks.filter((t) => t.id !== id) }));
+      save(() => server.deleteTaskAction(id));
+    },
+    [save],
+  );
 
   const finishMorning = useCallback(
     (top3Ids: string[], intention: DailyLog["intention"]) => {
@@ -186,8 +290,9 @@ function useStoreState() {
           [today]: { ...(s.logs[today] ?? emptyLog(today)), intention, morningAt: new Date().toISOString() },
         },
       }));
+      save(() => server.replaceTop3Action(today, top3Ids));
     },
-    [today],
+    [today, save],
   );
 
   const skipMorning = useCallback(() => patchLog({ morningAt: new Date().toISOString() }), [patchLog]);
@@ -204,70 +309,48 @@ function useStoreState() {
   const updateCompass = useCallback((compass: Compass) => setState((s) => ({ ...s, compass })), []);
 
   const savePlan = useCallback(
-    (plan: OdysseyPlan) => setState((s) => ({ ...s, plans: s.plans.map((p) => (p.id === plan.id ? plan : p)) })),
-    [],
+    (plan: OdysseyPlan) => {
+      setState((s) => ({ ...s, plans: s.plans.map((p) => (p.id === plan.id ? plan : p)) }));
+      save(() => server.savePlanAction(plan));
+    },
+    [save],
   );
 
   const openPrototypesOf = useCallback((planId: string) => promotionEffects(planId, state.tasks), [state.tasks]);
 
-  /**
-   * Switch the Active Plan. Its open prototypes are folded into a new objective (only while there
-   * is room), into an active one (which moves under the new plan), or closed.
-   */
+  /** Switch the Active Plan (see `switchPlan`): its open Prototypes are folded or closed. */
   const setActivePlan = useCallback(
     (planId: string, resolution: FoldResolution | null) => {
-      setState((s) => {
-        const affected = new Set(promotionEffects(planId, s.tasks).map((t) => t.id));
-        if (resolution && affected.size && checkFold(resolution, s.objectives, quarter) !== "ok") return s;
-        let objectives = [...s.objectives];
-        let foldId: string | null = null;
-        if (resolution && resolution !== "close" && affected.size) {
-          if ("fold" in resolution) {
-            foldId = uid();
-            objectives.push({ id: foldId, planId, title: resolution.fold, quarter, status: "active" });
-          } else {
-            foldId = resolution.into;
-            objectives = objectives.map((o) => (o.id === foldId ? { ...o, planId } : o));
-          }
-        }
-        const nowIso = new Date().toISOString();
-        return {
-          ...s,
-          plans: s.plans.map((p) => ({ ...p, isActive: p.id === planId })),
-          objectives,
-          tasks: s.tasks.map((t) => {
-            if (!affected.has(t.id)) return t;
-            return foldId
-              ? { ...t, kind: "objective", objectiveId: foldId, prototypePlanId: null }
-              : { ...t, closedAt: nowIso };
-          }),
-          lastKind: null,
-        };
-      });
+      const ctx = { quarter, now: new Date().toISOString(), newObjectiveId: uid() };
+      const r = switchPlan({ plans: state.plans, objectives: state.objectives, tasks: state.tasks }, planId, resolution, ctx);
+      if (!r.ok) return;
+      setState((s) => ({ ...s, ...r.world, lastKind: null }));
+      save(() => server.setActivePlanAction(planId, resolution, quarter, ctx.newObjectiveId));
     },
-    [quarter],
+    [state.plans, state.objectives, state.tasks, quarter, save],
   );
 
   const addObjective = useCallback(
     (title: string) => {
       if (objectiveRoom(state.objectives, quarter) === 0) return null;
-      const planId = state.plans.find((p) => p.isActive)?.id ?? "plan_1";
+      // Until a plan is active, Objectives sit under the implicit Current Path (slot 1).
+      const planId = (state.plans.find((p) => p.isActive) ?? state.plans.find((p) => p.slot === 1))!.id;
       const o: Objective = { id: uid(), planId, title: title.trim(), quarter, status: "active" };
       setState((s) => ({ ...s, objectives: [...s.objectives, o] }));
+      save(() => server.addObjectiveAction({ id: o.id, title: o.title, quarter }));
       return o;
     },
-    [state.plans, state.objectives, quarter],
+    [state.plans, state.objectives, quarter, save],
   );
 
   const setObjectiveStatus = useCallback(
-    (id: string, status: Objective["status"]) =>
-      setState((s) =>
-        // Reactivating one only fits while there is room.
-        status === "active" && objectiveRoom(s.objectives, quarter) === 0
-          ? s
-          : { ...s, objectives: s.objectives.map((o) => (o.id === id ? { ...o, status } : o)) },
-      ),
-    [quarter],
+    (id: string, status: Objective["status"]) => {
+      // Reactivating one only fits while there is room.
+      if (status === "active" && objectiveRoom(state.objectives, quarter) === 0) return;
+      setState((s) => ({ ...s, objectives: s.objectives.map((o) => (o.id === id ? { ...o, status } : o)) }));
+      save(() => server.setObjectiveStatusAction(id, status));
+    },
+    [state.objectives, quarter, save],
   );
 
   const addDecision = useCallback(
@@ -277,8 +360,13 @@ function useStoreState() {
   );
 
   const updateSettings = useCallback(
-    (patch: Partial<AppState["settings"]>) => setState((s) => ({ ...s, settings: { ...s.settings, ...patch } })),
-    [],
+    (patch: Partial<AppState["settings"]>) => {
+      setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
+      // Sound stays on this device; the rest lives on the user row.
+      const onUserRow = Object.fromEntries(Object.entries(patch).filter(([k]) => k !== "sound"));
+      if (Object.keys(onUserRow).length) save(() => server.saveSettingsAction(onUserRow));
+    },
+    [save],
   );
 
   const dismissTip = useCallback(
@@ -336,7 +424,15 @@ function useStoreState() {
     [quarter, today],
   );
 
-  const resetFixtures = useCallback(() => setState((s) => fixtures(today, timeZone, s.settings.locale)), [today, timeZone]);
+  // Signed in, only the sample parts are reset; live data stays as it is.
+  const resetFixtures = useCallback(
+    () =>
+      setState((s) => {
+        const fresh = fixtures(today, timeZone, s.settings.locale);
+        return live ? withLive(fresh, { userId: s.userId, settings: s.settings, plans: s.plans, objectives: s.objectives, tasks: s.tasks }) : fresh;
+      }),
+    [today, timeZone, live],
+  );
 
   return {
     state,
@@ -355,8 +451,12 @@ function useStoreState() {
     dots,
     card,
     tipUnseen,
+    isLive: live !== null,
+    syncFailures,
     actions: {
       addTask,
+      editTask,
+      closeTask,
       toggleDone,
       toggleTop3,
       deleteTask,
@@ -386,8 +486,8 @@ function useStoreState() {
 export type Store = ReturnType<typeof useStoreState>;
 const StoreContext = createContext<Store | null>(null);
 
-export function StoreProvider({ children }: { children: ReactNode }) {
-  const store = useStoreState();
+export function StoreProvider({ live, children }: { live: LiveData | null; children: ReactNode }) {
+  const store = useStoreState(live);
   return <StoreContext value={store}>{children}</StoreContext>;
 }
 
