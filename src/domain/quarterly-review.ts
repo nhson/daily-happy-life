@@ -48,7 +48,8 @@ export function quarterStart(quarter: string): LogicalDate {
 
 /**
  * The quarter waiting for its review, or null. Asked once the user has lived through a quarter (set
- * up before this one began) — or whenever last quarter's Objectives still wait to be settled.
+ * up before this one began) — or whenever last quarter's Objectives still wait to be settled. Once
+ * begun it stays until finished, even after the last leftover is settled.
  */
 export function quarterToReview(input: {
   today: LogicalDate;
@@ -59,7 +60,8 @@ export function quarterToReview(input: {
   const quarter = quarterOf(input.today);
   const last = previousQuarter(quarter);
   if (input.leftoverCount > 0) return last;
-  if (input.reviews.some((r) => r.quarter === last && r.completedAt)) return null;
+  const started = input.reviews.find((r) => r.quarter === last);
+  if (started) return started.completedAt ? null : last; // once begun, it stays until finished
   return input.setupDate !== null && input.setupDate < quarterStart(quarter) ? last : null;
 }
 

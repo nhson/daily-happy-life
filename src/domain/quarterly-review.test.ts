@@ -58,6 +58,9 @@ describe("quarterToReview", () => {
     expect(quarterToReview({ ...base, reviews: [review("2026-Q4")] })).toBe("2026-Q4");
     expect(quarterToReview({ ...base, reviews: [review("2026-Q4", { completedAt: "2027-01-02T02:00:00.000Z" })] })).toBeNull();
   });
+  it("a review started because of leftovers stays until finished, after the last one is settled", () => {
+    expect(quarterToReview({ ...base, setupDate: "2027-01-01", reviews: [review("2026-Q4", { plansReviewedAt: "x" })] })).toBe("2026-Q4");
+  });
   it("an older quarter's review doesn't count for this one", () => {
     expect(quarterToReview({ ...base, today: "2027-04-02", reviews: [review("2026-Q4", { completedAt: "2027-01-02T02:00:00.000Z" })] })).toBe(
       "2027-Q1",

@@ -52,7 +52,8 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - Owner picked the Quarterly Review, extending Quarter Close. One card on Today: Life Dashboard (Health/Work/Play/Love 0–10) → plans' Gauges (dials; "Re-rate" opens sliders) + keep/switch via the existing switch sheet (moved to `src/features/life/promotion-form.tsx`) → leftovers → Decision (not asked again after a switch) → add one?/closing line. Life lists finished quarters.
 - `quarterly_reviews` (migration 0004), saved step by step so a reload resumes; re-rated Gauges travel with the plans step so the snapshot can't miss them. In Export.
 - Found in the visual walk: once complete, the store has no quarter waiting, so the closing step vanished — the card now keeps its quarter until left.
-- Blocked: applying migration 0004 to Neon was refused by the permission check; needs the owner's OK. Committed locally, not pushed.
+- Migration 0004 applied to Neon with the owner's OK. E2E caught a bug: a review asked only because of leftovers vanished once the last leftover was settled (before the Decision question) → a started review now stays until finished.
+- Full local E2E: 36 passed; `focus.spec.ts` "when its time is up" fails after ~21:30 ICT — test-only: it seeds a session at 09:34 *yesterday* while the server loads 36 h of sessions by its real clock. Passes earlier in the day. Fix later: seed relative to the real now.
 
 ### 2026-11-05 — Slice 12: Weekly Review with AI (Phase 2 · 2)
 
