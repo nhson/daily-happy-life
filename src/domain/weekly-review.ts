@@ -81,6 +81,13 @@ export function weekStats(
   };
 }
 
+/** The app's own Vietnamese words (GLOSSARY.md), so the notes read like the rest of the app. */
+const VI_TERMS =
+  "Use exactly these Vietnamese terms, never the English ones: Task = việc, Objective = Mục tiêu, Maintenance = Duy trì, " +
+  "Prototype = Thử nghiệm, Odyssey Plan = Kế hoạch Odyssey, Active Plan = Kế hoạch đang theo, Evening Check-in = Khép lại ngày, " +
+  "Energy = Năng lượng, Engagement = Độ say mê, Sources of Meaning = Nguồn ý nghĩa, wonder = Kinh ngạc, coherence = Mạch lạc, " +
+  "flow = Dòng chảy, community = Kết nối, Life Share = Cán cân tuần, focus minutes = thời gian tập trung.";
+
 /** The request: a calm reader of the week, in the user's language, answering in JSON. */
 export function reviewPrompt(stats: WeekStats, locale: "vi" | "en"): { system: string; user: string } {
   const language = locale === "en" ? "English" : "Vietnamese (address the reader as “bạn”)";
@@ -96,7 +103,7 @@ export function reviewPrompt(stats: WeekStats, locale: "vi" | "en"): { system: s
     "Objective, and whether any Prototype moved. Be specific to the numbers. Warm, quiet, honest; no",
     "praise inflation, no guilt, no exclamation marks, no lists of advice, no medical claims.",
     "",
-    `Write in ${language}. Reply with JSON only, no other text:`,
+    `Write in ${language}.${locale === "vi" ? ` ${VI_TERMS}` : ""} Reply with JSON only, no other text:`,
     '{"observations": ["3 or 4 short sentences, each one observation"], "question": "one open question to sit with this week"}',
   ].join("\n");
   return { system, user: JSON.stringify(stats) };

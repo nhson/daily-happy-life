@@ -46,7 +46,10 @@ export function openRouterReviewer(): Reviewer | null {
       for (const model of models) {
         try {
           const answer = await call(model, content);
-          if (answer.text.includes("{")) return answer;
+          if (answer.text.includes("{")) {
+            if (why.length) console.info("weekly review: answered by", answer.model, "after", why.join(" | "));
+            return answer;
+          }
           why.push(`${model}: no JSON (${answer.text.length} chars)`);
         } catch (e) {
           why.push(`${model}: ${e instanceof Error ? e.message : String(e)}`);

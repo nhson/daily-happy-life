@@ -125,6 +125,12 @@ describe("what the AI is asked", () => {
     expect(reviewPrompt(stats(), "en").system).toMatch(/English/);
     expect(reviewPrompt(stats(), "en").system).toMatch(/JSON/);
   });
+
+  it("in Vietnamese, names the app's own terms (GLOSSARY.md)", () => {
+    const vi = reviewPrompt(stats(), "vi").system;
+    for (const term of ["Objective = Mục tiêu", "Task = việc", "flow = Dòng chảy", "Evening Check-in = Khép lại ngày"]) expect(vi).toContain(term);
+    expect(reviewPrompt(stats(), "en").system).not.toContain("Mục tiêu");
+  });
 });
 
 describe("reading the AI's answer", () => {
