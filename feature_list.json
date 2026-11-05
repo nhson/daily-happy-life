@@ -136,8 +136,8 @@
       "dependencies": [
         "feat-012"
       ],
-      "status": "in-progress",
-      "evidence": ""
+      "status": "done",
+      "evidence": "2026-11-05. Unit: src/domain/weekly-review.test.ts 14 (which week, stats on Logical Days, prompt carries numbers + titles but never notes/Intentions/task titles, Vietnamese glossary terms, tolerant JSON parser) + src/data/weekly-review.test.ts 8 (PGlite: asks once, retries ≤5 on failure, numbers-only without AI, bad weeks refused, takeaway ≤280 owner-only, cascade) + export round trip; `bun run test` 232/232, `./init.sh` green. E2E e2e/weekly-review.spec.ts 2/2 on production (`OPENROUTER_API_KEY=present-on-server E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/weekly-review.spec.ts`): Monday card → numbers (1 done, 2/7 closed) → takeaway saved → card gone → listed on Life; the private note never in the stored review; a real free model answered (nvidia/nemotron-3-ultra-550b-a55b:free, Vietnamese, app terms) after google/gemma-4-31b-it:free returned 429 upstream (fallback chain works, logged). Locally 1 passed + AI test skipped (key is Production-only, sensitive). UI checked visually in review mode (card, day bars, Life Share, Sources, notes + question, takeaway, Life list). Found and fixed: `review/` in .gitignore hid src/features/review from git and Tailwind → moved to src/features/weekly. Perf after Slices 11–12: INP regressed to 104–120 ms on production; fixed (focus layer mounts only with an open session, idle timer buttons skip the ticker) → production 80/96/104 ms; same-machine A/B vs Slice 10 commit: 88/80/88 (baseline) vs 112/88/88 ms (now), interactive unchanged (~1.2 s). Risk: the Top-3 star tap sits near the 100 ms budget."
     }
   ]
 }

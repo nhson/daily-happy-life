@@ -27,11 +27,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [~] feat-010 (pending owner confirm): Slice 9 — PWA + Reminder (built, proven on production except push; VAPID + QStash live, signed round trip proven; waits on owner's iPhone)
 - [~] feat-011 (pending owner confirm): Slice 10 — Finish (perf + a11y budgets met on production; iOS install check with the owner)
 - [x] feat-012: Slice 11 — Focus timer (Phase 2 · 1), proven on production
+- [x] feat-013: Slice 12 — Weekly Review with AI (Phase 2 · 2), proven on production with a real free model
 
 ### What's Next
 
 1. Owner: on the iPhone Home-Screen app, turn on reminders and confirm one arrives (closes feat-010 and feat-011); a Focus Session's end push can be checked the same way
-2. Owner: pick the next Phase 2 item (weekly review with AI, quarterly review, yearly Compass rewrite)
+2. Owner: pick the next Phase 2 item (quarterly review, yearly Compass rewrite)
 3. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
@@ -43,6 +44,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 12: Weekly Review with AI (Phase 2 · 2)
+
+- Owner picked: free OpenRouter model (Gemma 4 31B → Nemotron 3 Ultra → openrouter/free), numbers + titles only, card Sunday evening–Monday, AI notes + own takeaway saved. Owner added OPENROUTER_API_KEY (Production, sensitive).
+- Live on production: Gemma was rate-limited upstream (429), Nemotron answered in Vietnamese with the app's terms. The client tries models one by one and logs why one was skipped.
+- `review/` is git-ignored (screenshots) — the UI folder is `src/features/weekly/`.
+- INP regression from Slices 11–12 found by the perf spec and fixed (lazy focus layer); the Top-3 star tap stays close to the 100 ms budget — watch it.
 
 ### 2026-11-05 — Slice 11: Focus timer (Phase 2 · 1)
 

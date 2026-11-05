@@ -12,4 +12,5 @@
 
 ## Next
 
-- Slice 11 (Focus timer) done. Next Phase 2 item is the owner's pick: weekly review with AI, quarterly review, yearly Compass rewrite.
+- Slices 11 (Focus timer) and 12 (Weekly Review, OpenRouter free models) done. Next Phase 2 item is the owner's pick: quarterly review, yearly Compass rewrite.
+- Watch: INP of the Top-3 star tap is ~80–104 ms on production (budget 100).
