@@ -15,6 +15,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import type { OnboardingState } from "@/domain/onboarding";
+import type { ReviewNotes, WeekStats } from "@/domain/weekly-review";
 
 /**
  * SPEC §8. The database enforces every rule that one row can check on its own
@@ -188,4 +189,21 @@ export const focusSessions = pgTable(
     index("focus_sessions_user_started").on(t.userId, t.startedAt),
     check("focus_sessions_minutes", sql`${t.plannedMinutes} between 1 and 180`),
   ],
+);
+
+/** Weekly Reviews (Phase 2): the week's numbers, the AI's notes (null if it couldn't answer), the user's one line. */
+export const weeklyReviews = pgTable(
+  "weekly_reviews",
+  {
+    userId: owner(),
+    /** The Sunday that ends the week. */
+    weekEnd: date("week_end", { mode: "string" }).notNull(),
+    stats: jsonb("stats").$type<WeekStats>().notNull(),
+    notes: jsonb("notes").$type<ReviewNotes>(),
+    model: text("model"),
+    attempts: smallint("attempts").notNull().default(0),
+    takeaway: text("takeaway").notNull().default(""),
+    createdAt: at("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.weekEnd] }), check("weekly_reviews_takeaway", sql`char_length(${t.takeaway}) <= 280`)],
 );

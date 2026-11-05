@@ -16,6 +16,7 @@ import { CompassHero } from "./compass-hero";
 import { MorningFlow } from "./morning-flow";
 import { TasksPanel } from "@/features/tasks/tasks-panel";
 import { TodayOnboardingCard } from "@/features/onboarding/today-card";
+import { WeeklyReviewCard } from "@/features/weekly/weekly-review";
 import { QuarterCloseCard } from "./quarter-close";
 
 
@@ -94,6 +95,7 @@ export function TodayView() {
           )}
 
           <QuarterCloseCard />
+          <WeeklyReviewCard />
           <TodayOnboardingCard />
 
           {mode === "evening" && (

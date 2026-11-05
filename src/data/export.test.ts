@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { patchLog } from "./days";
 import * as schema from "./db/schema";
 import { startFocus } from "./focus";
+import { startReview } from "./weekly-review";
 import { exportAll, importAll, type Export } from "./export";
 import { addDecision } from "./life";
 import { completeOnboarding } from "./onboarding";
@@ -45,6 +46,7 @@ async function livedIn(db: Db): Promise<string> {
   await patchLog(db, me, "2026-06-01", { energy: 4, engagement: 5, meaningSources: ["flow", "community"], note: "Một ngày dài, vui.", closedAt: "2026-06-01T15:00:00.000Z" });
   await addDecision(db, me, { id: id(), date: "2026-11-05", decision: "Thử studio", drivenBy: "Ba buổi cà phê.", linkedPlanId: p2.id });
   await startFocus(db, me, { id: id(), taskId: first, minutes: 25 }, new Date("2026-11-05T02:00:00Z"), null);
+  await startReview(db, me, "2026-11-08", new Date("2026-11-09T02:00:00Z"), { review: async () => ({ text: '{"observations":["Một."],"question":"Hai?"}', model: "m" }) });
   await saveSettings(db, me, { reminderTime: "06:45", eveningHour: 20, dayEndHour: 3, theme: "dark", locale: "en" });
   return me;
 }
@@ -71,6 +73,7 @@ describe("export", { timeout: 30_000 }, () => {
     expect(x.decisions).toHaveLength(1);
     expect(x.focusSessions).toMatchObject([{ startedAt: "2026-11-05 02:00:00+00", plannedMinutes: 25, endedAt: null }]);
     expect(x.focusSessions?.[0]).not.toHaveProperty("pushMessageId");
+    expect(x.weeklyReviews).toMatchObject([{ weekEnd: "2026-11-08", notes: { observations: ["Một."], question: "Hai?" } }]);
     expect(x.onboarding?.setupDate).toBe("2026-11-05");
     // No user ids, no Clerk id, no push secrets.
     expect(JSON.stringify(x)).not.toContain(me);

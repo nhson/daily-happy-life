@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewsSection } from "@/features/weekly/weekly-review";
 import { clsx } from "clsx";
 import { Check, Feather, HeartHandshake, Milestone, Palette, Pencil, Plus, Sparkles, Sunrise, X, type LucideIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
@@ -26,6 +27,7 @@ export function LifeView() {
       <OdysseySection />
       <ObjectivesSection />
       <DecisionsSection />
+      <ReviewsSection Head={SectionHead} />
       <p className="serif mx-auto max-w-md text-balance pb-10 text-center text-[clamp(1.4rem,3.6vw,1.9rem)] italic leading-snug text-ink-2">
         {copy.life.closing}
       </p>

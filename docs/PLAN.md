@@ -146,6 +146,13 @@ Decisions made in Slice 11 — Focus timer (2026-11-05, owner picked each):
 - **End signal**: a chime and a tap when the app is open. When it isn't, the server queues one delayed QStash message to `/api/remind` (`{userId, focusId}`) for users with push on; an early stop cancels it, and the endpoint re-checks the session before sending, so a stopped session never rings.
 - **The answer**: Mark it done (task Done, session ends at its planned end) · Another round (same length) · Leave it (also what dismissing the sheet means). A finished session stops asking 12 hours after its end.
 
+Decisions made in Slice 12 — Weekly Review (2026-11-05, owner picked each):
+- **AI provider**: a free model on OpenRouter (owner's choice over Claude in SPEC §10): `google/gemma-4-31b-it:free`, then `nvidia/nemotron-3-ultra-550b-a55b:free`, then `openrouter/free` (OpenRouter's own fallback list); `OPENROUTER_MODEL` puts another first. Plain fetch to the OpenAI-compatible endpoint, one user message (Gemma takes no system role). Off until `OPENROUTER_API_KEY` is set; then the review is numbers only.
+- **Privacy**: the model sees numbers and titles (Objectives, Plans) only — never evening notes, Intentions, Compass words or task titles — because free endpoints may log or train on prompts. A line under the notes says so.
+- **When**: Sunday from evening mode on, and all of Monday, until that week's review is opened. Weeks are Monday–Sunday Logical Days. Opened = saved; past ones on the Life page.
+- **Asking**: once per week; again only if the AI failed or answered something unreadable, at most 5 times. The numbers are computed on the server and saved either way. A tolerant parser finds the JSON wherever the free model puts it.
+- **Folder**: UI lives in `src/features/weekly/` — `review/` is git-ignored (screenshots), which also hides it from Tailwind.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |
@@ -161,6 +168,7 @@ Decisions made in Slice 11 — Focus timer (2026-11-05, owner picked each):
 | 9 | **PWA + Reminder**: manifest, icons, SW cache of Today, install prompt, web push, QStash schedule per user; offline capture keeps draft (no sync) | Push arrives at the chosen minute on iPhone Home-Screen app |
 | 10 | **Finish**: perf budget, a11y audit in all sky states, Playwright ritual smoke test, polish | Every budget in the table above is met |
 | 11 | **Focus timer** (Phase 2 · 1): start from a Top 3 row (one tap, last length) or a task's sheet (15/25/50 min); bar above the tab bar; at the end chime + tap if open, a push if not (one delayed QStash message, cancelled on an early stop); "Mark it done / Another round / Leave it"; minutes focused shown in the Evening Check-in; `focus_sessions` table, in Export | A session survives a reload, only one runs, its end asks, and the evening shows today's minutes |
+| 12 | **Weekly Review** (Phase 2 · 2): card on Today Sunday evening–Monday; the week's numbers (Life Share, Energy/Engagement per day, Sources of Meaning, focus, per-Objective and Prototype progress) + 3–4 AI notes and one question from a free OpenRouter model + the user's one-line takeaway; `weekly_reviews`, in Export; past weeks on the Life page | Monday's card opens last week; notes never leave the app; the takeaway is kept |
 
 ## Testing
 

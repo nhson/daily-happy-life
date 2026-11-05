@@ -16,7 +16,9 @@ import * as schema from "./db/schema";
 import * as plans from "./plans";
 import type { KindChoice } from "./state";
 import * as tasks from "./tasks";
+import { openRouterReviewer } from "./ai";
 import * as focus from "./focus";
+import * as weekly from "./weekly-review";
 import { qstashLater, qstashScheduler } from "./push-services";
 import { savePush, syncReminder, type PushSubscriptionJSON } from "./reminders";
 import { saveSettings, settingsOf, type User } from "./users";
@@ -164,4 +166,13 @@ export async function startFocusAction(input: { id: string; taskId: string; minu
 
 export async function endFocusAction(id: string) {
   return focus.endFocus(db, (await me()).id, String(id), new Date(), qstashLater());
+}
+
+/** Weekly Review: the numbers from the database, the notes from the AI (when it answers). */
+export async function startReviewAction(weekEnd: string) {
+  return weekly.startReview(db, (await me()).id, String(weekEnd), new Date(), openRouterReviewer());
+}
+
+export async function saveTakeawayAction(weekEnd: string, text: string) {
+  return weekly.saveTakeaway(db, (await me()).id, String(weekEnd), String(text ?? ""));
 }

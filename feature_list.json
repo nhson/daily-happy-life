@@ -128,6 +128,16 @@
       ],
       "status": "done",
       "evidence": "2026-11-05. Unit: src/domain/focus.test.ts 11 + src/data/focus.test.ts 11 (PGlite: server clock, one running, push queued only with a subscription, cancelled on early stop, owner-only, cascade on task delete, end push names the task / stays quiet when stopped or not due) + export round trip incl. focus_sessions; `bun run test` 210/210, `./init.sh` green. E2E e2e/focus.spec.ts 5/5 locally and on production (commit c0dda83, `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/focus.spec.ts`): start from Top 3, survives reload, only one runs, sheet length remembered, end asks → Mark done (task done, session = 25 min), Another round (same length), evening shows 'Hôm nay đã tập trung 1 giờ 15 phút'. Full local suite 35/36 (one a11y 'AA at night' failure in the full run; 4/4 passes when rerun alone — recorded as a flake). QStash on production: `bun run check:qstash` → reminder 200, focus-end branch 200 (unknown session → 'stale'); delayed publish queued with notBefore +600 s and gone after cancel. UI checked visually (review mode, iPhone 13: running bar, task-sheet chips, end sheet; ring changed to fill with elapsed time so it can't be mistaken for the task checkbox). The push actually arriving on a phone shares feat-010's owner check."
+    },
+    {
+      "id": "feat-013",
+      "name": "Slice 12 — Weekly Review with AI (Phase 2 · 2)",
+      "description": "Sunday-evening/Monday card on Today; the week's numbers + 3–4 notes and a question from a free OpenRouter model (numbers and titles only, never notes) + the user's one-line takeaway; weekly_reviews table, in Export; past weeks on the Life page. Done when: Monday's card opens last week's review, private notes never reach the AI or the stored review, the takeaway is kept and listed, and a real free model answers in production.",
+      "dependencies": [
+        "feat-012"
+      ],
+      "status": "in-progress",
+      "evidence": ""
     }
   ]
 }

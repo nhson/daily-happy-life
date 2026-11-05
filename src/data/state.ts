@@ -1,4 +1,5 @@
 import type { FocusSession } from "@/domain/focus";
+import type { WeeklyReview } from "@/domain/weekly-review";
 import type { OnboardingState } from "@/domain/onboarding";
 import type { Compass, DailyLog, Decision, LogicalDate, Objective, OdysseyPlan, Task, UserSettings } from "@/domain/types";
 
@@ -24,6 +25,8 @@ export interface AppState {
   decisions: Decision[];
   /** Recent Focus Sessions: the one running or waiting, and today's. */
   focus: FocusSession[];
+  /** The latest Weekly Reviews, newest first. */
+  reviews: WeeklyReview[];
   lastKind: KindChoice | null;
 }
 

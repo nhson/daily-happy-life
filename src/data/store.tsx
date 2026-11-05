@@ -21,12 +21,13 @@ import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
 import { objectiveRoom } from "@/domain/objectives";
 import { applyOnboarding, freshOnboarding, todayCard, type OnboardingEvent, type PlanSlot, type TipId } from "@/domain/onboarding";
 import { DEFAULT_FOCUS_MINUTES, endFocus, focusedOn, isFocusMinutes, startFocus as startWith } from "@/domain/focus";
+import { weekStats, weekToReview, type WeeklyReview } from "@/domain/weekly-review";
 import { finishObjective as finishWith, objectivesToSettle, switchPlan, type Settle } from "@/domain/plan-switch";
 import { leftovers, settleLeftover as settleWith, type LeftoverChoice } from "@/domain/quarter-close";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
 import { useClock } from "@/ui/clock";
-import { blank, fixtures } from "./fixtures";
+import { blank, fixtures, sampleReviewNotes } from "./fixtures";
 import { ritualMode } from "@/domain/ritual-mode";
 import * as server from "./actions";
 import type { LiveData } from "./live";
@@ -71,6 +72,7 @@ function fromLive(live: LiveData, device: Device): AppState {
     logs: Object.fromEntries(live.logs.map((l) => [l.date, l])),
     decisions: live.decisions,
     focus: live.focus,
+    reviews: live.reviews,
     lastKind: stillValid(device.lastKind, live),
   };
 }
@@ -92,7 +94,7 @@ function loadReview(): AppState {
   state ??= fixtures(today, tz, asked);
   if (asked) state = { ...state, settings: { ...state.settings, locale: asked } };
   // Sample data saved before Focus Sessions existed.
-  state = { ...state, focus: state.focus ?? [] };
+  state = { ...state, focus: state.focus ?? [], reviews: state.reviews ?? [] };
 
   const day = Number(params.get("day"));
   if (day >= 1 && state.onboarding.setupDate)
@@ -151,7 +153,7 @@ function useStoreState(live: LiveData | null) {
     } catch {}
   }, [state, live, focusMinutes]);
 
-  const { timeZone, dayEndHour, eveningHour } = state.settings;
+  const { timeZone, dayEndHour, eveningHour, locale } = state.settings;
   const today = logicalDate(now, timeZone, dayEndHour);
   const log = state.logs[today] ?? emptyLog(today);
 
@@ -181,6 +183,10 @@ function useStoreState(live: LiveData | null) {
     hasClosedDay: Object.values(state.logs).some((l) => l.closedAt),
   });
   const tipUnseen = (tip: TipId) => state.onboarding.setupDate !== null && !state.onboarding.seenTips.includes(tip);
+
+  /** Sunday evening and Monday: the week waiting for its Weekly Review (until one is opened). */
+  const reviewWeek = weekToReview(today, mode);
+  const reviewDue = reviewWeek && !state.reviews.some((r) => r.weekEnd === reviewWeek) ? reviewWeek : null;
 
   const share: LifeShare = useMemo(
     () => lifeShare(state.tasks, { today, timeZone, dayEndHour }),
@@ -560,6 +566,39 @@ function useStoreState(live: LiveData | null) {
     [state.plans, quarter, today, save],
   );
 
+  /**
+   * Open the Weekly Review of a week: the server works out the numbers and asks the AI (it can take
+   * a while). Design review makes one from the sample data. Null if it couldn't be opened.
+   */
+  const openReview = useCallback(
+    async (weekEnd: string): Promise<WeeklyReview | null> => {
+      let review: WeeklyReview | null = null;
+      if (live) {
+        const r = await server.startReviewAction(weekEnd).catch(() => null);
+        if (r?.ok) review = r.review;
+      } else {
+        const input = { tasks: state.tasks, logs: Object.values(state.logs), focus: state.focus, objectives: state.objectives, plans: state.plans };
+        const stats = weekStats(input, weekEnd, timeZone, dayEndHour, new Date());
+        review = { weekEnd, stats, notes: sampleReviewNotes(locale), model: "sample", takeaway: "", createdAt: new Date().toISOString() };
+      }
+      if (review) {
+        const got = review;
+        setState((s) => ({ ...s, reviews: [got, ...s.reviews.filter((x) => x.weekEnd !== weekEnd)].sort((a, b) => b.weekEnd.localeCompare(a.weekEnd)) }));
+      }
+      return review;
+    },
+    [live, state.tasks, state.logs, state.focus, state.objectives, state.plans, locale, timeZone, dayEndHour],
+  );
+
+  const saveTakeaway = useCallback(
+    (weekEnd: string, text: string) => {
+      const takeaway = text.trim().slice(0, 280);
+      setState((s) => ({ ...s, reviews: s.reviews.map((r) => (r.weekEnd === weekEnd ? { ...r, takeaway } : r)) }));
+      save(() => server.saveTakeawayAction(weekEnd, takeaway));
+    },
+    [save],
+  );
+
   /** Design review only: start over from the sample data. */
   const resetFixtures = useCallback(() => {
     if (!live) setState((s) => fixtures(today, timeZone, s.settings.locale));
@@ -589,6 +628,7 @@ function useStoreState(live: LiveData | null) {
     syncFailures,
     focusedToday,
     focusMinutes,
+    reviewDue,
     actions: {
       addTask,
       editTask,
@@ -599,6 +639,8 @@ function useStoreState(live: LiveData | null) {
       startFocus,
       stopFocus,
       answerFocus,
+      openReview,
+      saveTakeaway,
       finishMorning,
       skipMorning,
       setIntention,

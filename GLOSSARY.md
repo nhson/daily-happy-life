@@ -105,6 +105,10 @@ _Avoid_: Pomodoro, sprint, timer
 **Daily Log**:
 The single record of one day's Intention and Evening Check-in.
 
+**Weekly Review**:
+Once a week, after the week ends on Sunday: the week's numbers, a few short notes on its patterns, one question to sit with, and one line the user keeps.
+_Avoid_: Weekly report, retrospective, summary
+
 **Decision**:
 A real life choice the user made, recorded with what drove it and optionally the Odyssey Plan it relates to.
 _Avoid_: Choice, journal entry
@@ -141,6 +145,7 @@ The approved Vietnamese term for each concept. Vietnamese is the default languag
 | Wonder · Coherence · Flow · Community (Sources) | Kinh ngạc · Mạch lạc · Dòng chảy · Kết nối |
 | Focus Session | Phiên tập trung |
 | Daily Log | Nhật ký ngày |
+| Weekly Review | Nhìn lại tuần |
 | Decision | Quyết định |
 | Done / Closed | Xong / Buông |
 | Dropped (Objective) | Bỏ |

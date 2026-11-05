@@ -35,6 +35,15 @@ const SAMPLE = {
     notes: ["Two hours on the app without noticing the time.", "Dinner with the family, phones away."],
     intention: { when: "sit down after lunch", then: "write for twenty minutes" },
     decision: ["Said no to the weekend side contract", "Lifeview: family time is not negotiable this quarter."],
+    review: {
+      observations: [
+        "Most of what you finished served your Objectives; maintenance stayed small.",
+        "Energy dipped mid-week while engagement held, which often means the work mattered but the pace was heavy.",
+        "Flow showed up twice and community once; wonder didn't appear this week.",
+        "The studio plan moved with one small prototype.",
+      ],
+      question: "What made the days with high engagement feel that way?",
+    },
   },
   vi: {
     workview: "Công việc là cách mình biến sự tò mò thành những công cụ giúp ngày của người khác nhẹ nhàng hơn một chút.",
@@ -65,8 +74,20 @@ const SAMPLE = {
     notes: ["Hai tiếng làm ứng dụng mà không để ý giờ giấc.", "Ăn tối cùng gia đình, cất điện thoại đi."],
     intention: { when: "ngồi xuống sau bữa trưa", then: "viết trong hai mươi phút" },
     decision: ["Từ chối hợp đồng làm thêm cuối tuần", "Góc nhìn cuộc sống: thời gian cho gia đình là điều không thương lượng trong quý này."],
+    review: {
+      observations: [
+        "Phần lớn việc bạn hoàn thành tuần này phục vụ các mục tiêu; việc duy trì giữ ở mức nhỏ.",
+        "Năng lượng chùng xuống giữa tuần trong khi độ say mê vẫn giữ, thường là dấu hiệu việc có ý nghĩa nhưng nhịp hơi nặng.",
+        "Dòng chảy xuất hiện hai lần, kết nối một lần; kinh ngạc chưa ghé tuần này.",
+        "Kế hoạch studio nhích lên với một thử nghiệm nhỏ.",
+      ],
+      question: "Điều gì làm những ngày say mê nhất trở nên như vậy?",
+    },
   },
 } satisfies Record<Locale, unknown>;
+
+/** Design review only: what the AI might say about the sample week. */
+export const sampleReviewNotes = (locale: Locale) => SAMPLE[locale].review;
 
 /** A lived-in week for design review. Dates are relative to `today`. */
 export function fixtures(today: LogicalDate, timeZone: string, locale: Locale = "vi"): AppState {
@@ -190,6 +211,7 @@ export function fixtures(today: LogicalDate, timeZone: string, locale: Locale = 
       },
     ],
     focus: [],
+    reviews: [],
     lastKind: { kind: "objective", objectiveId: "obj_1" },
   };
 }
@@ -216,6 +238,7 @@ export function blank(timeZone: string): AppState {
     logs: {},
     decisions: [],
     focus: [],
+    reviews: [],
     lastKind: null,
   };
 }
