@@ -76,6 +76,13 @@ function Ring({ session, now, size = 28 }: { session: FocusSession; now: Date; s
  * when the app is open; a push does when it is not (queued by the server).
  */
 export function FocusLayer() {
+  const { state } = useStore();
+  // Nothing mounted (no sheet, no animation wrapper) unless a session is open: this sits on every
+  // page and would otherwise re-render with every change (INP budget).
+  return state.focus.some((f) => !f.endedAt) ? <ActiveFocus /> : null;
+}
+
+function ActiveFocus() {
   const copy = useCopy();
   const { state, actions } = useStore();
   const { session, task, now } = useFocus();
@@ -196,13 +203,36 @@ export function FocusStart({ task, onStarted }: { task: Task; onStarted: () => v
   );
 }
 
-/** On a Top 3 row: one tap starts a session of the last length; tapping it again stops it. */
+/**
+ * On a Top 3 row: one tap starts a session of the last length; tapping it again stops it. Idle, it
+ * is a plain button; only the task being focused on gets the ticking ring (INP budget).
+ */
 export function FocusButton({ task }: { task: Task }) {
+  const copy = useCopy();
+  const { state, actions } = useStore();
+  if (task.doneAt) return null;
+  if (state.focus.some((f) => f.taskId === task.id && !f.endedAt)) return <RunningFocusButton task={task} />;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        tap(10);
+        actions.startFocus(task.id);
+      }}
+      aria-pressed={false}
+      aria-label={copy.focus.startFor(task.title)}
+      className="grid size-11 shrink-0 place-items-center rounded-full opacity-40 transition-opacity hover:opacity-80"
+    >
+      <Timer size={18} strokeWidth={1.8} aria-hidden />
+    </button>
+  );
+}
+
+function RunningFocusButton({ task }: { task: Task }) {
   const copy = useCopy();
   const { actions } = useStore();
   const { session, now } = useFocus();
   const running = session && session.taskId === task.id && phaseOf(session, now) === "running" ? session : null;
-  if (task.doneAt) return null;
   return (
     <button
       type="button"
