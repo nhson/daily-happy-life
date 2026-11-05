@@ -21,6 +21,7 @@ import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
 import { objectiveRoom } from "@/domain/objectives";
 import { applyOnboarding, freshOnboarding, todayCard, type OnboardingEvent, type PlanSlot, type TipId } from "@/domain/onboarding";
 import { finishObjective as finishWith, objectivesToSettle, switchPlan, type Settle } from "@/domain/plan-switch";
+import { leftovers, settleLeftover as settleWith, type LeftoverChoice } from "@/domain/quarter-close";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
 import { useClock } from "@/ui/clock";
@@ -157,7 +158,9 @@ function useStoreState(live: LiveData | null) {
   const top3 = state.tasks.filter((t) => t.top3Date === today && !t.closedAt);
   const carryOver = carryOverOf(Object.values(state.logs), state.tasks, today);
   const quarter = quarterOf(today);
-  const activeObjectives = state.objectives.filter((o) => o.status === "active" && o.quarter === quarter);
+  /** Last quarter's still-active Objectives, waiting for Quarter Close. They stay usable until then. */
+  const leftoverObjectives = leftovers(state.objectives, quarter);
+  const activeObjectives = state.objectives.filter((o) => o.status === "active" && o.quarter <= quarter);
 
   const card = todayCard({
     onboarding: state.onboarding,
@@ -373,6 +376,19 @@ function useStoreState(live: LiveData | null) {
     [state.objectives, state.tasks, save],
   );
 
+  /** Quarter Close: Done, Drop or Carry forward one leftover Objective. */
+  const settleLeftover = useCallback(
+    (id: string, choice: LeftoverChoice) => {
+      const ctx = { quarter, now: new Date().toISOString(), newObjectiveId: uid() };
+      const r = settleWith({ objectives: state.objectives, tasks: state.tasks }, id, choice, ctx);
+      if (!r.ok) return false;
+      setState((s) => ({ ...s, ...r.world }));
+      save(() => server.settleLeftoverAction(id, choice, ctx.newObjectiveId));
+      return true;
+    },
+    [state.objectives, state.tasks, quarter, save],
+  );
+
   const addObjective = useCallback(
     (title: string) => {
       if (objectiveRoom(state.objectives, quarter) === 0) return null;
@@ -499,6 +515,7 @@ function useStoreState(live: LiveData | null) {
     top3,
     carryOver,
     activeObjectives,
+    leftoverObjectives,
     share,
     dots,
     card,
@@ -525,6 +542,7 @@ function useStoreState(live: LiveData | null) {
       openPrototypesOf,
       setActivePlan,
       finishObjective,
+      settleLeftover,
       addObjective,
       setObjectiveStatus,
       addDecision,

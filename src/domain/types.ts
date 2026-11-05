@@ -28,7 +28,8 @@ export interface OdysseyPlan {
   isActive: boolean;
 }
 
-export type ObjectiveStatus = "active" | "done" | "dropped";
+/** "carried": moved into the next quarter at Quarter Close; the copy there is active. */
+export type ObjectiveStatus = "active" | "done" | "dropped" | "carried";
 
 export interface Objective {
   id: string;

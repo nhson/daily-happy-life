@@ -1,0 +1,2 @@
+ALTER TABLE "objectives" DROP CONSTRAINT "objectives_status";--> statement-breakpoint
+ALTER TABLE "objectives" ADD CONSTRAINT "objectives_status" CHECK ("objectives"."status" in ('active', 'done', 'dropped', 'carried'));

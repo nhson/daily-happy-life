@@ -118,6 +118,12 @@ Decisions made in Slice 6 (2026-11-05):
 - **Every plan switch goes through the sheet**, even without Prototypes: it settles the old plan's still-active Objectives (Keep preselected — it loses nothing) and ends with the pre-filled Decision, skippable. Old Objectives are settled first, so dropping one makes room for folding Prototypes into a new Objective (`switchPlan` with `Settle`).
 - **Objective Done always settles its open tasks**: closed by default, or moved to another active Objective of the same quarter; finished tasks stay with the Objective they were done for. The server applies it even when only the status is sent (`finishObjective`).
 
+Decisions made in Slice 7 (2026-11-05):
+- **A Carried Forward Objective keeps its own status, `carried`** (migration 0001 widens the check), so last quarter's history shows what happened to it without counting it as Done or Dropped. The copy in the new quarter is a new Objective; only open tasks move to it.
+- **Done at Quarter Close closes the Objective's open tasks**, like Drop and like Objective Done's default.
+- **Leftovers stay usable**: until settled, last quarter's active Objectives count as active everywhere a "why" is chosen. The server works out the new quarter from the user's own Logical Day.
+- **The card's ending is not saved**: once the last leftover is settled, the Decision question and "add one?" show in the same card; leaving the page skips them.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |

@@ -76,8 +76,8 @@
       "dependencies": [
         "feat-006"
       ],
-      "status": "in-progress",
-      "evidence": ""
+      "status": "done",
+      "evidence": "2026-11-05: e2e/life.spec.ts — switching to a plan with an open Prototype: sheet requires Keep/Drop for the old plan's Objective (Keep preselected) and fold (named) or close for the Prototype — Confirm disabled with no name; Drop closes the old Objective's open tasks, Prototype becomes an Objective task under the new Objective; pre-filled Decision \"Chuyển sang …\" saved, linked to the plan. Server refuses an unsettled switch (resolution_required) and leaves the Active Plan unchanged. Objective Done → sheet (close default / move) → open tasks moved. Local `bun run e2e` 13/13; production (commit 895d887) `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/life.spec.ts` → 3 passed. Review shots review/vi/*-08b-promotion.png, *-08c-finish-objective.png. Vitest 167."
     },
     {
       "id": "feat-008",
@@ -86,7 +86,7 @@
       "dependencies": [
         "feat-007"
       ],
-      "status": "not-started",
+      "status": "in-progress",
       "evidence": ""
     },
     {

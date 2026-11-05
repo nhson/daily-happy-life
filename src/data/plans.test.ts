@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import * as schema from "./db/schema";
-import { addObjective, ensurePlans, finishObjective, listObjectives, listPlans, savePlan, setActivePlan, setObjectiveStatus } from "./plans";
+import { addObjective, ensurePlans, finishObjective, listObjectives, listPlans, savePlan, setActivePlan, setObjectiveStatus, settleLeftover } from "./plans";
 import { createTask, listTasks } from "./tasks";
 import { ensureUser, type Db } from "./users";
 
@@ -144,5 +144,39 @@ describe("finishing an Objective", () => {
     await addObjective(db, other, { id: theirs, title: "theirs", quarter: Q });
     expect(await finishObjective(db, me, theirs, "close", new Date().toISOString())).toEqual({ ok: false, error: "objective_not_found" });
     expect((await listObjectives(db, other))[0].status).toBe("active");
+  });
+});
+
+describe("Quarter Close", () => {
+  const next = (c = ctx()) => ({ ...c, quarter: "2027-Q1" });
+
+  it("carries a leftover forward with its open tasks, in one go", async () => {
+    const o = id();
+    await addObjective(db, me, { id: o, title: "Ra mắt", quarter: Q });
+    const [open, done] = [id(), id()];
+    await createTask(db, me, { id: open, title: "open", choice: { kind: "objective", objectiveId: o } });
+    await createTask(db, me, { id: done, title: "done", choice: { kind: "objective", objectiveId: o } });
+    await db.update(schema.tasks).set({ doneAt: new Date().toISOString() }).where(eq(schema.tasks.id, done));
+
+    const c = next();
+    expect(await settleLeftover(db, me, o, "carry", c)).toEqual({ ok: true });
+    const os = await listObjectives(db, me);
+    expect(os.find((x) => x.id === o)?.status).toBe("carried");
+    expect(os.find((x) => x.id === c.newObjectiveId)).toMatchObject({ title: "Ra mắt", quarter: "2027-Q1", status: "active" });
+    const rows = await db.select().from(schema.tasks).where(eq(schema.tasks.userId, me));
+    expect(rows.find((r) => r.id === open)?.objectiveId).toBe(c.newObjectiveId);
+    expect(rows.find((r) => r.id === done)?.objectiveId).toBe(o);
+  });
+
+  it("drops one, closing its open tasks; refuses anything that isn't a leftover", async () => {
+    const o = id();
+    await addObjective(db, me, { id: o, title: "x", quarter: Q });
+    const t = id();
+    await createTask(db, me, { id: t, title: "t", choice: { kind: "objective", objectiveId: o } });
+    expect(await settleLeftover(db, me, o, "drop", ctx())).toEqual({ ok: false, error: "objective_not_found" }); // same quarter
+    expect(await settleLeftover(db, me, o, "drop", next())).toEqual({ ok: true });
+    const [row] = await db.select().from(schema.tasks).where(eq(schema.tasks.id, t));
+    expect(row.closedAt).not.toBeNull();
+    expect(await settleLeftover(db, me, o, "drop", next())).toEqual({ ok: false, error: "objective_not_found" }); // already settled
   });
 });

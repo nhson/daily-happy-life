@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-007 — Slice 6 (Life page live)
+**Active Feature:** feat-008 — Slice 7 (Quarter Close)
 **Branch:** main
 
 ### What's Done
@@ -21,11 +21,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-004: Slice 3 — Morning ritual live (E2E 4/4 local + production)
 - [x] feat-005: Slice 4 — Evening check-in live (E2E 7/7 local + production)
 - [x] feat-006: Slice 5 — First run (E2E local + production)
-- [ ] feat-007: Slice 6 — Life page live (E2E 13/13 local; production run pending deploy)
+- [x] feat-007: Slice 6 — Life page live (E2E local + production)
+- [ ] feat-008: Slice 7 — Quarter Close (E2E 14/14 local; production run pending deploy)
 
 ### What's Next
 
-1. feat-007 Slice 6 production E2E → feat-008 Slice 7 (Quarter Close) → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
+1. feat-008 Slice 7 production E2E → feat-009 Slice 8 (Settings + Export) → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
 2. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
@@ -37,6 +38,11 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 6 proven on production; Slice 7: Quarter Close
+
+- Slice 6 production: e2e/life.spec.ts 3/3.
+- Slice 7: `leftovers` / `settleLeftover` (test-first, incl. the 1 January boundary), `carried` Objective status (migration 0001 applied to Neon before deploy — widens a check, no data change), server computes the quarter itself, non-blocking card on Today ending with a Decision and "add one?". Leftovers stay a "why" in capture until settled. E2E e2e/quarter-close.spec.ts (Q3 leftovers in Q4).
 
 ### 2026-11-05 — Slice 5 proven on production; Slice 6: Life page settles plan switches
 

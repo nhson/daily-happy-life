@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { objectiveRoom } from "@/domain/objectives";
 import { finishObjective as finish, switchPlan, type PlanSwitchError, type Settle } from "@/domain/plan-switch";
+import { settleLeftover as settle, type LeftoverChoice } from "@/domain/quarter-close";
 import type { Objective, ObjectiveStatus, OdysseyPlan, Task } from "@/domain/types";
 import * as schema from "./db/schema";
 import { atomic, toObjective, toPlan, toTask } from "./rows";
@@ -146,5 +147,21 @@ export async function finishObjective(
   const r = finish(before, id, then, now);
   if (!r.ok) return r;
   await atomic(db, (d) => writes(d, userId, before, r.world, now));
+  return { ok: true };
+}
+
+/** Quarter Close: mark one leftover Objective Done, Dropped or Carried Forward (see `settleLeftover`). */
+export async function settleLeftover(
+  db: Db,
+  userId: string,
+  id: string,
+  choice: LeftoverChoice,
+  ctx: { quarter: string; now: string; newObjectiveId: string },
+): Promise<{ ok: true } | { ok: false; error: "objective_not_found" | "no_room" }> {
+  const [os, open] = await Promise.all([listObjectives(db, userId), openTasks(db, userId)]);
+  const before = { objectives: os, tasks: open };
+  const r = settle(before, id, choice, ctx);
+  if (!r.ok) return r;
+  await atomic(db, (d) => writes(d, userId, before, r.world, ctx.now));
   return { ok: true };
 }

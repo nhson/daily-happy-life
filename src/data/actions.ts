@@ -4,7 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import type { FoldResolution } from "@/domain/objectives";
 import type { Settle } from "@/domain/plan-switch";
-import { logicalDate } from "@/domain/logical-day";
+import { logicalDate, quarterOf } from "@/domain/logical-day";
+import type { LeftoverChoice } from "@/domain/quarter-close";
 import { parseOnboardingEvent } from "@/domain/onboarding";
 import type { Compass, Decision, LogicalDate, ObjectiveStatus, OdysseyPlan, UserSettings } from "@/domain/types";
 import * as days from "./days";
@@ -89,6 +90,15 @@ export async function setActivePlanAction(planId: string, settle: Settle, quarte
 export async function finishObjectiveAction(id: string, then: "close" | { move: string }) {
   const t = then !== "close" && typeof then?.move === "string" ? { move: then.move } : "close";
   return plans.finishObjective(db, (await me()).id, id, t, now());
+}
+
+/** Quarter Close. The new quarter is the server's own reading of the user's Logical Day. */
+export async function settleLeftoverAction(id: string, choice: LeftoverChoice, newObjectiveId: string) {
+  if (choice !== "done" && choice !== "drop" && choice !== "carry") return { ok: false as const };
+  const user = await me();
+  const { timeZone, dayEndHour } = settingsOf(user);
+  const quarter = quarterOf(logicalDate(new Date(), timeZone, dayEndHour));
+  return plans.settleLeftover(db, user.id, id, choice, { quarter, now: now(), newObjectiveId });
 }
 
 export async function addObjectiveAction(input: { id: string; title: string; quarter: string }) {

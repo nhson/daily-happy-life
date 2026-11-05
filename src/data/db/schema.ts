@@ -100,13 +100,13 @@ export const objectives = pgTable(
       .references(() => odysseyPlans.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     quarter: text("quarter").notNull(),
-    status: text("status", { enum: ["active", "done", "dropped"] }).notNull().default("active"),
+    status: text("status", { enum: ["active", "done", "dropped", "carried"] }).notNull().default("active"),
     createdAt: at("created_at").notNull().defaultNow(),
   },
   (t) => [
     index("objectives_user_quarter").on(t.userId, t.quarter),
     check("objectives_quarter", sql`${t.quarter} ~ '^[0-9]{4}-Q[1-4]$'`),
-    check("objectives_status", sql`${t.status} in ('active', 'done', 'dropped')`),
+    check("objectives_status", sql`${t.status} in ('active', 'done', 'dropped', 'carried')`),
   ],
 );
 
