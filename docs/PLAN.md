@@ -105,6 +105,11 @@ Decisions made in Slice 3 (2026-11-05):
 - **A fresh account goes through the real first run** (`users.onboarded_at` is null until Day 1 setup, which saves Compass, Objective, tasks, Top 3 and the morning in one transaction).
 - **`instant = false` stays.** It was meant to go with the mock store, but the shell still renders client-only for a different reason: the sky, ritual mode and Logical Day follow the device clock. Rendering the shell on the server is its own piece of work (Slice 10, perf).
 
+Decisions made in Slice 4 (2026-11-05):
+- **"Close yesterday?" is offered only when the ritual opens by itself** (morning mode, first visit of the Logical Day), and only for yesterday: the account existed then and the day isn't closed. Skipping it or opening the ritual by hand never brings it back. Its answers (ratings, sources, note) close yesterday's Daily Log, so the day counts toward the week dots; no task ticking (`src/domain/missed-check-in.ts`).
+- **Step transitions slide over each other** (`AnimatePresence mode="popLayout"`), and the leaving step is `inert` (`src/ui/step.tsx`). `mode="wait"` once got an exit stuck, leaving a blank ritual.
+- **E2E keeps the browser clock within a day of the real one**: Clerk drops a session whose tokens look issued in the future/past by more. Each spec seeds its own account history in the past instead of moving the clock far.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |

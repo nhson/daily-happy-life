@@ -82,6 +82,12 @@ export const en = {
     plan: "your Active Plan",
     mindset: "a mindset",
   },
+  yesterday: {
+    title: "Close yesterday?",
+    hint: "Yesterday was never closed. A minute now, or let it be.",
+    save: "Save for yesterday",
+    skip: "Skip",
+  },
   morning: {
     begin: "Begin the day",
     skip: "Skip for today",

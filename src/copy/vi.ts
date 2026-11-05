@@ -84,6 +84,12 @@ export const vi: Copy = {
     plan: "Kế hoạch đang theo của bạn",
     mindset: "một tư duy",
   },
+  yesterday: {
+    title: "Khép lại hôm qua?",
+    hint: "Hôm qua chưa được khép lại. Một phút bây giờ, hoặc cứ để vậy.",
+    save: "Lưu cho hôm qua",
+    skip: "Bỏ qua",
+  },
   morning: {
     begin: "Bắt đầu ngày mới",
     skip: "Bỏ qua hôm nay",

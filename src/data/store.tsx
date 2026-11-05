@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { carryOver as carryOverOf } from "@/domain/carry-over";
 import { compassLineFor, type CompassLine } from "@/domain/compass-line";
+import { missedCheckIn } from "@/domain/missed-check-in";
 import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
 import { objectiveRoom, type FoldResolution } from "@/domain/objectives";
@@ -146,15 +147,15 @@ function useStoreState(live: LiveData | null) {
   const mode: RitualMode = ritualMode(now, { timeZone, eveningHour, dayEndHour, morningAt: log.morningAt, closedAt: log.closedAt });
 
   const activePlan = state.plans.find((p) => p.isActive) ?? null;
+  /** Yesterday, if its check-in was never closed. */
+  const yesterdayOpen = missedCheckIn({ logs: state.logs, today, setupDate: state.onboarding.setupDate });
 
-  const compassLine: CompassLine = useMemo(
-    () => compassLineFor({ userId: state.userId, date: today, compass: state.compass, activePlanTitle: activePlan?.title || null }),
-    [state.userId, today, state.compass, activePlan?.title],
-  );
+  // The React Compiler memoizes these derived values.
+  const compassLine: CompassLine = compassLineFor({ userId: state.userId, date: today, compass: state.compass, activePlanTitle: activePlan?.title || null });
 
   const open = state.tasks.filter((t) => !t.doneAt && !t.closedAt);
   const top3 = state.tasks.filter((t) => t.top3Date === today && !t.closedAt);
-  const carryOver = useMemo(() => carryOverOf(Object.values(state.logs), state.tasks, today), [state.logs, state.tasks, today]);
+  const carryOver = carryOverOf(Object.values(state.logs), state.tasks, today);
   const quarter = quarterOf(today);
   const activeObjectives = state.objectives.filter((o) => o.status === "active" && o.quarter === quarter);
 
@@ -183,13 +184,14 @@ function useStoreState(live: LiveData | null) {
 
   // ── actions ─────────────────────────────────────────────
 
-  const patchLog = useCallback(
-    (patch: Partial<Omit<DailyLog, "date" | "top3TaskIds">>) => {
-      setState((s) => ({ ...s, logs: { ...s.logs, [today]: { ...(s.logs[today] ?? emptyLog(today)), ...patch } } }));
-      save(() => server.patchLogAction(today, patch));
+  const patchLogOf = useCallback(
+    (date: LogicalDate, patch: Partial<Omit<DailyLog, "date" | "top3TaskIds">>) => {
+      setState((s) => ({ ...s, logs: { ...s.logs, [date]: { ...(s.logs[date] ?? emptyLog(date)), ...patch } } }));
+      save(() => server.patchLogAction(date, patch));
     },
-    [today, save],
+    [save],
   );
+  const patchLog = useCallback((patch: Parameters<typeof patchLogOf>[1]) => patchLogOf(today, patch), [patchLogOf, today]);
 
   const addTask = useCallback(
     (title: string, choice: KindChoice): TaskLinkResult => {
@@ -317,6 +319,14 @@ function useStoreState(live: LiveData | null) {
   );
 
   const reopenDay = useCallback(() => patchLog({ closedAt: null }), [patchLog]);
+
+  /** "Close yesterday?" — the reflection only, no task ticking; counts toward the week dots. */
+  const closeYesterday = useCallback(
+    (entry: { energy: number | null; engagement: number | null; meaningSources: MeaningSource[]; note: string }) => {
+      if (yesterdayOpen) patchLogOf(yesterdayOpen, { ...entry, closedAt: new Date().toISOString() });
+    },
+    [patchLogOf, yesterdayOpen],
+  );
 
   const updateCompass = useCallback(
     (compass: Compass) => {
@@ -481,6 +491,7 @@ function useStoreState(live: LiveData | null) {
     card,
     tipUnseen,
     isLive: live !== null,
+    yesterdayOpen,
     syncFailures,
     actions: {
       addTask,
@@ -493,6 +504,7 @@ function useStoreState(live: LiveData | null) {
       skipMorning,
       setIntention,
       closeDay,
+      closeYesterday,
       reopenDay,
       updateCompass,
       savePlan,

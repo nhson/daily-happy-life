@@ -24,6 +24,8 @@ export function TodayView() {
   const store = useStore();
   const { now, today, mode, compassLine, top3, open, dots, share, log } = store;
   const [flowOpen, setFlowOpen] = useState(mode === "morning");
+  // The ritual that opens by itself may first ask to close yesterday; opened by hand, it doesn't.
+  const [autoFlow, setAutoFlow] = useState(mode === "morning");
   const [checkIn, setCheckIn] = useState(false);
   const allTop3Done = top3.length > 0 && top3.every((t) => t.doneAt);
   const checked = dots.filter((d) => d.checkedIn).length;
@@ -51,7 +53,17 @@ export function TodayView() {
 
   return (
     <>
-      <AnimatePresence>{flowOpen && <MorningFlow onClose={() => setFlowOpen(false)} />}</AnimatePresence>
+      <AnimatePresence>
+        {flowOpen && (
+          <MorningFlow
+            offerYesterday={autoFlow}
+            onClose={() => {
+              setFlowOpen(false);
+              setAutoFlow(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-14 lg:pt-6 [&>*]:min-w-0">
         <motion.div

@@ -17,10 +17,7 @@ import { MeaningGlyph, meaningColor } from "@/ui/glyphs";
 export function CheckInForm({ onClosed }: { onClosed: () => void }) {
   const copy = useCopy();
   const { state, today, top3, log, tipUnseen, actions } = useStore();
-  const [energy, setEnergy] = useState<number | null>(log.energy);
-  const [engagement, setEngagement] = useState<number | null>(log.engagement);
-  const [sources, setSources] = useState<MeaningSource[]>(log.meaningSources);
-  const [note, setNote] = useState(log.note);
+  const [entry, setEntry] = useState<Entry>({ energy: log.energy, engagement: log.engagement, meaningSources: log.meaningSources, note: log.note });
 
   // Today's Top 3 plus anything touched today.
   const { timeZone, dayEndHour } = state.settings;
@@ -29,13 +26,8 @@ export function CheckInForm({ onClosed }: { onClosed: () => void }) {
   );
   const list = todays.length ? todays : top3;
 
-  const toggle = (s: MeaningSource) => {
-    tap(8);
-    setSources((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s]));
-  };
-
   const close = () => {
-    actions.closeDay({ energy, engagement, meaningSources: sources, note: note.trim() });
+    actions.closeDay({ ...entry, note: entry.note.trim() });
     tap(20);
     if (state.settings.sound) chime();
     onClosed();
@@ -55,51 +47,7 @@ export function CheckInForm({ onClosed }: { onClosed: () => void }) {
         </section>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <RatingStops label={copy.checkIn.energy} ends={copy.checkIn.energyEnds} value={energy} onChange={setEnergy} />
-        <RatingStops label={copy.checkIn.engagement} ends={copy.checkIn.engagementEnds} value={engagement} onChange={setEngagement} />
-      </div>
-
-      <section>
-        <p className="mb-3 text-sm font-medium">{copy.checkIn.meaning}</p>
-        <div className="grid grid-cols-4 gap-2">
-          {MEANING_SOURCES.map((s) => {
-            const on = sources.includes(s);
-            return (
-              <motion.button
-                key={s}
-                type="button"
-                whileTap={{ scale: 0.94 }}
-                onClick={() => toggle(s)}
-                aria-pressed={on}
-                aria-label={`${copy.meaning[s].name}: ${copy.meaning[s].hint}`}
-                className={clsx("flex flex-col items-center gap-1.5 rounded-2xl px-1 pb-2.5 pt-3 transition-colors duration-300")}
-                style={{
-                  color: on ? meaningColor[s] : "var(--ink-2)",
-                  background: on ? `color-mix(in oklab, ${meaningColor[s]} 16%, var(--fill))` : "var(--fill)",
-                  boxShadow: on ? `inset 0 0 0 1.5px ${meaningColor[s]}` : "inset 0 0 0 1px var(--hairline)",
-                }}
-              >
-                <motion.span animate={{ scale: on ? [1, 1.18, 1] : 1, rotate: on && s === "wonder" ? [0, 18, 0] : 0 }} transition={{ duration: 0.45 }}>
-                  <MeaningGlyph source={s} size={30} filled={on} />
-                </motion.span>
-                <span className="text-xs font-medium text-ink">{copy.meaning[s].name}</span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </section>
-
-      <label className="block">
-        <span className="mb-2 block text-sm font-medium">{copy.checkIn.note}</span>
-        <input
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder={copy.checkIn.notePlaceholder}
-          maxLength={140}
-          className="serif w-full rounded-2xl bg-fill px-4 py-3 text-xl italic text-ink outline-none ring-1 ring-hairline placeholder:not-italic placeholder:text-ink-3 focus:ring-ink-3"
-        />
-      </label>
+      <Reflection value={entry} onChange={setEntry} />
 
       {/* The one commit stays in reach while the sheet scrolls. */}
       <div
@@ -111,5 +59,66 @@ export function CheckInForm({ onClosed }: { onClosed: () => void }) {
         </Button>
       </div>
     </div>
+  );
+}
+
+export type Entry = { energy: number | null; engagement: number | null; meaningSources: MeaningSource[]; note: string };
+
+/** Energy, Engagement, Sources of Meaning and a note: the reflection part of closing a day. */
+export function Reflection({ value, onChange }: { value: Entry; onChange: (e: Entry) => void }) {
+  const copy = useCopy();
+  const toggle = (s: MeaningSource) => {
+    tap(8);
+    const cur = value.meaningSources;
+    onChange({ ...value, meaningSources: cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s] });
+  };
+  return (
+    <>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <RatingStops label={copy.checkIn.energy} ends={copy.checkIn.energyEnds} value={value.energy} onChange={(energy) => onChange({ ...value, energy })} />
+          <RatingStops label={copy.checkIn.engagement} ends={copy.checkIn.engagementEnds} value={value.engagement} onChange={(engagement) => onChange({ ...value, engagement })} />
+        </div>
+
+        <section>
+          <p className="mb-3 text-sm font-medium">{copy.checkIn.meaning}</p>
+          <div className="grid grid-cols-4 gap-2">
+            {MEANING_SOURCES.map((s) => {
+              const on = value.meaningSources.includes(s);
+              return (
+                <motion.button
+                  key={s}
+                  type="button"
+                  whileTap={{ scale: 0.94 }}
+                  onClick={() => toggle(s)}
+                  aria-pressed={on}
+                  aria-label={`${copy.meaning[s].name}: ${copy.meaning[s].hint}`}
+                  className={clsx("flex flex-col items-center gap-1.5 rounded-2xl px-1 pb-2.5 pt-3 transition-colors duration-300")}
+                  style={{
+                    color: on ? meaningColor[s] : "var(--ink-2)",
+                    background: on ? `color-mix(in oklab, ${meaningColor[s]} 16%, var(--fill))` : "var(--fill)",
+                    boxShadow: on ? `inset 0 0 0 1.5px ${meaningColor[s]}` : "inset 0 0 0 1px var(--hairline)",
+                  }}
+                >
+                  <motion.span animate={{ scale: on ? [1, 1.18, 1] : 1, rotate: on && s === "wonder" ? [0, 18, 0] : 0 }} transition={{ duration: 0.45 }}>
+                    <MeaningGlyph source={s} size={30} filled={on} />
+                  </motion.span>
+                  <span className="text-xs font-medium text-ink">{copy.meaning[s].name}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </section>
+
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium">{copy.checkIn.note}</span>
+          <input
+            value={value.note}
+            onChange={(e) => onChange({ ...value, note: e.target.value })}
+            placeholder={copy.checkIn.notePlaceholder}
+            maxLength={140}
+            className="serif w-full rounded-2xl bg-fill px-4 py-3 text-xl italic text-ink outline-none ring-1 ring-hairline placeholder:not-italic placeholder:text-ink-3 focus:ring-ink-3"
+          />
+        </label>
+    </>
   );
 }

@@ -3,6 +3,7 @@
 import { ArrowRight, Star } from "lucide-react";
 import { clsx } from "clsx";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { StepForm } from "@/ui/step";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCopy } from "@/copy";
@@ -77,13 +78,13 @@ export function FirstRun() {
         )}
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout" initial={false}>
         {rising ? (
           <motion.div key="rise" {...slide} transition={{ duration: 0.8 }} className="flex flex-1 flex-col justify-center">
             <p className="serif text-[clamp(2.6rem,10vw,4.4rem)] leading-[1.02]">{workview.trim() || lifeview.trim()}</p>
           </motion.div>
         ) : (
-          <motion.form
+          <StepForm
             key={step}
             {...slide}
             transition={{ duration: 0.5 }}
@@ -170,7 +171,7 @@ export function FirstRun() {
                 {step === 0 ? copy.welcome.start : step === LAST ? copy.welcome.finish : copy.welcome.next} <ArrowRight size={18} />
               </Button>
             </div>
-          </motion.form>
+          </StepForm>
         )}
       </AnimatePresence>
     </div>

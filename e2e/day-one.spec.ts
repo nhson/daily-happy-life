@@ -14,22 +14,24 @@ test.describe.serial("day one and the morning after", () => {
     await signIn(page);
     await page.goto("/today");
     await expect(page).toHaveURL(/\/welcome/);
+    // While a step slides out, its (inert) form is still in the DOM: act on the present one.
+    const next = () => page.locator("form:not([inert])").getByRole("button", { name: c.welcome.next, exact: true }).click();
 
     await page.getByRole("button", { name: c.welcome.start, exact: true }).click();
     await expect(page.getByText(c.welcome.workviewQ)).toBeVisible();
     await page.locator("textarea").nth(0).fill("Công việc là cách mình làm cho ngày của người khác nhẹ hơn.");
     await page.locator("textarea").nth(1).fill("Cuộc sống dành cho người mình thương.");
-    await page.getByRole("button", { name: c.welcome.next, exact: true }).click();
+    await next();
     await expect(page.getByText(c.welcome.objectiveQ)).toBeVisible();
     await page.locator("textarea").first().fill("Ra mắt bản beta");
-    await page.getByRole("button", { name: c.welcome.next, exact: true }).click();
+    await next();
     await expect(page.getByText(c.welcome.tasksQ)).toBeVisible();
     for (const [i, t] of steps.entries()) await page.getByLabel(c.common.step(i + 1), { exact: true }).fill(t);
-    await page.getByRole("button", { name: c.welcome.next, exact: true }).click();
+    await next();
     await expect(page.getByText(c.welcome.todayQ)).toBeVisible();
     // All three start picked; keep the third for later.
     await page.getByRole("button", { name: steps[2], exact: true }).click();
-    await page.getByRole("button", { name: c.welcome.finish }).click();
+    await page.locator("form:not([inert])").getByRole("button", { name: c.welcome.finish }).click();
 
     await expect(page).toHaveURL(/\/today/, { timeout: 20_000 });
     await expect(top3Rows(page)).toHaveCount(2);
@@ -105,8 +107,11 @@ test.describe.serial("day one and the morning after", () => {
     await page.goto("/today");
     const me = await e2eUserId();
 
-    await page.getByRole("button", { name: c.morning.begin }).click();
     const ritual = page.locator(`[aria-label="${c.today.ritual}"]`);
+    // Day one was never closed: the ritual first offers to close it. Not now.
+    await expect(ritual.getByText(c.yesterday.title)).toBeVisible();
+    await ritual.getByRole("button", { name: c.yesterday.skip, exact: true }).click();
+    await page.getByRole("button", { name: c.morning.begin }).click();
     await expect(ritual.getByText(c.morning.carryOver)).toBeVisible();
     // Carried over: the unfinished one, preselected; the finished one is not offered.
     const carried = ritual.getByRole("button", { name: new RegExp(steps[1]) });

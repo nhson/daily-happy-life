@@ -9,19 +9,25 @@ import { Tip } from "@/ui/tip";
 import { useStore } from "@/data/store";
 import { useCapture } from "@/features/capture/capture";
 import { Button } from "@/ui/controls";
+import { StepSection } from "@/ui/step";
 import { KindDot, kindColor } from "@/ui/glyphs";
 import { tap } from "@/ui/feedback";
 import { useWhy } from "@/features/tasks/task-row";
+import { Reflection, type Entry } from "./checkin-sheet";
 import { CompassHero, compassLineText } from "./compass-hero";
 
 
-/** The Morning Ritual: Compass Line → Top 3 → Intention. Full-screen, once per Logical Day. */
-export function MorningFlow({ onClose }: { onClose: () => void }) {
+/**
+ * The Morning Ritual: Compass Line → Top 3 → Intention. Full-screen, once per Logical Day.
+ * When yesterday was never closed, it first asks "Close yesterday?" (skippable; only as the
+ * ritual opens by itself, so it is offered once).
+ */
+export function MorningFlow({ onClose, offerYesterday = false }: { onClose: () => void; offerYesterday?: boolean }) {
   const formatDate = useFormatDate();
   const copy = useCopy();
-  const { now, compassLine, open, carryOver, log, tipUnseen, actions } = useStore();
+  const { now, compassLine, open, carryOver, log, tipUnseen, yesterdayOpen, actions } = useStore();
   const reduce = useReducedMotion();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(offerYesterday && yesterdayOpen ? -1 : 0);
   const [picked, setPicked] = useState<string[]>(() => carryOver.map((t) => t.id).slice(0, 3));
   const [when, setWhen] = useState(log.intention?.when ?? "");
   const [then, setThen] = useState(log.intention?.then ?? "");
@@ -65,7 +71,7 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
     >
       <div className="mx-auto flex h-dvh w-full min-w-0 max-w-xl flex-col px-6 pb-[max(env(safe-area-inset-bottom),20px)] pt-[max(env(safe-area-inset-top),20px)]">
         <div className="flex shrink-0 items-center justify-between">
-          <div className="flex gap-1.5" aria-label={copy.common.stepOf(step + 1, 3)}>
+          <div className={clsx("flex gap-1.5", step < 0 && "invisible")} aria-label={copy.common.stepOf(step + 1, 3)}>
             {[0, 1, 2].map((i) => (
               <motion.span
                 key={i}
@@ -80,9 +86,20 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {step === -1 && (
+            <StepSection key="yesterday" {...slide} transition={{ duration: 0.45 }} className="flex min-h-0 flex-1 flex-col">
+              <YesterdayStep
+                onDone={(entry) => {
+                  if (entry) actions.closeYesterday(entry);
+                  setStep(0);
+                }}
+              />
+            </StepSection>
+          )}
+
           {step === 0 && (
-            <motion.section key="compass" {...slide} transition={{ duration: 0.5 }} className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-10">
+            <StepSection key="compass" {...slide} transition={{ duration: 0.5 }} className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto py-10">
               <motion.p className="eyebrow mb-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
                 {formatDate(now, { weekday: "long", day: "numeric", month: "long" })}
               </motion.p>
@@ -102,11 +119,11 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
                   </Tip>
                 </div>
               </motion.div>
-            </motion.section>
+            </StepSection>
           )}
 
           {step === 1 && (
-            <motion.section key="top3" {...slide} transition={{ duration: 0.45 }} className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <StepSection key="top3" {...slide} transition={{ duration: 0.45 }} className="flex min-h-0 min-w-0 flex-1 flex-col">
               <div className="no-scrollbar -mx-6 min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-8 [mask-image:linear-gradient(180deg,#000_calc(100%-40px),transparent)]">
                 <h2 className="serif text-[clamp(2rem,7vw,2.8rem)] leading-[1.05]">{copy.morning.top3Title}</h2>
                 <p className="mt-2 text-ink-2">{copy.morning.top3Hint}</p>
@@ -121,11 +138,11 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
                   {copy.morning.continue} <ArrowRight size={18} />
                 </Button>
               </div>
-            </motion.section>
+            </StepSection>
           )}
 
           {step === 2 && (
-            <motion.section key="intention" {...slide} transition={{ duration: 0.45 }} className="flex min-h-0 flex-1 flex-col overflow-y-auto py-8">
+            <StepSection key="intention" {...slide} transition={{ duration: 0.45 }} className="flex min-h-0 flex-1 flex-col overflow-y-auto py-8">
               <h2 className="serif text-[clamp(2rem,7vw,2.8rem)] leading-[1.05]">{copy.morning.intentionTitle}</h2>
               <p className="mt-2 text-ink-2">{copy.morning.intentionHint}</p>
               <div className="glass mt-10 rounded-[28px] p-6">
@@ -141,7 +158,7 @@ export function MorningFlow({ onClose }: { onClose: () => void }) {
                   {when.trim() && then.trim() ? copy.morning.set : copy.today.startDay}
                 </Button>
               </div>
-            </motion.section>
+            </StepSection>
           )}
         </AnimatePresence>
       </div>
@@ -272,5 +289,29 @@ function IntentionLine({
         className="serif mt-1 w-full bg-transparent text-[clamp(1.5rem,5.4vw,2rem)] italic leading-tight text-ink outline-none placeholder:not-italic placeholder:text-ink-3"
       />
     </label>
+  );
+}
+
+function YesterdayStep({ onDone }: { onDone: (entry: Entry | null) => void }) {
+  const copy = useCopy();
+  const [entry, setEntry] = useState<Entry>({ energy: null, engagement: null, meaningSources: [], note: "" });
+  return (
+    <>
+      <div className="no-scrollbar -mx-6 flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto px-6 pb-6 pt-8">
+        <div>
+          <h2 className="serif text-[clamp(2rem,7vw,2.8rem)] leading-[1.05]">{copy.yesterday.title}</h2>
+          <p className="mt-2 text-ink-2">{copy.yesterday.hint}</p>
+        </div>
+        <Reflection value={entry} onChange={setEntry} />
+      </div>
+      <div className="flex shrink-0 items-center justify-between pt-3">
+        <button type="button" onClick={() => onDone(null)} className="h-11 px-2 text-sm text-ink-2 hover:text-ink">
+          {copy.yesterday.skip}
+        </button>
+        <Button size="lg" onClick={() => onDone({ ...entry, note: entry.note.trim() })}>
+          {copy.yesterday.save} <ArrowRight size={18} />
+        </Button>
+      </div>
+    </>
   );
 }

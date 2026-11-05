@@ -2,6 +2,9 @@ import { clerk } from "@clerk/testing/playwright";
 import { createClerkClient } from "@clerk/backend";
 import { neon } from "@neondatabase/serverless";
 import { expect, type Page } from "@playwright/test";
+import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "../src/data/db/schema";
+import { completeOnboarding } from "../src/data/onboarding";
 import { vi } from "../src/copy/vi";
 
 export const c = vi;
@@ -68,4 +71,27 @@ export const taskRow = (page: Page, title: string) => page.locator("[data-task]:
 export async function openTask(page: Page, title: string) {
   await taskRow(page, title).locator("button[aria-haspopup=dialog]").first().click();
   await expect(page.getByRole("button", { name: c.taskSheet.save })).toBeVisible();
+}
+
+/**
+ * A clean, set-up account for one spec: wipe the test user's rows, sign in (the app makes the user
+ * row and plan slots), then run the real Day 1 setup code against the database, as of `setupDate`.
+ */
+export async function seedSetUp(page: Page, setupDate: string, tasks = ["Viết trang giới thiệu", "Gọi hai người dùng thử"]) {
+  const [u] = (await clerkApi().users.getUserList({ emailAddress: [E2E_EMAIL] })).data;
+  await sql()`delete from users where clerk_id = ${u.id}`;
+  await signIn(page);
+  await page.goto("/today");
+  await expect(page).toHaveURL(/\/welcome/);
+  const me = await e2eUserId();
+  const db = drizzle({ client: neon(process.env.DATABASE_URL!), schema });
+  const quarter = `${setupDate.slice(0, 4)}-Q${Math.floor((Number(setupDate.slice(5, 7)) - 1) / 3) + 1}`;
+  await completeOnboarding(db as never, me, {
+    compass: { workview: "Công việc là cách mình giúp người khác.", lifeview: "Cuộc sống dành cho người mình thương." },
+    objective: { id: crypto.randomUUID(), title: "Ra mắt bản beta" },
+    tasks: tasks.map((title) => ({ id: crypto.randomUUID(), title, today: true })),
+    today: setupDate,
+    quarter,
+  });
+  return me;
 }
