@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { dueStatus } from "@/domain/task-rules";
 import { TaskList } from "@/features/tasks/task-list";
 import { Button, ShareBar, WeekDots } from "@/ui/controls";

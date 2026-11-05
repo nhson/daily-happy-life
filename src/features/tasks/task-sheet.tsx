@@ -4,7 +4,7 @@ import { CalendarDays, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import { useCopy } from "@/copy";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import type { KindChoice } from "@/data/state";
 import type { Task } from "@/domain/types";
 import { same, useWhyOptions, type WhyOption } from "@/features/capture/capture";

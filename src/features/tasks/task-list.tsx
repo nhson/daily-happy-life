@@ -3,7 +3,7 @@
 import { AnimatePresence } from "motion/react";
 import { useEffect, useState } from "react";
 import type { Task } from "@/domain/types";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { TaskRow } from "./task-row";
 
 const typing = (el: EventTarget | null) =>

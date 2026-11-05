@@ -3,7 +3,7 @@
 import { ArrowLeft, Download, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { LOCALE_NAME, LOCALES, useCopy } from "@/copy";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { Button, Chip } from "@/ui/controls";
 import { useToast } from "@/ui/toast";
 
@@ -12,7 +12,7 @@ const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
 export function SettingsView() {
   const copy = useCopy();
-  const { state, actions } = useStore();
+  const { state, actions, isLive } = useStore();
   const toast = useToast();
   const s = state.settings;
   const zones = Intl.supportedValuesOf?.("timeZone") ?? [s.timeZone];
@@ -90,9 +90,12 @@ export function SettingsView() {
         >
           <Lightbulb size={16} /> {copy.settings.showTips}
         </Button>
-        <Button variant="ghost" onClick={actions.resetFixtures}>
-          {copy.settings.reset}
-        </Button>
+        {/* Sample data exists only in design review. */}
+        {!isLive && (
+          <Button variant="ghost" onClick={actions.resetFixtures}>
+            {copy.settings.reset}
+          </Button>
+        )}
       </div>
     </div>
   );

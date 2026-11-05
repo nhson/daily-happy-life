@@ -9,7 +9,7 @@ import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { APP_NAME } from "@/config";
 import { useCopy, useLocale } from "@/copy";
 import type { LiveData } from "@/data/live";
-import { StoreProvider, useStore } from "@/data/mock-store";
+import { StoreProvider, useStore } from "@/data/store";
 import { CaptureButton, CaptureProvider } from "@/features/capture/capture";
 import { TaskSheetProvider } from "@/features/tasks/task-sheet";
 import { ClockProvider } from "@/ui/clock";

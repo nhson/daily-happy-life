@@ -2,6 +2,7 @@ import { and, desc, eq, gt, inArray, isNull, ne, notInArray, or } from "drizzle-
 import { validateTaskLink, type TaskLinkError } from "@/domain/task-rules";
 import type { Task } from "@/domain/types";
 import * as schema from "./db/schema";
+import { snapshotTop3 } from "./days";
 import { atomic, toObjective, toPlan, toTask } from "./rows";
 import type { KindChoice } from "./state";
 import type { Db } from "./users";
@@ -84,7 +85,15 @@ export async function setTop3(db: Db, userId: string, id: string, date: string |
     const taken = await db.$count(tasks, and(eq(tasks.userId, userId), eq(tasks.top3Date, date), isNull(tasks.closedAt), ne(tasks.id, id)));
     if (taken >= 3) return { ok: false, error: "top3_full" };
   }
-  return found(await db.update(tasks).set({ top3Date: date }).where(mine(userId, id)).returning({ id: tasks.id }));
+  const [t] = await db.select({ top3Date: tasks.top3Date }).from(tasks).where(mine(userId, id));
+  if (!t) return { ok: false, error: "not_found" };
+  // Both the day it leaves and the day it joins keep their logged Top 3 current.
+  const days = [...new Set([t.top3Date, date].filter((d): d is string => !!d))];
+  await atomic(db, (d) => [
+    d.update(tasks).set({ top3Date: date }).where(mine(userId, id)),
+    ...days.map((day) => snapshotTop3(d, userId, day)),
+  ]);
+  return { ok: true };
 }
 
 /** The morning's picks become the day's whole Top 3, in one go. */
@@ -100,6 +109,7 @@ export async function replaceTop3(db: Db, userId: string, date: string, ids: str
         .where(and(eq(tasks.userId, userId), eq(tasks.top3Date, date), ids.length ? notInArray(tasks.id, ids) : undefined)),
     ];
     if (ids.length) qs.push(d.update(tasks).set({ top3Date: date }).where(and(eq(tasks.userId, userId), inArray(tasks.id, ids))));
+    qs.push(snapshotTop3(d, userId, date));
     return qs;
   });
   return { ok: true };

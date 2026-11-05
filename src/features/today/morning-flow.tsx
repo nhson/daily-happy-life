@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
 import { Tip } from "@/ui/tip";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { useCapture } from "@/features/capture/capture";
 import { Button } from "@/ui/controls";
 import { KindDot, kindColor } from "@/ui/glyphs";

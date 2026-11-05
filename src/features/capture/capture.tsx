@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useCopy } from "@/copy";
 import { Tip } from "@/ui/tip";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import type { KindChoice } from "@/data/state";
 import { Chip } from "@/ui/controls";
 import { KindDot, kindColor } from "@/ui/glyphs";

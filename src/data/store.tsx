@@ -1,23 +1,24 @@
 "use client";
 
 /**
- * The app's store. Signed in, Tasks, Odyssey Plans, Objectives and the Settings on the user row
- * are live: they start from the server (`live`), change here first (optimistic) and are saved by
- * Server Actions; a refused save reloads the server's version. Everything else is still Phase 0
- * sample data in localStorage until its slice. Signed out (design review), all of it is sample.
+ * The app's store. Signed in, every slice comes from the server (`live`): a change shows here first
+ * (optimistic) and a Server Action saves it; a refused save reloads the server's version. Only
+ * device preferences (sound, the last "why" in capture) stay in this browser.
  *
- * Review URLs:  ?reset=1 (fresh fixtures) · ?fresh=1 (first run) · ?at=HH:MM (time of day)
- *                ?day=N (pretend it is Logical Day N since setup — Odyssey nudges)
- *                ?lang=vi|en (switch the language, as Settings does)
+ * Signed out happens only in design review (`bun run dev:review`): the same store then runs on
+ * sample data kept in localStorage, with review URLs:
+ *   ?reset=1 (fresh sample data) · ?fresh=1 (first run) · ?at=HH:MM (time of day)
+ *   ?day=N (pretend it is Logical Day N since setup — Odyssey nudges) · ?lang=vi|en
  */
 
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { carryOver as carryOverOf } from "@/domain/carry-over";
 import { compassLineFor, type CompassLine } from "@/domain/compass-line";
 import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
 import { objectiveRoom, type FoldResolution } from "@/domain/objectives";
-import { freshOnboarding, snoozeNudge, todayCard, type PlanSlot, type TipId } from "@/domain/onboarding";
+import { freshOnboarding, snoozeNudge, todayCard, type OnboardingState, type PlanSlot, type TipId } from "@/domain/onboarding";
 import { switchPlan } from "@/domain/plan-switch";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
@@ -28,85 +29,88 @@ import * as server from "./actions";
 import type { LiveData } from "./live";
 import type { AppState, KindChoice, RitualMode } from "./state";
 
-const KEY = "dhl:mock:v1";
+const REVIEW_KEY = "dhl:mock:v1";
+const DEVICE_KEY = "dhl:device:v1";
 const uid = () => crypto.randomUUID();
 const deviceTz = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-/** The live slices replace their sample counterparts; a remembered "why" survives only if it still exists. */
-function withLive(state: AppState, live: LiveData): AppState {
-  const k = state.lastKind;
-  const lastKind =
-    k &&
-    ((k.kind === "maintenance") ||
-      (k.kind === "objective" && live.objectives.some((o) => o.id === k.objectiveId && o.status === "active")) ||
-      (k.kind === "prototype" && live.plans.some((p) => p.id === k.planId && !p.isActive)))
-      ? k
-      : null;
+type Device = { sound: boolean; lastKind: KindChoice | null };
+
+function readDevice(): Device {
+  try {
+    const raw = localStorage.getItem(DEVICE_KEY);
+    if (raw) return { sound: true, lastKind: null, ...(JSON.parse(raw) as Partial<Device>) };
+  } catch {}
+  return { sound: true, lastKind: null };
+}
+
+/** A remembered "why" survives only while it can still be chosen. */
+function stillValid(k: KindChoice | null, s: Pick<AppState, "objectives" | "plans">): KindChoice | null {
+  if (!k) return null;
+  if (k.kind === "maintenance") return k;
+  if (k.kind === "objective") return s.objectives.some((o) => o.id === k.objectiveId && o.status === "active") ? k : null;
+  return s.plans.some((p) => p.id === k.planId && !p.isActive) ? k : null;
+}
+
+/** The signed-in state: the server's data plus this device's preferences. */
+function fromLive(live: LiveData, device: Device): AppState {
   return {
-    ...state,
+    version: 1,
     userId: live.userId,
-    settings: { ...state.settings, ...live.settings },
+    onboarded: live.onboarded,
+    onboarding: live.onboarding,
+    settings: { ...live.settings, sound: device.sound },
+    compass: live.compass,
     plans: live.plans,
     objectives: live.objectives,
     tasks: live.tasks,
-    lastKind,
+    logs: Object.fromEntries(live.logs.map((l) => [l.date, l])),
+    decisions: live.decisions,
+    lastKind: stillValid(device.lastKind, live),
   };
 }
 
-function load(live: LiveData | null): AppState {
+/** Design review only: sample data, kept in localStorage between page loads. */
+function loadReview(): AppState {
   const params = new URLSearchParams(window.location.search);
-  // Review URLs that rewrite data are for sample data only.
-  if (live) for (const k of ["fresh", "reset"]) params.delete(k);
-  const tz = live?.settings.timeZone ?? deviceTz();
+  const tz = deviceTz();
   const today = logicalDate(new Date(), tz, 4);
   let state: AppState | null = params.has("fresh") ? blank(tz) : null;
   if (!state && !params.has("reset")) {
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = localStorage.getItem(REVIEW_KEY);
       if (raw) state = JSON.parse(raw) as AppState;
     } catch {}
   }
   const lang = params.get("lang");
   const asked = lang === "vi" || lang === "en" ? lang : undefined;
   state ??= fixtures(today, tz, asked);
-
-  // Saved before onboarding state existed: an onboarded user has seen it all.
-  if (!state.onboarding)
-    state = {
-      ...state,
-      onboarding: state.onboarded
-        ? { setupDate: addDays(today, -30), seenTips: ["top3", "capture", "morning", "evening", "closedDay", "life"], reminderAskedAt: new Date().toISOString(), nudges: {} }
-        : freshOnboarding(null),
-    };
-
-  // Saved before languages existed: Vietnamese is the default.
-  if (!state.settings.locale) state = { ...state, settings: { ...state.settings, locale: "vi" } };
   if (asked) state = { ...state, settings: { ...state.settings, locale: asked } };
 
   const day = Number(params.get("day"));
   if (day >= 1 && state.onboarding.setupDate)
     state = { ...state, onboarding: { ...state.onboarding, setupDate: addDays(today, -(day - 1)) } };
-  return live ? withLive(state, live) : state;
+  return state;
 }
 
 function emptyLog(date: LogicalDate): DailyLog {
-  return { date, intention: null, energy: null, engagement: null, meaningSources: [], note: "", morningAt: null, closedAt: null };
+  return { date, intention: null, energy: null, engagement: null, meaningSources: [], note: "", top3TaskIds: [], morningAt: null, closedAt: null };
 }
 
 type Saved = { ok: boolean };
 
 function useStoreState(live: LiveData | null) {
-  const [state, setState] = useState<AppState>(() => load(live));
+  const [state, setState] = useState<AppState>(() => (live ? fromLive(live, readDevice()) : loadReview()));
   const { now } = useClock();
   const router = useRouter();
   const [syncFailures, setSyncFailures] = useState(0);
 
-  // A fresh server snapshot (after a refresh) replaces the live slices.
+  // A fresh server snapshot (after a refresh) replaces what is on screen.
   const seen = useRef(live);
   useEffect(() => {
     if (!live || live === seen.current) return;
     seen.current = live;
-    setState((s) => withLive(s, live));
+    setState((s) => fromLive(live, { sound: s.settings.sound, lastKind: s.lastKind }));
   }, [live]);
 
   /** Send a change that is already on screen; if the server says no, reload its version. */
@@ -123,13 +127,17 @@ function useStoreState(live: LiveData | null) {
   );
 
   useEffect(() => {
-    // Keep the saved review state pristine while a ?fresh first run is in progress; once setup
-    // finishes, save it so day 2+ (?day=N) can be reviewed.
-    if (new URLSearchParams(window.location.search).has("fresh") && !state.onboarded) return;
     try {
-      localStorage.setItem(KEY, JSON.stringify(state));
+      if (live) {
+        localStorage.setItem(DEVICE_KEY, JSON.stringify({ sound: state.settings.sound, lastKind: state.lastKind } satisfies Device));
+        return;
+      }
+      // Review: keep the sample state pristine while a ?fresh first run is in progress; once setup
+      // finishes, save it so day 2+ (?day=N) can be reviewed.
+      if (new URLSearchParams(window.location.search).has("fresh") && !state.onboarded) return;
+      localStorage.setItem(REVIEW_KEY, JSON.stringify(state));
     } catch {}
-  }, [state]);
+  }, [state, live]);
 
   const { timeZone, dayEndHour, eveningHour } = state.settings;
   const today = logicalDate(now, timeZone, dayEndHour);
@@ -146,7 +154,7 @@ function useStoreState(live: LiveData | null) {
 
   const open = state.tasks.filter((t) => !t.doneAt && !t.closedAt);
   const top3 = state.tasks.filter((t) => t.top3Date === today && !t.closedAt);
-  const carryOver = state.tasks.filter((t) => t.top3Date === addDays(today, -1) && !t.doneAt && !t.closedAt);
+  const carryOver = useMemo(() => carryOverOf(Object.values(state.logs), state.tasks, today), [state.logs, state.tasks, today]);
   const quarter = quarterOf(today);
   const activeObjectives = state.objectives.filter((o) => o.status === "active" && o.quarter === quarter);
 
@@ -176,9 +184,11 @@ function useStoreState(live: LiveData | null) {
   // ── actions ─────────────────────────────────────────────
 
   const patchLog = useCallback(
-    (patch: Partial<DailyLog>) =>
-      setState((s) => ({ ...s, logs: { ...s.logs, [today]: { ...(s.logs[today] ?? emptyLog(today)), ...patch } } })),
-    [today],
+    (patch: Partial<Omit<DailyLog, "date" | "top3TaskIds">>) => {
+      setState((s) => ({ ...s, logs: { ...s.logs, [today]: { ...(s.logs[today] ?? emptyLog(today)), ...patch } } }));
+      save(() => server.patchLogAction(today, patch));
+    },
+    [today, save],
   );
 
   const addTask = useCallback(
@@ -280,6 +290,7 @@ function useStoreState(live: LiveData | null) {
 
   const finishMorning = useCallback(
     (top3Ids: string[], intention: DailyLog["intention"]) => {
+      const morningAt = new Date().toISOString();
       setState((s) => ({
         ...s,
         tasks: s.tasks.map((t) =>
@@ -287,10 +298,11 @@ function useStoreState(live: LiveData | null) {
         ),
         logs: {
           ...s.logs,
-          [today]: { ...(s.logs[today] ?? emptyLog(today)), intention, morningAt: new Date().toISOString() },
+          [today]: { ...(s.logs[today] ?? emptyLog(today)), intention, morningAt, top3TaskIds: top3Ids },
         },
       }));
       save(() => server.replaceTop3Action(today, top3Ids));
+      save(() => server.patchLogAction(today, { intention, morningAt }));
     },
     [today, save],
   );
@@ -306,7 +318,13 @@ function useStoreState(live: LiveData | null) {
 
   const reopenDay = useCallback(() => patchLog({ closedAt: null }), [patchLog]);
 
-  const updateCompass = useCallback((compass: Compass) => setState((s) => ({ ...s, compass })), []);
+  const updateCompass = useCallback(
+    (compass: Compass) => {
+      setState((s) => ({ ...s, compass }));
+      save(() => server.saveCompassAction(compass));
+    },
+    [save],
+  );
 
   const savePlan = useCallback(
     (plan: OdysseyPlan) => {
@@ -354,9 +372,12 @@ function useStoreState(live: LiveData | null) {
   );
 
   const addDecision = useCallback(
-    (d: Omit<Decision, "id" | "date">) =>
-      setState((s) => ({ ...s, decisions: [{ ...d, id: uid(), date: today }, ...s.decisions] })),
-    [today],
+    (d: Omit<Decision, "id" | "date">) => {
+      const decision: Decision = { ...d, id: uid(), date: today };
+      setState((s) => ({ ...s, decisions: [decision, ...s.decisions] }));
+      save(() => server.addDecisionAction(decision));
+    },
+    [today, save],
   );
 
   const updateSettings = useCallback(
@@ -369,70 +390,78 @@ function useStoreState(live: LiveData | null) {
     [save],
   );
 
+  /** Tips, nudges and the reminder ask follow the user across devices. */
+  const updateOnboarding = useCallback(
+    (change: (o: OnboardingState) => OnboardingState) => {
+      const next = change(state.onboarding);
+      if (next === state.onboarding) return;
+      setState((s) => ({ ...s, onboarding: next }));
+      save(() => server.saveOnboardingAction(next));
+    },
+    [state.onboarding, save],
+  );
   const dismissTip = useCallback(
-    (tip: TipId) =>
-      setState((s) =>
-        s.onboarding.seenTips.includes(tip) ? s : { ...s, onboarding: { ...s.onboarding, seenTips: [...s.onboarding.seenTips, tip] } },
-      ),
-    [],
+    (tip: TipId) => updateOnboarding((o) => (o.seenTips.includes(tip) ? o : { ...o, seenTips: [...o.seenTips, tip] })),
+    [updateOnboarding],
   );
-  const showTipsAgain = useCallback(() => setState((s) => ({ ...s, onboarding: { ...s.onboarding, seenTips: [] } })), []);
-  const notNowNudge = useCallback(
-    (slot: PlanSlot) => setState((s) => ({ ...s, onboarding: snoozeNudge(s.onboarding, slot, today) })),
-    [today],
-  );
+  const showTipsAgain = useCallback(() => updateOnboarding((o) => ({ ...o, seenTips: [] })), [updateOnboarding]);
+  const notNowNudge = useCallback((slot: PlanSlot) => updateOnboarding((o) => snoozeNudge(o, slot, today)), [updateOnboarding, today]);
   /** The reminder is offered once, whatever the answer. */
   const answerReminder = useCallback(
-    () => setState((s) => ({ ...s, onboarding: { ...s.onboarding, reminderAskedAt: new Date().toISOString() } })),
-    [],
+    () => updateOnboarding((o) => ({ ...o, reminderAskedAt: new Date().toISOString() })),
+    [updateOnboarding],
   );
 
   const completeOnboarding = useCallback(
     (input: { compass: Compass; objective: string; tasks: { title: string; today: boolean }[] }) => {
-      setState((s) => {
-        const plan = s.plans.find((p) => p.isActive) ?? s.plans[0];
-        const objective: Objective = { id: uid(), planId: plan.id, title: input.objective.trim(), quarter, status: "active" };
-        const nowIso = new Date().toISOString();
-        const tasks: Task[] = input.tasks
-          .filter((t) => t.title.trim())
-          .map((t) => ({
-            id: uid(),
-            title: t.title.trim(),
-            kind: "objective",
-            objectiveId: objective.id,
-            prototypePlanId: null,
-            dueDate: null,
-            // "Which of these is for today?" — the user's own picks become today's Top 3.
-            top3Date: t.today ? today : null,
-            doneAt: null,
-            closedAt: null,
-            createdAt: nowIso,
-          }));
-        return {
-          ...s,
-          onboarded: true,
-          onboarding: freshOnboarding(today),
-          // Day 1 counts as the Morning Ritual done — setup asked enough. The ritual starts on day 2.
-          logs: { ...s.logs, [today]: { ...(s.logs[today] ?? emptyLog(today)), morningAt: nowIso } },
+      const plan = (state.plans.find((p) => p.isActive) ?? state.plans.find((p) => p.slot === 1))!;
+      const objective: Objective = { id: uid(), planId: plan.id, title: input.objective.trim(), quarter, status: "active" };
+      const nowIso = new Date().toISOString();
+      const firsts = input.tasks.filter((t) => t.title.trim()).map((t) => ({ ...t, id: uid(), title: t.title.trim() }));
+      const tasks: Task[] = firsts.map((t) => ({
+        id: t.id,
+        title: t.title,
+        kind: "objective",
+        objectiveId: objective.id,
+        prototypePlanId: null,
+        dueDate: null,
+        // "Which of these is for today?" — the user's own picks become today's Top 3.
+        top3Date: t.today ? today : null,
+        doneAt: null,
+        closedAt: null,
+        createdAt: nowIso,
+      }));
+      setState((s) => ({
+        ...s,
+        onboarded: true,
+        onboarding: freshOnboarding(today),
+        // Day 1 counts as the Morning Ritual done — setup asked enough. The ritual starts on day 2.
+        logs: {
+          ...s.logs,
+          [today]: { ...(s.logs[today] ?? emptyLog(today)), morningAt: nowIso, top3TaskIds: tasks.filter((t) => t.top3Date).map((t) => t.id) },
+        },
+        compass: input.compass,
+        objectives: [...s.objectives, objective],
+        tasks: [...tasks, ...s.tasks],
+        lastKind: { kind: "objective", objectiveId: objective.id },
+      }));
+      save(() =>
+        server.completeOnboardingAction({
           compass: input.compass,
-          objectives: [...s.objectives, objective],
-          tasks: [...tasks, ...s.tasks],
-          lastKind: { kind: "objective", objectiveId: objective.id },
-        };
-      });
+          objective: { id: objective.id, title: objective.title },
+          tasks: firsts.map(({ id, title, today: forToday }) => ({ id, title, today: forToday })),
+          today,
+          quarter,
+        }),
+      );
     },
-    [quarter, today],
+    [state.plans, quarter, today, save],
   );
 
-  // Signed in, only the sample parts are reset; live data stays as it is.
-  const resetFixtures = useCallback(
-    () =>
-      setState((s) => {
-        const fresh = fixtures(today, timeZone, s.settings.locale);
-        return live ? withLive(fresh, { userId: s.userId, settings: s.settings, plans: s.plans, objectives: s.objectives, tasks: s.tasks }) : fresh;
-      }),
-    [today, timeZone, live],
-  );
+  /** Design review only: start over from the sample data. */
+  const resetFixtures = useCallback(() => {
+    if (!live) setState((s) => fixtures(today, timeZone, s.settings.locale));
+  }, [today, timeZone, live]);
 
   return {
     state,

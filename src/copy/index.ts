@@ -4,7 +4,7 @@
  * Copy dictionaries — one per language, same shape. `vi` is the default (SPEC §2).
  * Components read strings with `useCopy()`; a missing translation fails the typecheck.
  */
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { en } from "./en";
 import { vi } from "./vi";
 

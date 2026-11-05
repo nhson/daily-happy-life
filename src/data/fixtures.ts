@@ -98,6 +98,7 @@ export function fixtures(today: LogicalDate, timeZone: string, locale: Locale = 
     intention: null,
     energy: e,
     engagement: g,
+    top3TaskIds: [],
     meaningSources: m,
     note,
     morningAt: at(date, 7),
@@ -176,6 +177,7 @@ export function fixtures(today: LogicalDate, timeZone: string, locale: Locale = 
       [y]: {
         ...log(y, 4, 4, ["community", "coherence"], w.notes[1]),
         intention: w.intention,
+        top3TaskIds: ["t1", "t2", "t3"],
       },
     },
     decisions: [

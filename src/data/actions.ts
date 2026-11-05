@@ -3,7 +3,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import type { FoldResolution } from "@/domain/objectives";
-import type { ObjectiveStatus, OdysseyPlan, UserSettings } from "@/domain/types";
+import type { OnboardingState } from "@/domain/onboarding";
+import type { Compass, Decision, LogicalDate, ObjectiveStatus, OdysseyPlan, UserSettings } from "@/domain/types";
+import * as days from "./days";
+import * as life from "./life";
+import * as onboarding from "./onboarding";
 import { db } from "./db/client";
 import * as schema from "./db/schema";
 import * as plans from "./plans";
@@ -73,4 +77,28 @@ export async function setObjectiveStatusAction(id: string, status: ObjectiveStat
 export async function saveSettingsAction(patch: Partial<UserSettings>) {
   await saveSettings(db, (await me()).id, patch);
   return { ok: true as const };
+}
+
+export async function patchLogAction(date: LogicalDate, patch: days.LogPatch) {
+  await days.patchLog(db, (await me()).id, date, patch);
+  return { ok: true as const };
+}
+
+export async function saveCompassAction(c: Compass) {
+  if (!c.workview.trim() || !c.lifeview.trim()) return { ok: false as const };
+  await life.saveCompass(db, (await me()).id, c);
+  return { ok: true as const };
+}
+
+export async function addDecisionAction(d: Decision) {
+  return life.addDecision(db, (await me()).id, d);
+}
+
+export async function saveOnboardingAction(state: OnboardingState) {
+  await onboarding.saveOnboarding(db, (await me()).id, state);
+  return { ok: true as const };
+}
+
+export async function completeOnboardingAction(input: Parameters<typeof onboarding.completeOnboarding>[2]) {
+  return onboarding.completeOnboarding(db, (await me()).id, input);
 }

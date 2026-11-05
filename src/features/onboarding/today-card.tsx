@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { useCopy } from "@/copy";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { Button } from "@/ui/controls";
 import { Tip } from "@/ui/tip";
 

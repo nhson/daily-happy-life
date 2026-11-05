@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-003 — Slice 2 (Tasks + Capture live)
+**Active Feature:** feat-004 — Slice 3 (Morning ritual live)
 **Branch:** main
 
 ### What's Done
@@ -17,7 +17,8 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 - [x] feat-001: owner approved the Phase 0 design on 2026-11-04
 - [x] feat-002: Slice 1 — Foundation — done 2026-11-05 (owner signed in on production; users row in Neon)
-- [ ] feat-003: Slice 2 — Tasks + Capture live — built and deployed; waiting on the owner's phone check
+- [x] feat-003: Slice 2 — Tasks + Capture live (owner accepted 2026-11-05)
+- [ ] feat-004: Slice 3 — Morning ritual live — built and deployed; waiting on the owner's first run
 
 ### What's Next
 
@@ -33,6 +34,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 3: Morning ritual live, mock store gone
+
+- Everything the signed-in app shows now comes from Neon: Compass, Daily Logs, Decisions, onboarding progress joined tasks/plans/objectives/settings.
+- Carry-over reads the logged Top 3 (most recent Top 3 day within 7 days). Day 1 setup saves in one transaction.
+- `mock-store.tsx` → `store.tsx`; sample data only for signed-out review. `instant = false` kept (client-only shell, device clock) — see PLAN.
+- Owner's account has no onboarded_at yet, so the next visit opens the first run.
 
 ### 2026-11-05 — Slice 2: Tasks + Capture live
 

@@ -60,6 +60,8 @@ export interface DailyLog {
   engagement: number | null;
   meaningSources: MeaningSource[];
   note: string;
+  /** That day's Top 3 as it last stood — history for carry-over (tasks.top3Date only knows today). */
+  top3TaskIds: string[];
   /** When the Morning Ritual was finished or skipped — it runs once per Logical Day. */
   morningAt: string | null;
   /** When the Evening Check-in was committed ("Close the day"). Counts toward the week dots. */

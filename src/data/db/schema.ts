@@ -14,6 +14,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { OnboardingState } from "@/domain/onboarding";
 
 /**
  * SPEC §8. The database enforces every rule that one row can check on its own
@@ -28,12 +29,6 @@ const owner = () =>
     .references(() => users.id, { onDelete: "cascade" });
 const between = (col: unknown, lo: number, hi: number) => sql`${col} is null or ${col} between ${sql.raw(String(lo))} and ${sql.raw(String(hi))}`;
 
-export type Onboarding = {
-  setupDate: string | null;
-  seenTips: string[];
-  reminderAskedAt: string | null;
-  nudges: Record<string, { snoozedUntil?: string; notNowCount: number }>;
-};
 
 export const users = pgTable(
   "users",
@@ -49,7 +44,7 @@ export const users = pgTable(
     pushSubscription: jsonb("push_subscription"),
     reminderScheduleId: text("reminder_schedule_id"),
     onboardedAt: at("onboarded_at"),
-    onboarding: jsonb("onboarding").$type<Onboarding>(),
+    onboarding: jsonb("onboarding").$type<OnboardingState>(),
     createdAt: at("created_at").notNull().defaultNow(),
   },
   (t) => [

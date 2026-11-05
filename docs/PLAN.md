@@ -38,7 +38,8 @@ src/
     types.ts
   data/
     store.ts                interface the UI calls (Server Actions in prod)
-    mock-store.ts           Phase 0 in-memory fixtures (deleted after Slice 3)
+    store.tsx               the one client store: server data when signed in, sample data in design review
+    actions.ts              Server Actions (each acts as the signed-in user only)
     db/schema.ts, queries   Drizzle (Slice 1+)
   ui/                       design system: tokens, Sky, Sheet, Chip, Dial, Glyphs…
   features/                 today/, tasks/, life/, capture/, onboarding/
@@ -91,11 +92,18 @@ Decisions made in Slice 1 (2026-11-04):
 Decisions made in Slice 2 (2026-11-05):
 - **Objectives and Odyssey Plans went live with Tasks** (owner's choice): a real task can't point at a sample Objective. Every user gets three plan rows on first load (slot 1 = implicit Current Path); adding an Objective, Done/Drop, writing a plan and switching the Active Plan save for real. Compass, Decisions, Daily Logs and onboarding stay sample until their slices.
 - **Settings on the user row are live too** (timezone, hours, theme, language, reminder time): the Logical Day the browser shows must match the one the server writes. "Sound" stays per device.
-- **One store, two sources.** `mock-store.tsx` takes the server's `LiveData` when signed in; changes apply on screen first, then a Server Action (`src/data/actions.ts`) saves them; a refusal reloads the server's version with a quiet toast. Signed out (design review) it is all sample data, as before.
+- **One store, two sources.** The store (`mock-store.tsx` then, `store.tsx` since Slice 3) takes the server's `LiveData` when signed in; changes apply on screen first, then a Server Action (`src/data/actions.ts`) saves them; a refusal reloads the server's version with a quiet toast. Signed out (design review) it is all sample data, as before.
 - **Client-made ids** (UUIDs): the optimistic row and the saved row are the same; a retried create is a no-op.
 - **Plan switch is one pure function** (`src/domain/plan-switch.ts`) used by both the browser and the server; the server writes it in one transaction (Neon HTTP `batch`).
 - **Smoothness on phones** (owner, 2026-11-05: loading and tab changes felt rough): task rows use `.glass-lite` (same look, no backdrop blur; many blurred layers cost frames on a mid-range Android); tab changes use a 220 ms compositor-only fade/lift instead of a full-page view transition; while loading, a placeholder frame (tab bar, capture, quiet rows) shows instead of an empty sky. `node scripts/perf-nav.mjs` measures frame timing at 4× CPU slowdown.
 - **Task sheet**: tap a task's words to edit title, why and due date; "Let it go" closes it (history); "Delete — added by mistake" needs a second tap. Due today or overdue shows in a "Due" section on Today, never in the Top 3 by itself.
+
+Decisions made in Slice 3 (2026-11-05):
+- **"Mock store deleted" = nothing the signed-in app shows is sample data any more.** Compass, Daily Logs (morning and evening fields), Decisions and onboarding progress went live with the morning ritual; the store file is now `src/data/store.tsx`. Sample data remains only for signed-out design review (`dev:review`), kept in localStorage there. Slices 4–6 keep their behaviour work (missed check-in, tips across devices, the promotion sheet settling old Objectives, Objective Done asking about open tasks); their data is already live.
+- **Device preferences stay on the device**: sound and the last "why" used in capture.
+- **The logged Top 3 follows every change** to a day's Top 3 (`snapshotTop3`, same transaction), so `daily_logs.top3TaskIds` holds the final Top 3 once the day is over. Carry-over (`src/domain/carry-over.ts`) reads it: the most recent day with a Top 3, up to 7 days back, still-open tasks in that day's order.
+- **A fresh account goes through the real first run** (`users.onboarded_at` is null until Day 1 setup, which saves Compass, Objective, tasks, Top 3 and the morning in one transaction).
+- **`instant = false` stays.** It was meant to go with the mock store, but the shell still renders client-only for a different reason: the sky, ritual mode and Logical Day follow the device clock. Rendering the shell on the server is its own piece of work (Slice 10, perf).
 
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 

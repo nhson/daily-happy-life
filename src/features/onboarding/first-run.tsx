@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCopy } from "@/copy";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { Button } from "@/ui/controls";
 import { AppMark } from "@/ui/glyphs";
 import { useSky } from "@/ui/sky";

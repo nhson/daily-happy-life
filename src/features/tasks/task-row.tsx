@@ -7,7 +7,7 @@ import { useRef } from "react";
 import { useCopy, useFormatDate } from "@/copy";
 import { dueStatus } from "@/domain/task-rules";
 import type { Task } from "@/domain/types";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { KindDot, kindColor } from "@/ui/glyphs";
 import { tap } from "@/ui/feedback";
 import { useSky } from "@/ui/sky";

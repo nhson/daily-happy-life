@@ -7,7 +7,7 @@ import { useCopy } from "@/copy";
 import { Tip } from "@/ui/tip";
 import { logicalDate } from "@/domain/logical-day";
 import { MEANING_SOURCES, type MeaningSource } from "@/domain/types";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { TaskList } from "@/features/tasks/task-list";
 import { Button, RatingStops } from "@/ui/controls";
 import { chime, tap } from "@/ui/feedback";

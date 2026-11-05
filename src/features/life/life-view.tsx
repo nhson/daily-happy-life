@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCopy, useFormatDate } from "@/copy";
 import { MINDSET_KEYS, type MindsetKey } from "@/domain/mindsets";
 import { GAUGE_KEYS, type OdysseyPlan } from "@/domain/types";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { Button, Chip, GaugeDial } from "@/ui/controls";
 import { KindDot } from "@/ui/glyphs";
 import { quarterProgress } from "@/domain/logical-day";

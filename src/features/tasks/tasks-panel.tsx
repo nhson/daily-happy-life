@@ -7,7 +7,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { LOCALE_TAG, useCopy, useLocale, type Copy } from "@/copy";
 import { addDays, logicalDate } from "@/domain/logical-day";
 import type { Task, TaskKind } from "@/domain/types";
-import { useStore } from "@/data/mock-store";
+import { useStore } from "@/data/store";
 import { KindDot, kindColor } from "@/ui/glyphs";
 import { TaskList, useTaskKeys } from "./task-list";
 
