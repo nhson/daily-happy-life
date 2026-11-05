@@ -46,6 +46,7 @@ A feature is done only when ALL of the following are true:
 
 - [ ] The slice's "Done when" in `feature_list.json` / PLAN.md is demonstrably met
 - [ ] `./init.sh` passes (typecheck, lint, tests, build)
+- [ ] Done-criterion proven end to end: `bun run e2e` (and against production after deploy), spec in `e2e/`
 - [ ] UI changes checked visually (`bun run dev:review` + `bun run review` → `review/vi/*.png`; add `-- --lang=en` for English)
 - [ ] Evidence (command and result) recorded in `feature_list.json` `evidence`
 - [ ] Repository remains restartable from `./init.sh`
@@ -69,6 +70,8 @@ bun run lint
 bun run test           # Vitest — NOT `bun test` (that is Bun's own runner)
 bun run build
 bun run review         # Playwright screenshots; needs `bun run dev:review` running (signed-out review mode)
+bun run e2e            # Playwright, signed in as the e2e test user against a local prod build (real Neon)
+E2E_BASE_URL=https://daily-happy-life.vercel.app bun run e2e   # same, against production
 bun run db:generate    # Drizzle migration from src/data/db/schema.ts
 bun run db:migrate     # apply migrations to Neon (.env.local from `vercel env pull`)
 ```

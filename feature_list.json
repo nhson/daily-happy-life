@@ -46,8 +46,8 @@
       "dependencies": [
         "feat-003"
       ],
-      "status": "in-progress",
-      "evidence": "2026-11-05: ./init.sh pass (142 Vitest tests: carry-over domain; daily logs, logged Top 3 following every change and feeding carry-over, Compass, Decisions, Day 1 setup in one transaction and only once, onboarding state on PGlite). bun run review: no console errors; carry-over chip comes from the logged Top 3. Mock store gone from the signed-in app (store.tsx: all data from the server; sample data only in signed-out review). PENDING: owner runs the first run and a morning ritual on production; flow shows once per Logical Day."
+      "status": "done",
+      "evidence": "2026-11-05: ./init.sh pass (142 Vitest tests: carry-over domain; daily logs, logged Top 3 following every change and feeding carry-over, Compass, Decisions, Day 1 setup in one transaction and only once, onboarding state on PGlite). bun run review: no console errors; carry-over chip comes from the logged Top 3. Mock store gone from the signed-in app (store.tsx: all data from the server; sample data only in signed-out review). E2E (2026-11-05, signed in as the e2e test user, real Neon): `bun run e2e` (local prod build) 4/4 passed; `E2E_BASE_URL=https://daily-happy-life.vercel.app bun run e2e` 4/4 passed twice. e2e/day-one.spec.ts proves: first run saves Compass/Objective/tasks/Top 3/morning in the DB and survives reload; next morning the ritual opens once with yesterday's unfinished Top 3 preselected (finished one not offered), intention + Top 3 land in daily_logs, reload skips the ritual. Also covers Slice 2: phone capture type + Enter with last why preselected, due today on Today, let go keeps the row, delete removes it."
     },
     {
       "id": "feat-005",
@@ -56,7 +56,7 @@
       "dependencies": [
         "feat-004"
       ],
-      "status": "not-started",
+      "status": "in-progress",
       "evidence": ""
     },
     {

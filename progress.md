@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-004 — Slice 3 (Morning ritual live)
+**Active Feature:** feat-005 — Slice 4 (Evening check-in live)
 **Branch:** main
 
 ### What's Done
@@ -18,11 +18,11 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-001: owner approved the Phase 0 design on 2026-11-04
 - [x] feat-002: Slice 1 — Foundation — done 2026-11-05 (owner signed in on production; users row in Neon)
 - [x] feat-003: Slice 2 — Tasks + Capture live (owner accepted 2026-11-05)
-- [ ] feat-004: Slice 3 — Morning ritual live — built and deployed; waiting on the owner's first run
+- [x] feat-004: Slice 3 — Morning ritual live (E2E 4/4 local + production)
 
 ### What's Next
 
-1. feat-003 (Slice 2 — Tasks + Capture live)
+1. feat-005 Slice 4 → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
 2. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
@@ -34,6 +34,11 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — E2E harness; Slice 3 proven
+
+- `bun run e2e`: Playwright signed in as a dedicated Clerk test user (alias of the owner's address; created via the Backend API with the allowlist widened only for that call), rows wiped each run. Local prod build or `E2E_BASE_URL` (production).
+- e2e/day-one.spec.ts 4/4 locally and on production (twice). Browser date pinned with `clock.setFixedTime` (not `install`, which fakes animation frames and froze a transition once).
 
 ### 2026-11-05 — Slice 3: Morning ritual live, mock store gone
 
