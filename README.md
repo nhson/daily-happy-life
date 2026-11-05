@@ -4,6 +4,8 @@
 
 It is built on two books by Bill Burnett and Dave Evans: *Designing Your Life* (the Compass, three Odyssey Plans, the Good Time Journal, the Health/Work/Play/Love dashboard) and *How to Live a Meaningful Life* (four sources of meaning and five mindsets).
 
+![Today on a desktop: a line from your Compass under the morning sun, your Top 3, and every open task grouped by why it matters](docs/images/today-desktop.jpg)
+
 > Working name. Vietnamese by default, English in Settings. For one person for now (sign-in is invite-only), built so it can open to others later.
 
 ## How a day feels
@@ -11,6 +13,17 @@ It is built on two books by Bill Burnett and Dave Evans: *Designing Your Life* (
 - **Morning, about 2 minutes.** One line from your own Compass greets you. Pick today's **Top 3**, then write one if-then **Intention** ("When I sit down after lunch, I will write for twenty minutes").
 - **During the day.** Capture a task in a second (`⌘K` on desktop, the `+` button on a phone) and say why it matters: an Objective, Maintenance, or a Prototype. Start a **Focus Session** on any Top 3 task with one tap.
 - **Evening, about 60 seconds.** Tick what got done, rate Energy and Engagement from 1 to 5, and tap what made the day meaningful (Wonder, Coherence, Flow, Community). A thin bar shows the week's **Life Share**: how much went to what matters versus what merely had to be done.
+
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="docs/images/morning-compass.jpg" alt="Morning: a line from your own Compass and a Begin the day button" /><br /><sub>Morning: your own words first</sub></td>
+    <td align="center" width="25%"><img src="docs/images/morning-top3.jpg" alt="Choosing up to three tasks for today, each showing the Objective or Prototype it serves" /><br /><sub>Pick today's Top 3</sub></td>
+    <td align="center" width="25%"><img src="docs/images/evening-checkin.jpg" alt="Evening check-in at night: tick tasks, rate Energy and Engagement, tap sources of meaning" /><br /><sub>Close the day in a minute</sub></td>
+    <td align="center" width="25%"><img src="docs/images/life.jpg" alt="The Life page: Who you are becoming, the plan you are living toward, and your Compass" /><br /><sub>Life: remember why</sub></td>
+  </tr>
+</table>
+
+<sub>Screenshots use sample data. The sky follows the time of day: dawn, daylight, dusk and night.</sub>
 
 ## And over longer stretches
 

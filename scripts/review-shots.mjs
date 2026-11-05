@@ -47,6 +47,14 @@ const errors = [];
 
 for (const [name, opts] of Object.entries(sizes)) {
   const ctx = await browser.newContext({ ...opts, timezoneId: "Asia/Ho_Chi_Minh", locale: lang === "vi" ? "vi-VN" : "en-GB" });
+  // The Next.js dev badge isn't part of the app: keep it out of the shots.
+  await ctx.addInitScript(() =>
+    document.addEventListener("DOMContentLoaded", () => {
+      const style = document.createElement("style");
+      style.textContent = "nextjs-portal { display: none !important; }";
+      document.head.append(style);
+    }),
+  );
   const page = await ctx.newPage();
   page.on("console", (m) => m.type() === "error" && errors.push(`[${name}] ${m.text()}`));
   page.on("pageerror", (e) => errors.push(`[${name}] pageerror: ${e.message}`));
