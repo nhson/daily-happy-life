@@ -50,7 +50,7 @@ describe("createTask", () => {
   });
 
   it("refuses a Prototype of the Active Plan, and an empty title", async () => {
-    await setActivePlan(db, me, plan2, null, { quarter: "2026-Q4", now: new Date().toISOString(), newObjectiveId: id() });
+    await setActivePlan(db, me, plan2, { objectives: {}, prototypes: null }, { quarter: "2026-Q4", now: new Date().toISOString(), newObjectiveId: id() });
     expect(await add("x", { kind: "prototype", planId: plan2 })).toMatchObject({ ok: false, error: "prototype_on_active_plan" });
     expect(await add("   ")).toMatchObject({ ok: false, error: "empty_title" });
   });

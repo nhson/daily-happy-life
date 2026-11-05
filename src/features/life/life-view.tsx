@@ -243,7 +243,6 @@ function ViewCard({ label, prompt, tint, value, onSave }: { label: string; promp
 function OdysseySection() {
   const copy = useCopy();
   const { state, actions } = useStore();
-  const toast = useToast();
   const [editing, setEditing] = useState<OdysseyPlan | null>(null);
   const [promoting, setPromoting] = useState<OdysseyPlan | null>(null);
   const section = useRef<HTMLElement>(null);
@@ -264,13 +263,8 @@ function OdysseySection() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const promote = (p: OdysseyPlan) => {
-    if (actions.openPrototypesOf(p.id).length) setPromoting(p);
-    else {
-      actions.setActivePlan(p.id, null);
-      toast(copy.life.nowActive(p.title));
-    }
-  };
+  // One sheet settles both sides of the switch, then offers to log it as a Decision.
+  const promote = (p: OdysseyPlan) => setPromoting(p);
 
   return (
     <section ref={section} aria-label={copy.life.odyssey} className="scroll-mt-6">
@@ -456,72 +450,191 @@ function PlanEditor({ plan, onSave }: { plan: OdysseyPlan; onSave: (p: OdysseyPl
 
 function PromotionForm({ plan, onDone }: { plan: OdysseyPlan; onDone: () => void }) {
   const copy = useCopy();
-  const { state, quarter, actions } = useStore();
+  const { state, quarter, activePlan, toSettle, actions } = useStore();
   const toast = useToast();
   const affected = actions.openPrototypesOf(plan.id);
+  const [stage, setStage] = useState<"settle" | "decision">("settle");
+  const [choices, setChoices] = useState<Record<string, "keep" | "drop">>(() => Object.fromEntries(toSettle.map((o) => [o.id, "keep"])));
+  const [fold, setFold] = useState(true);
   const [name, setName] = useState(plan.title);
-  // Three objectives already: fold into one of them instead of making a fourth.
-  const active = state.objectives.filter((o) => o.status === "active" && o.quarter === quarter);
-  const full = objectiveRoom(state.objectives, quarter) === 0;
-  const [into, setInto] = useState(active[0]?.id ?? null);
+  // Room is what is left once the dropped ones are gone.
+  const after = state.objectives.filter((o) => choices[o.id] !== "drop");
+  const full = objectiveRoom(after, quarter) === 0;
+  const targets = after.filter((o) => o.status === "active" && o.quarter === quarter);
+  const [into, setInto] = useState<string | null>(null);
+  const target = targets.some((o) => o.id === into) ? into : (targets[0]?.id ?? null);
+  const [decision, setDecision] = useState(copy.promotion.decisionText(plan.title));
+  const [drivenBy, setDrivenBy] = useState("");
+
+  const ready = !affected.length || !fold || (full ? !!target : !!name.trim());
+  const confirm = () => {
+    const prototypes = !affected.length ? null : !fold ? ("close" as const) : full ? { into: target! } : { fold: name.trim() };
+    if (actions.setActivePlan(plan.id, { objectives: choices, prototypes })) setStage("decision");
+  };
+  const finish = (log: boolean) => {
+    if (log && decision.trim()) actions.addDecision({ decision: decision.trim(), drivenBy: drivenBy.trim(), linkedPlanId: plan.id });
+    toast(copy.life.nowActive(plan.title));
+    onDone();
+  };
+
+  if (stage === "decision")
+    return (
+      <form
+        className="flex flex-col gap-5 py-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          finish(true);
+        }}
+      >
+        <div>
+          <h2 className="serif text-3xl leading-tight">{copy.promotion.decisionTitle}</h2>
+          <p className="mt-2 text-ink-2">{copy.promotion.decisionBody}</p>
+        </div>
+        <input
+          aria-label={copy.life.decisionPlaceholder}
+          value={decision}
+          onChange={(e) => setDecision(e.target.value)}
+          className="serif w-full bg-transparent text-[26px] leading-tight outline-none"
+        />
+        <label className="block">
+          <span className="eyebrow">{copy.life.drivenBy}</span>
+          <textarea
+            autoFocus
+            value={drivenBy}
+            onChange={(e) => setDrivenBy(e.target.value)}
+            rows={2}
+            placeholder={copy.life.drivenByPlaceholder}
+            className="mt-2 w-full resize-none rounded-2xl bg-fill px-4 py-3 text-[15px] outline-none ring-1 ring-hairline placeholder:text-ink-3 focus:ring-ink-3"
+          />
+        </label>
+        <div className="flex flex-col gap-2 sm:flex-row-reverse">
+          <Button type="submit" size="lg" className="sm:flex-1" disabled={!decision.trim()}>
+            {copy.life.logDecision}
+          </Button>
+          <Button type="button" size="lg" variant="glass" className="sm:flex-1" onClick={() => finish(false)}>
+            {copy.promotion.skipDecision}
+          </Button>
+        </div>
+      </form>
+    );
+
+  return (
+    <div className="flex flex-col gap-7 py-2">
+      <h2 className="serif text-3xl leading-tight">{copy.promotion.title(plan.title)}</h2>
+
+      {toSettle.length > 0 && (
+        <section aria-label={copy.promotion.oldObjectives(activePlan?.title ?? "")}>
+          <p className="eyebrow">{copy.promotion.oldObjectives(activePlan?.title ?? "")}</p>
+          <p className="mt-1 text-sm text-ink-2">{copy.promotion.oldObjectivesHint}</p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {toSettle.map((o) => (
+              <li key={o.id} className="flex items-center justify-between gap-3 rounded-2xl bg-fill px-4 py-2.5">
+                <span className={clsx("min-w-0 flex-1 text-[15px]", choices[o.id] === "drop" && "text-ink-3 line-through")}>{o.title}</span>
+                <span role="group" aria-label={o.title} className="flex shrink-0 gap-1.5">
+                  {(["keep", "drop"] as const).map((c) => (
+                    <Chip key={c} selected={choices[o.id] === c} onClick={() => setChoices({ ...choices, [o.id]: c })}>
+                      {copy.promotion[c]}
+                    </Chip>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {affected.length > 0 && (
+        <section aria-label={copy.promotion.prototypes}>
+          <p className="eyebrow">{copy.promotion.prototypes}</p>
+          <p className="mt-1 text-sm text-ink-2">{copy.promotion.body}</p>
+          <ul className="mt-3 flex flex-col gap-1.5">
+            {affected.map((t) => (
+              <li key={t.id} className="flex items-center gap-2 text-sm">
+                <KindDot kind="prototype" /> {t.title}
+              </li>
+            ))}
+          </ul>
+          <div role="group" aria-label={copy.promotion.prototypes} className="mt-4 flex flex-wrap gap-2">
+            <Chip selected={fold} onClick={() => setFold(true)}>
+              {copy.promotion.foldChoice}
+            </Chip>
+            <Chip selected={!fold} onClick={() => setFold(false)}>
+              {copy.promotion.close}
+            </Chip>
+          </div>
+          {fold &&
+            (full ? (
+              <div className="mt-4">
+                <p className="text-sm text-ink-2">{copy.promotion.full}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {targets.map((o) => (
+                    <Chip key={o.id} selected={target === o.id} onClick={() => setInto(o.id)}>
+                      {o.title}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <label className="mt-4 block">
+                <span className="eyebrow">{copy.promotion.objectiveName}</span>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="mt-2 w-full rounded-2xl bg-fill px-4 py-3 text-[15px] text-ink outline-none ring-1 ring-hairline focus:ring-ink-3"
+                />
+              </label>
+            ))}
+        </section>
+      )}
+
+      <Button size="lg" disabled={!ready} onClick={confirm}>
+        {copy.promotion.confirm}
+      </Button>
+    </div>
+  );
+}
+
+/** Marking an Objective Done with open tasks asks once where they go: closed (default) or moved. */
+function FinishForm({ objectiveId, onDone }: { objectiveId: string; onDone: () => void }) {
+  const copy = useCopy();
+  const { state, actions } = useStore();
+  const o = state.objectives.find((x) => x.id === objectiveId);
+  const open = state.tasks.filter((t) => t.objectiveId === objectiveId && !t.doneAt && !t.closedAt);
+  const others = state.objectives.filter((x) => x.id !== objectiveId && x.status === "active" && x.quarter === o?.quarter);
+  const [to, setTo] = useState<string | null>(null);
+  if (!o) return null;
   return (
     <div className="flex flex-col gap-5 py-2">
-      <h2 className="serif text-3xl leading-tight">{copy.promotion.title(plan.title)}</h2>
-      <p className="text-ink-2">{copy.promotion.body}</p>
+      <div>
+        <h2 className="serif text-3xl leading-tight">{copy.finish.title(o.title)}</h2>
+        <p className="mt-2 text-ink-2">{copy.finish.body(open.length)}</p>
+      </div>
       <ul className="flex flex-col gap-1.5">
-        {affected.map((t) => (
+        {open.map((t) => (
           <li key={t.id} className="flex items-center gap-2 text-sm">
-            <KindDot kind="prototype" /> {t.title}
+            <KindDot kind="objective" /> {t.title}
           </li>
         ))}
       </ul>
-      {full ? (
-        <div>
-          <p className="text-sm text-ink-2">{copy.promotion.full}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {active.map((o) => (
-              <Chip key={o.id} selected={into === o.id} onClick={() => setInto(o.id)}>
-                {o.title}
-              </Chip>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <label className="block">
-          <span className="eyebrow">{copy.promotion.objectiveName}</span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-2 w-full rounded-2xl bg-fill px-4 py-3 text-[15px] text-ink outline-none ring-1 ring-hairline focus:ring-ink-3"
-          />
-        </label>
-      )}
-      <div className="flex shrink-0 flex-col gap-2 sm:flex-row-reverse">
-        <Button
-          size="lg"
-          className="sm:flex-1"
-          disabled={full ? !into : !name.trim()}
-          onClick={() => {
-            actions.setActivePlan(plan.id, full && into ? { into } : { fold: name.trim() });
-            toast(copy.life.nowActive(plan.title));
-            onDone();
-          }}
-        >
-          {full ? copy.promotion.convertInto : copy.promotion.convert}
-        </Button>
-        <Button
-          size="lg"
-          variant="glass"
-          className="sm:flex-1"
-          onClick={() => {
-            actions.setActivePlan(plan.id, "close");
-            toast(copy.life.nowActive(plan.title));
-            onDone();
-          }}
-        >
-          {copy.promotion.close}
-        </Button>
+      <div role="group" aria-label={copy.finish.title(o.title)} className="flex flex-wrap gap-2">
+        <Chip selected={to === null} onClick={() => setTo(null)}>
+          {copy.finish.close}
+        </Chip>
+        {others.map((x) => (
+          <Chip key={x.id} selected={to === x.id} onClick={() => setTo(x.id)}>
+            {copy.finish.move(x.title)}
+          </Chip>
+        ))}
       </div>
+      <Button
+        size="lg"
+        onClick={() => {
+          actions.finishObjective(o.id, to ? { move: to } : "close");
+          onDone();
+        }}
+      >
+        {copy.finish.confirm}
+      </Button>
     </div>
   );
 }
@@ -533,6 +646,7 @@ function ObjectivesSection() {
   const { state, quarter, today, actions } = useStore();
   const [draft, setDraft] = useState("");
   const [adding, setAdding] = useState(false);
+  const [finishing, setFinishing] = useState<string | null>(null);
   const all = state.objectives.filter((o) => o.quarter === quarter);
   const room = objectiveRoom(state.objectives, quarter);
   const qp = quarterProgress(today);
@@ -561,7 +675,10 @@ function ObjectivesSection() {
                 <span className="tabular font-mono text-[11px] text-ink-3">{String(i + 1).padStart(2, "0")}</span>
                 {o.status === "active" ? (
                   <div className="-my-2 -mr-2 flex">
-                    <IconButton label={copy.life.markDone(o.title)} onClick={() => actions.setObjectiveStatus(o.id, "done")}>
+                    <IconButton
+                      label={copy.life.markDone(o.title)}
+                      onClick={() => (tasks.some((t) => !t.doneAt) ? setFinishing(o.id) : actions.finishObjective(o.id, "close"))}
+                    >
                       <Check size={16} />
                     </IconButton>
                     <IconButton label={copy.life.drop(o.title)} onClick={() => actions.setObjectiveStatus(o.id, "dropped")}>
@@ -644,6 +761,9 @@ function ObjectivesSection() {
         )}
       </ul>
       {room === 0 && <p className="serif mt-4 text-lg italic text-ink-2">{copy.life.objectivesFull}</p>}
+      <Sheet open={!!finishing} onClose={() => setFinishing(null)} label={copy.life.objectives}>
+        {finishing && <FinishForm objectiveId={finishing} onDone={() => setFinishing(null)} />}
+      </Sheet>
     </section>
   );
 }

@@ -114,6 +114,10 @@ Decisions made in Slice 5 (2026-11-05):
 - **Onboarding progress is saved as events, not snapshots.** A device reports "tip seen", "tips reset", "reminder asked" or "not now on Plan N"; the server applies it to what it has stored (`applyOnboarding`, `recordOnboarding`) and works out today from the user's timezone. A stale phone can't bring back a tip dismissed on the laptop, two devices' "not now"s add up, and the server no longer stores whatever shape a client sends.
 - **The first run itself was finished in Slice 3** (Day 1 setup in one transaction); Slice 5 proves the rest end to end: tips, the reminder ask after the first closed day, Odyssey nudges and "Show tips again", each checked from a second browser with no shared storage.
 
+Decisions made in Slice 6 (2026-11-05):
+- **Every plan switch goes through the sheet**, even without Prototypes: it settles the old plan's still-active Objectives (Keep preselected — it loses nothing) and ends with the pre-filled Decision, skippable. Old Objectives are settled first, so dropping one makes room for folding Prototypes into a new Objective (`switchPlan` with `Settle`).
+- **Objective Done always settles its open tasks**: closed by default, or moved to another active Objective of the same quarter; finished tasks stay with the Objective they were done for. The server applies it even when only the status is sent (`finishObjective`).
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |

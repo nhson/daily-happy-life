@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import type { FoldResolution } from "@/domain/objectives";
+import type { Settle } from "@/domain/plan-switch";
 import { logicalDate } from "@/domain/logical-day";
 import { parseOnboardingEvent } from "@/domain/onboarding";
 import type { Compass, Decision, LogicalDate, ObjectiveStatus, OdysseyPlan, UserSettings } from "@/domain/types";
@@ -63,8 +64,31 @@ export async function savePlanAction(plan: OdysseyPlan) {
   return { ok: await plans.savePlan(db, (await me()).id, plan) };
 }
 
-export async function setActivePlanAction(planId: string, resolution: FoldResolution | null, quarter: string, newObjectiveId: string) {
-  return plans.setActivePlan(db, (await me()).id, planId, resolution, { quarter, now: now(), newObjectiveId });
+/** Only "keep"/"drop" choices and a well-formed Prototype resolution get through; the rest is ignored. */
+function settleOf(x: unknown): Settle {
+  const v = (x ?? {}) as { objectives?: unknown; prototypes?: unknown };
+  const objectives: Settle["objectives"] = {};
+  if (v.objectives && typeof v.objectives === "object")
+    for (const [id, c] of Object.entries(v.objectives)) if (c === "keep" || c === "drop") objectives[id] = c;
+  const p = v.prototypes as Record<string, unknown> | string | null | undefined;
+  const prototypes: FoldResolution | null =
+    p === "close"
+      ? "close"
+      : p && typeof p === "object" && typeof p.fold === "string" && p.fold.trim()
+        ? { fold: p.fold.slice(0, 200) }
+        : p && typeof p === "object" && typeof p.into === "string"
+          ? { into: p.into }
+          : null;
+  return { objectives, prototypes };
+}
+
+export async function setActivePlanAction(planId: string, settle: Settle, quarter: string, newObjectiveId: string) {
+  return plans.setActivePlan(db, (await me()).id, planId, settleOf(settle), { quarter, now: now(), newObjectiveId });
+}
+
+export async function finishObjectiveAction(id: string, then: "close" | { move: string }) {
+  const t = then !== "close" && typeof then?.move === "string" ? { move: then.move } : "close";
+  return plans.finishObjective(db, (await me()).id, id, t, now());
 }
 
 export async function addObjectiveAction(input: { id: string; title: string; quarter: string }) {

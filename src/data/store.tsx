@@ -18,9 +18,9 @@ import { compassLineFor, type CompassLine } from "@/domain/compass-line";
 import { missedCheckIn } from "@/domain/missed-check-in";
 import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
-import { objectiveRoom, type FoldResolution } from "@/domain/objectives";
+import { objectiveRoom } from "@/domain/objectives";
 import { applyOnboarding, freshOnboarding, todayCard, type OnboardingEvent, type PlanSlot, type TipId } from "@/domain/onboarding";
-import { switchPlan } from "@/domain/plan-switch";
+import { finishObjective as finishWith, objectivesToSettle, switchPlan, type Settle } from "@/domain/plan-switch";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
 import type { Compass, DailyLog, Decision, LogicalDate, MeaningSource, Objective, OdysseyPlan, Task } from "@/domain/types";
 import { useClock } from "@/ui/clock";
@@ -346,16 +346,31 @@ function useStoreState(live: LiveData | null) {
 
   const openPrototypesOf = useCallback((planId: string) => promotionEffects(planId, state.tasks), [state.tasks]);
 
-  /** Switch the Active Plan (see `switchPlan`): its open Prototypes are folded or closed. */
+  /** The still-active Objectives a switch away from the current Active Plan has to settle. */
+  const toSettle = objectivesToSettle(state);
+
+  /** Switch the Active Plan (see `switchPlan`): the old plan's Objectives kept or dropped, the new one's Prototypes folded or closed. */
   const setActivePlan = useCallback(
-    (planId: string, resolution: FoldResolution | null) => {
+    (planId: string, settle: Settle) => {
       const ctx = { quarter, now: new Date().toISOString(), newObjectiveId: uid() };
-      const r = switchPlan({ plans: state.plans, objectives: state.objectives, tasks: state.tasks }, planId, resolution, ctx);
-      if (!r.ok) return;
+      const r = switchPlan({ plans: state.plans, objectives: state.objectives, tasks: state.tasks }, planId, settle, ctx);
+      if (!r.ok) return false;
       setState((s) => ({ ...s, ...r.world, lastKind: null }));
-      save(() => server.setActivePlanAction(planId, resolution, quarter, ctx.newObjectiveId));
+      save(() => server.setActivePlanAction(planId, settle, quarter, ctx.newObjectiveId));
+      return true;
     },
     [state.plans, state.objectives, state.tasks, quarter, save],
+  );
+
+  /** Mark an Objective Done; its open tasks are closed (default) or moved to another active one. */
+  const finishObjective = useCallback(
+    (id: string, then: "close" | { move: string }) => {
+      const r = finishWith({ objectives: state.objectives, tasks: state.tasks }, id, then, new Date().toISOString());
+      if (!r.ok) return;
+      setState((s) => ({ ...s, ...r.world }));
+      save(() => server.finishObjectiveAction(id, then));
+    },
+    [state.objectives, state.tasks, save],
   );
 
   const addObjective = useCallback(
@@ -375,10 +390,11 @@ function useStoreState(live: LiveData | null) {
     (id: string, status: Objective["status"]) => {
       // Reactivating one only fits while there is room.
       if (status === "active" && objectiveRoom(state.objectives, quarter) === 0) return;
+      if (status === "done") return finishObjective(id, "close");
       setState((s) => ({ ...s, objectives: s.objectives.map((o) => (o.id === id ? { ...o, status } : o)) }));
       save(() => server.setObjectiveStatusAction(id, status));
     },
-    [state.objectives, quarter, save],
+    [state.objectives, quarter, save, finishObjective],
   );
 
   const addDecision = useCallback(
@@ -489,6 +505,7 @@ function useStoreState(live: LiveData | null) {
     tipUnseen,
     isLive: live !== null,
     yesterdayOpen,
+    toSettle,
     syncFailures,
     actions: {
       addTask,
@@ -507,6 +524,7 @@ function useStoreState(live: LiveData | null) {
       savePlan,
       openPrototypesOf,
       setActivePlan,
+      finishObjective,
       addObjective,
       setObjectiveStatus,
       addDecision,

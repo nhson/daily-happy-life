@@ -66,8 +66,8 @@
       "dependencies": [
         "feat-005"
       ],
-      "status": "in-progress",
-      "evidence": ""
+      "status": "done",
+      "evidence": "2026-11-05: e2e/onboarding.spec.ts — Top 3 tip dismissed on one device is gone on a second browser context (no shared storage) and survives that device dismissing another tip; reminder ask after the first closed day, then Plan 1 nudge, Not now → snoozed two days, both gone on the second device; Show tips again brings tips back elsewhere. Fresh account usable in < 3 min: e2e/day-one.spec.ts first run (Compass → Objective → tasks → today's picks → Today with Top 3) completes in ~21–25 s including sign-in. Local `bun run e2e` 10/10; production (commit cbb6fc8) `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/onboarding.spec.ts` → 3 passed. Vitest 154."
     },
     {
       "id": "feat-007",
@@ -76,7 +76,7 @@
       "dependencies": [
         "feat-006"
       ],
-      "status": "not-started",
+      "status": "in-progress",
       "evidence": ""
     },
     {

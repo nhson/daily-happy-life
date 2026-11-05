@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-006 — Slice 5 (First run)
+**Active Feature:** feat-007 — Slice 6 (Life page live)
 **Branch:** main
 
 ### What's Done
@@ -20,11 +20,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-003: Slice 2 — Tasks + Capture live (owner accepted 2026-11-05)
 - [x] feat-004: Slice 3 — Morning ritual live (E2E 4/4 local + production)
 - [x] feat-005: Slice 4 — Evening check-in live (E2E 7/7 local + production)
-- [ ] feat-006: Slice 5 — First run (E2E 10/10 local; production run pending deploy)
+- [x] feat-006: Slice 5 — First run (E2E local + production)
+- [ ] feat-007: Slice 6 — Life page live (E2E 13/13 local; production run pending deploy)
 
 ### What's Next
 
-1. feat-006 Slice 5 production E2E → feat-007 Slice 6 → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
+1. feat-007 Slice 6 production E2E → feat-008 Slice 7 (Quarter Close) → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
 2. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
@@ -36,6 +37,11 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 5 proven on production; Slice 6: Life page settles plan switches
+
+- Slice 5 production: e2e/onboarding.spec.ts 3/3.
+- Slice 6: one sheet for every plan switch (old Objectives Keep/Drop, new Prototypes fold/close, then a pre-filled Decision); Objective Done asks close/move for open tasks. Domain `switchPlan(…, Settle)` and `finishObjective` (test-first), server writes in one transaction; action input sanitised. E2E e2e/life.spec.ts (UI flow + server refusing unsettled Prototypes + finish/move). Review shots 08b/08c added.
 
 ### 2026-11-05 — Slice 4 done; Slice 5: onboarding follows you across devices
 

@@ -96,6 +96,23 @@ for (const [name, opts] of Object.entries(sizes)) {
   await page.keyboard.press("Escape");
   await go("/life?at=16:10", 2200);
   await shot("08-life", true);
+  // Switching plans: one sheet settles both sides, then the Decision.
+  const makeActive = page.getByRole("button", { name: c.life.makeActive });
+  if (await makeActive.count()) {
+    await makeActive.first().click();
+    await page.waitForTimeout(700);
+    await shot("08b-promotion");
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(500);
+  }
+  // Finishing an Objective with open tasks asks where they go.
+  const prefix = c.life.markDone("\u0000").split("\u0000")[0];
+  await page.getByRole("button", { name: new RegExp(`^${prefix}`) }).first().click();
+  await page.waitForTimeout(700);
+  if (await page.getByRole("dialog").count()) {
+    await shot("08c-finish-objective");
+    await page.keyboard.press("Escape");
+  }
 
   // Evening → night
   await go("/today?at=19:20", 2600);
