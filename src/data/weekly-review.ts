@@ -66,9 +66,11 @@ export async function startReview(db: Db, userId: string, weekEnd: string, now: 
     try {
       const answer = await reviewer.review(reviewPrompt(stats, locale));
       notes = parseReview(answer.text);
+      if (!notes) console.warn("weekly review: unreadable answer from", answer.model, answer.text.slice(0, 200));
       model = notes ? answer.model : null;
-    } catch {
+    } catch (e) {
       // The numbers are saved anyway; the next open asks again.
+      console.warn("weekly review: AI failed:", e instanceof Error ? e.message : e);
     }
   }
   const attempts = (found?.attempts ?? 0) + (reviewer ? 1 : 0);

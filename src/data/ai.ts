@@ -32,7 +32,8 @@ export function openRouterReviewer(): Reviewer | null {
         }),
         signal: AbortSignal.timeout(60_000),
       });
-      if (!res.ok) throw new Error(`OpenRouter ${res.status}`);
+      // OpenRouter's error body says why (rate limit, data policy, model gone); it never contains the key.
+      if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${(await res.text()).slice(0, 300)}`);
       const body = (await res.json()) as { model?: string; choices?: { message?: { content?: string } }[] };
       return { text: body.choices?.[0]?.message?.content ?? "", model: body.model ?? models[0] };
     },
