@@ -26,6 +26,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-009: Slice 8 — Settings + Export (E2E local + production)
 - [~] feat-010 (pending owner confirm): Slice 9 — PWA + Reminder (built, proven on production except push; VAPID + QStash live, signed round trip proven; waits on owner's iPhone)
 - [~] feat-011 (pending owner confirm): Slice 10 — Finish (perf + a11y budgets met on production; iOS install check with the owner)
+- [x] feat-012: Slice 11 — Focus timer (Phase 2 · 1), proven on production
 
 ### What's Next
 
@@ -41,6 +42,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 11: Focus timer (Phase 2 · 1)
+
+- Owner picked: one tap on a Top 3 row (last length) or 15/25/50 in the task sheet; sessions saved and shown in the evening; chime in-app + delayed QStash push at the end; ask done / another round / leave it.
+- `focus_sessions` (migration 0002, applied to Neon), in Export. E2E focus spec 5/5 local + production; QStash delayed publish + cancel proven live.
+- Risk: `a11y › AA at night` failed once in a full 36-test run, passed 4/4 alone — watch for a flake.
+- Ideas for later (not built): show which device gets the end push; focus minutes per Objective in the future weekly review.
 
 ### 2026-11-05 — Slice 10: budgets measured and met
 

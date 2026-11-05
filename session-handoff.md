@@ -12,4 +12,4 @@
 
 ## Next
 
-- Phase 2 (SPEC §10) starts "after v1 is in daily use"; the owner picks which item first.
+- Slice 11 (Focus timer) done. Next Phase 2 item is the owner's pick: weekly review with AI, quarterly review, yearly Compass rewrite.
