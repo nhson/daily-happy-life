@@ -18,7 +18,7 @@ export function qstashScheduler(): Scheduler | null {
   const token = process.env.QSTASH_TOKEN;
   const base = appUrl();
   if (!token || !base) return null;
-  const client = new Client({ token });
+  const client = new Client({ token, baseUrl: process.env.QSTASH_URL });
   return {
     async upsert(id, cron, body) {
       await client.schedules.create({
