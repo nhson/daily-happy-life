@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-014 Slice 13 — Quarterly Review (built and unit-tested; waits on migration 0004 → E2E → push)
+**Active Feature:** none in progress — Slice 13 (Quarterly Review) done; feat-010/011 pending the owner's iPhone check
 **Branch:** main
 
 ### What's Done
@@ -28,13 +28,13 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [~] feat-011 (pending owner confirm): Slice 10 — Finish (perf + a11y budgets met on production; iOS install check with the owner)
 - [x] feat-012: Slice 11 — Focus timer (Phase 2 · 1), proven on production
 - [x] feat-013: Slice 12 — Weekly Review with AI (Phase 2 · 2), proven on production with a real free model
-- [~] feat-014: Slice 13 — Quarterly Review (Phase 2 · 3): built, unit + visual checked; migration 0004 not yet on Neon
+- [x] feat-014: Slice 13 — Quarterly Review (Phase 2 · 3), proven on production
 
 ### What's Next
 
-0. Owner OK → `bun run db:migrate` (adds `quarterly_reviews`), then E2E `e2e/quarterly-review.spec.ts` + `e2e/quarter-close.spec.ts` locally, push, re-run on production. **Don't push before the migration**: `loadLive` reads the new table.
 1. Owner: on the iPhone Home-Screen app, turn on reminders and confirm one arrives (closes feat-010 and feat-011); a Focus Session's end push can be checked the same way
-2. Owner: pick the next Phase 2 item (quarterly review, yearly Compass rewrite)
+2. Owner: pick the next Phase 2 item (yearly Compass rewrite; whether to open the app to others)
+3. Fix the time-of-day dependence in `e2e/focus.spec.ts` (seed sessions relative to the real now)
 3. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
@@ -54,6 +54,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - Found in the visual walk: once complete, the store has no quarter waiting, so the closing step vanished — the card now keeps its quarter until left.
 - Migration 0004 applied to Neon with the owner's OK. E2E caught a bug: a review asked only because of leftovers vanished once the last leftover was settled (before the Decision question) → a started review now stays until finished.
 - Full local E2E: 36 passed; `focus.spec.ts` "when its time is up" fails after ~21:30 ICT — test-only: it seeds a session at 09:34 *yesterday* while the server loads 36 h of sessions by its real clock. Passes earlier in the day. Fix later: seed relative to the real now.
+- Production: quarterly-review + quarter-close specs 3/3 on the deploy of 8a14d03.
 
 ### 2026-11-05 — Slice 12: Weekly Review with AI (Phase 2 · 2)
 

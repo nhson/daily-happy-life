@@ -2,18 +2,11 @@
 
 ## Current Objective
 
-- feat-014 Slice 13 — Quarterly Review: code, unit tests, Export and visual checks done; committed locally, **not pushed**.
+- Nothing mid-flight. Slices 1–13 built; Slice 13 (Quarterly Review) proven on production.
 
-## To finish
+## Open
 
-1. Owner approves applying migration `drizzle/0004_windy_slayback.sql` (new table `quarterly_reviews`, additive) → `bun run db:migrate`.
-2. `bun run build && bunx playwright test e2e/quarterly-review.spec.ts e2e/quarter-close.spec.ts` (local prod build, real Neon).
-3. Push (Vercel deploys), then `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/quarterly-review.spec.ts e2e/quarter-close.spec.ts`.
-4. Record evidence in feature_list.json, mark feat-014 done.
-
-Don't push before step 1: `loadLive` reads `quarterly_reviews` on every page.
-
-## Still open
-
-- feat-010/011: owner's iPhone reminder check.
+- feat-010/011: owner's iPhone reminder check (see progress.md).
+- Next Phase 2 item is the owner's pick: yearly Compass rewrite, or opening the app to others.
+- `e2e/focus.spec.ts` "time is up" (and the two after it) fail after ~21:30 ICT: they seed sessions at fixed times yesterday while the server loads 36 h by its real clock. Test-only; seed relative to the real now.
 - Watch: INP of the Top-3 star tap (~80–104 ms, budget 100).
