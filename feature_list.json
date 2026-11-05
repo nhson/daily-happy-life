@@ -86,8 +86,8 @@
       "dependencies": [
         "feat-007"
       ],
-      "status": "in-progress",
-      "evidence": ""
+      "status": "done",
+      "evidence": "2026-11-05: e2e/quarter-close.spec.ts — Q3 leftovers (seeded) in Q4: card on Today doesn't block (Top 3 visible), leftover still offered as a why in capture; Carry forward → old 'carried', copy active in this quarter with only the open task moved (done task stays); Drop → open task closed; Decision saved; \"add one?\" shows 2/3; reload → card gone. 1 January boundary in src/domain/quarter-close.test.ts (2027-Q1 vs 2026-Q4). Local `bun run e2e` 14/14; production (commit 3b56287, migration 0001 applied to Neon first) `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/quarter-close.spec.ts` → 1 passed. Vitest 176."
     },
     {
       "id": "feat-009",
@@ -96,7 +96,7 @@
       "dependencies": [
         "feat-008"
       ],
-      "status": "not-started",
+      "status": "in-progress",
       "evidence": ""
     },
     {

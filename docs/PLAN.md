@@ -124,6 +124,11 @@ Decisions made in Slice 7 (2026-11-05):
 - **Leftovers stay usable**: until settled, last quarter's active Objectives count as active everywhere a "why" is chosen. The server works out the new quarter from the user's own Logical Day.
 - **The card's ending is not saved**: once the last leftover is settled, the Decision question and "add one?" show in the same card; leaving the page skips them.
 
+Decisions made in Slice 8 (2026-11-05):
+- **Export all is built on the server** (`GET /api/export`, `src/data/export.ts`): the screen only holds recent Daily Logs, so a browser-side dump was not the whole account. Field names are the schema's; no user id, Clerk id or push subscription.
+- **"Round-trips every table" is proven with `importAll`**, which restores an export into an account in one transaction. It is not in the UI (SPEC: no imports) — it is for recovery and for the tests (PGlite: fresh database; E2E: real Neon).
+- **Settings ignore values that aren't real** (bad time, hour out of range, unknown zone/theme/language) instead of letting the database refuse the whole change. The day can end between 00:00 and 06:00.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |

@@ -44,13 +44,16 @@ export function settingsOf(u: User): UserSettings {
   };
 }
 
+/** Settings the user changed; anything that isn't a real value for its setting is ignored. */
 export async function saveSettings(db: Db, userId: string, patch: Partial<UserSettings>): Promise<void> {
   const set: Partial<typeof schema.users.$inferInsert> = {};
-  if (patch.timeZone !== undefined) set.timezone = validTimeZone(patch.timeZone);
-  if (patch.reminderTime !== undefined) set.reminderTime = patch.reminderTime;
-  if (patch.eveningHour !== undefined) set.eveningHour = patch.eveningHour;
-  if (patch.dayEndHour !== undefined) set.dayEndHour = patch.dayEndHour;
-  if (patch.theme !== undefined) set.theme = patch.theme;
-  if (patch.locale !== undefined) set.locale = patch.locale;
+  const hour = (h: unknown, lo: number, hi: number): h is number => Number.isInteger(h) && (h as number) >= lo && (h as number) <= hi;
+  if (typeof patch.timeZone === "string" && validTimeZone(patch.timeZone) === patch.timeZone) set.timezone = patch.timeZone;
+  if (typeof patch.reminderTime === "string" && /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(patch.reminderTime)) set.reminderTime = patch.reminderTime;
+  if (hour(patch.eveningHour, 0, 23)) set.eveningHour = patch.eveningHour;
+  // The Logical Day ends between midnight and 06:00 (Settings offers those hours).
+  if (hour(patch.dayEndHour, 0, 6)) set.dayEndHour = patch.dayEndHour;
+  if (patch.theme === "sky" || patch.theme === "light" || patch.theme === "dark") set.theme = patch.theme;
+  if (patch.locale === "vi" || patch.locale === "en") set.locale = patch.locale;
   if (Object.keys(set).length) await db.update(schema.users).set(set).where(eq(schema.users.id, userId));
 }

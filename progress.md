@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-008 — Slice 7 (Quarter Close)
+**Active Feature:** feat-009 — Slice 8 (Settings + Export)
 **Branch:** main
 
 ### What's Done
@@ -22,11 +22,12 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] feat-005: Slice 4 — Evening check-in live (E2E 7/7 local + production)
 - [x] feat-006: Slice 5 — First run (E2E local + production)
 - [x] feat-007: Slice 6 — Life page live (E2E local + production)
-- [ ] feat-008: Slice 7 — Quarter Close (E2E 14/14 local; production run pending deploy)
+- [x] feat-008: Slice 7 — Quarter Close (E2E local + production)
+- [ ] feat-009: Slice 8 — Settings + Export (E2E 17/17 local; production run pending deploy)
 
 ### What's Next
 
-1. feat-008 Slice 7 production E2E → feat-009 Slice 8 (Settings + Export) → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
+1. feat-009 Slice 8 production E2E → feat-010 Slice 9 (PWA + reminder) → feat-011 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
 2. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
@@ -38,6 +39,11 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - [x] `./init.sh` — 2026-11-04: typecheck clean, lint clean, Vitest 6 files / 44 tests passed, `next build` OK
 
 ## Log
+
+### 2026-11-05 — Slice 7 proven on production; Slice 8: Settings + Export
+
+- Slice 7 production: e2e/quarter-close.spec.ts 1/1.
+- Slice 8: server-side Export all (`/api/export`) covering every table; `importAll` restores it (round trip in Vitest on a fresh PGlite and in E2E on Neon); Settings input validated server-side. E2E e2e/settings.spec.ts (settings persist across reload + DB; export download → restore → identical export; signed out gets nothing).
 
 ### 2026-11-05 — Slice 6 proven on production; Slice 7: Quarter Close
 
