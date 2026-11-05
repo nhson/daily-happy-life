@@ -8,6 +8,7 @@ import { useStore } from "@/data/store";
 import type { KindChoice } from "@/data/state";
 import type { Task } from "@/domain/types";
 import { same, useWhyOptions, type WhyOption } from "@/features/capture/capture";
+import { FocusStart } from "@/features/focus/focus";
 import { Button, Chip } from "@/ui/controls";
 import { tap } from "@/ui/feedback";
 import { KindDot, kindColor } from "@/ui/glyphs";
@@ -111,6 +112,8 @@ function TaskForm({ task, onDone }: { task: Task; onDone: () => void }) {
           className="serif mt-1 w-full resize-none bg-transparent py-1 text-[26px] leading-tight text-ink outline-none [field-sizing:content] placeholder:text-ink-3"
         />
       </label>
+
+      {open && <FocusStart task={task} onStarted={onDone} />}
 
       <div>
         <p className="eyebrow">{copy.taskSheet.why}</p>

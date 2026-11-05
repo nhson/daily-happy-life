@@ -189,6 +189,7 @@ export function fixtures(today: LogicalDate, timeZone: string, locale: Locale = 
         linkedPlanId: "plan_1",
       },
     ],
+    focus: [],
     lastKind: { kind: "objective", objectiveId: "obj_1" },
   };
 }
@@ -214,6 +215,7 @@ export function blank(timeZone: string): AppState {
     tasks: [],
     logs: {},
     decisions: [],
+    focus: [],
     lastKind: null,
   };
 }

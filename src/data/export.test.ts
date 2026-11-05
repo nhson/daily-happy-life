@@ -5,6 +5,7 @@ import { migrate } from "drizzle-orm/pglite/migrator";
 import { describe, expect, it } from "vitest";
 import { patchLog } from "./days";
 import * as schema from "./db/schema";
+import { startFocus } from "./focus";
 import { exportAll, importAll, type Export } from "./export";
 import { addDecision } from "./life";
 import { completeOnboarding } from "./onboarding";
@@ -24,11 +25,12 @@ async function freshDb(): Promise<Db> {
 async function livedIn(db: Db): Promise<string> {
   const me = (await ensureUser(db, "user_me", "Asia/Ho_Chi_Minh")).id;
   await ensurePlans(db, me);
+  const first = id();
   await completeOnboarding(db, me, {
     compass: { workview: "Công việc là cách mình giúp người khác.", lifeview: "Cuộc sống dành cho người mình thương." },
     objective: { id: id(), title: "Ra mắt bản beta" },
     tasks: [
-      { id: id(), title: "Viết trang giới thiệu", today: true },
+      { id: first, title: "Viết trang giới thiệu", today: true },
       { id: id(), title: "Gọi hai người dùng thử", today: false },
     ],
     today: "2026-11-05",
@@ -42,6 +44,7 @@ async function livedIn(db: Db): Promise<string> {
   await addObjective(db, me, { id: id(), title: "Khỏe hơn", quarter: "2026-Q4" });
   await patchLog(db, me, "2026-06-01", { energy: 4, engagement: 5, meaningSources: ["flow", "community"], note: "Một ngày dài, vui.", closedAt: "2026-06-01T15:00:00.000Z" });
   await addDecision(db, me, { id: id(), date: "2026-11-05", decision: "Thử studio", drivenBy: "Ba buổi cà phê.", linkedPlanId: p2.id });
+  await startFocus(db, me, { id: id(), taskId: first, minutes: 25 }, new Date("2026-11-05T02:00:00Z"), null);
   await saveSettings(db, me, { reminderTime: "06:45", eveningHour: 20, dayEndHour: 3, theme: "dark", locale: "en" });
   return me;
 }
@@ -66,6 +69,8 @@ describe("export", { timeout: 30_000 }, () => {
     expect(x.tasks).toHaveLength(3);
     expect(x.dailyLogs.map((l) => l.date).sort()).toEqual(["2026-06-01", "2026-11-05"]);
     expect(x.decisions).toHaveLength(1);
+    expect(x.focusSessions).toMatchObject([{ startedAt: "2026-11-05 02:00:00+00", plannedMinutes: 25, endedAt: null }]);
+    expect(x.focusSessions?.[0]).not.toHaveProperty("pushMessageId");
     expect(x.onboarding?.setupDate).toBe("2026-11-05");
     // No user ids, no Clerk id, no push secrets.
     expect(JSON.stringify(x)).not.toContain(me);

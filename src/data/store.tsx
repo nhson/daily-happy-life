@@ -20,6 +20,7 @@ import { lifeShare, weekDots, type LifeShare } from "@/domain/life-share";
 import { addDays, logicalDate, quarterOf } from "@/domain/logical-day";
 import { objectiveRoom } from "@/domain/objectives";
 import { applyOnboarding, freshOnboarding, todayCard, type OnboardingEvent, type PlanSlot, type TipId } from "@/domain/onboarding";
+import { DEFAULT_FOCUS_MINUTES, endFocus, focusedOn, isFocusMinutes, startFocus as startWith } from "@/domain/focus";
 import { finishObjective as finishWith, objectivesToSettle, switchPlan, type Settle } from "@/domain/plan-switch";
 import { leftovers, settleLeftover as settleWith, type LeftoverChoice } from "@/domain/quarter-close";
 import { promotionEffects, validateTaskLink, type TaskLinkResult } from "@/domain/task-rules";
@@ -36,7 +37,8 @@ const DEVICE_KEY = "dhl:device:v1";
 const uid = () => crypto.randomUUID();
 const deviceTz = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-type Device = { sound: boolean; lastKind: KindChoice | null };
+/** `focusMinutes`: the Focus Session length picked last on this device. */
+type Device = { sound: boolean; lastKind: KindChoice | null; focusMinutes?: number };
 
 function readDevice(): Device {
   try {
@@ -68,6 +70,7 @@ function fromLive(live: LiveData, device: Device): AppState {
     tasks: live.tasks,
     logs: Object.fromEntries(live.logs.map((l) => [l.date, l])),
     decisions: live.decisions,
+    focus: live.focus,
     lastKind: stillValid(device.lastKind, live),
   };
 }
@@ -88,6 +91,8 @@ function loadReview(): AppState {
   const asked = lang === "vi" || lang === "en" ? lang : undefined;
   state ??= fixtures(today, tz, asked);
   if (asked) state = { ...state, settings: { ...state.settings, locale: asked } };
+  // Sample data saved before Focus Sessions existed.
+  state = { ...state, focus: state.focus ?? [] };
 
   const day = Number(params.get("day"));
   if (day >= 1 && state.onboarding.setupDate)
@@ -106,6 +111,10 @@ function useStoreState(live: LiveData | null) {
   const { now } = useClock();
   const router = useRouter();
   const [syncFailures, setSyncFailures] = useState(0);
+  const [focusMinutes, setFocusMinutes] = useState(() => {
+    const m = readDevice().focusMinutes;
+    return isFocusMinutes(m) ? m : DEFAULT_FOCUS_MINUTES;
+  });
 
   // A fresh server snapshot (after a refresh) replaces what is on screen.
   const seen = useRef(live);
@@ -131,15 +140,16 @@ function useStoreState(live: LiveData | null) {
   useEffect(() => {
     try {
       if (live) {
-        localStorage.setItem(DEVICE_KEY, JSON.stringify({ sound: state.settings.sound, lastKind: state.lastKind } satisfies Device));
+        localStorage.setItem(DEVICE_KEY, JSON.stringify({ sound: state.settings.sound, lastKind: state.lastKind, focusMinutes } satisfies Device));
         return;
       }
       // Review: keep the sample state pristine while a ?fresh first run is in progress; once setup
       // finishes, save it so day 2+ (?day=N) can be reviewed.
       if (new URLSearchParams(window.location.search).has("fresh") && !state.onboarded) return;
       localStorage.setItem(REVIEW_KEY, JSON.stringify(state));
+      localStorage.setItem(DEVICE_KEY, JSON.stringify({ ...readDevice(), focusMinutes } satisfies Device));
     } catch {}
-  }, [state, live]);
+  }, [state, live, focusMinutes]);
 
   const { timeZone, dayEndHour, eveningHour } = state.settings;
   const today = logicalDate(now, timeZone, dayEndHour);
@@ -176,6 +186,9 @@ function useStoreState(live: LiveData | null) {
     () => lifeShare(state.tasks, { today, timeZone, dayEndHour }),
     [state.tasks, today, timeZone, dayEndHour],
   );
+  /** Minutes focused in sessions that started today (Evening Check-in). */
+  const focusedToday = focusedOn(state.focus, today, timeZone, dayEndHour, now);
+
   const dots = useMemo(
     () =>
       weekDots(
@@ -246,14 +259,46 @@ function useStoreState(live: LiveData | null) {
     [state.plans, state.objectives, save],
   );
 
+  // ── Focus Sessions ──
+
+  /** Start one on a task (the device's last length unless given); the one before ends. */
+  const startFocus = useCallback(
+    (taskId: string, minutes: number = focusMinutes) => {
+      if (!isFocusMinutes(minutes)) return;
+      const id = uid();
+      setFocusMinutes(minutes);
+      setState((s) => ({ ...s, focus: startWith(s.focus, { id, taskId, minutes }, new Date()) }));
+      save(() => server.startFocusAction({ id, taskId, minutes }));
+    },
+    [focusMinutes, save],
+  );
+
+  /** Stop early, or close one whose time is up. */
+  const stopFocus = useCallback(
+    (id: string) => {
+      setState((s) => ({ ...s, focus: endFocus(s.focus, id, new Date()) }));
+      save(() => server.endFocusAction(id));
+    },
+    [save],
+  );
+
+  /** A task that ends takes its running session with it. */
+  const endFocusOf = useCallback(
+    (taskId: string) => {
+      for (const f of state.focus) if (f.taskId === taskId && !f.endedAt) stopFocus(f.id);
+    },
+    [state.focus, stopFocus],
+  );
+
   /** Let it go: it ends without being done and stays as history. */
   const closeTask = useCallback(
     (id: string) => {
       const at = new Date().toISOString();
+      endFocusOf(id);
       setState((s) => ({ ...s, tasks: s.tasks.map((t) => (t.id === id && !t.doneAt && !t.closedAt ? { ...t, closedAt: at } : t)) }));
       save(() => server.closeTaskAction(id));
     },
-    [save],
+    [save, endFocusOf],
   );
 
   const toggleDone = useCallback(
@@ -261,13 +306,30 @@ function useStoreState(live: LiveData | null) {
       const t = state.tasks.find((x) => x.id === id);
       if (!t) return;
       const done = !t.doneAt;
+      if (done) endFocusOf(id);
       setState((s) => ({
         ...s,
         tasks: s.tasks.map((x) => (x.id === id ? { ...x, doneAt: done ? new Date().toISOString() : null } : x)),
       }));
       save(() => server.setDoneAction(id, done));
     },
-    [state.tasks, save],
+    [state.tasks, save, endFocusOf],
+  );
+
+  /** The answer when a session's time is up: mark the task done, go another round, or leave it. */
+  const answerFocus = useCallback(
+    (id: string, answer: "done" | "again" | "leave") => {
+      const f = state.focus.find((x) => x.id === id);
+      if (!f) return;
+      if (answer === "again") return startFocus(f.taskId, f.plannedMinutes);
+      stopFocus(id);
+      const t = state.tasks.find((x) => x.id === f.taskId);
+      if (answer === "done" && t && !t.doneAt) {
+        setState((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === t.id ? { ...x, doneAt: new Date().toISOString() } : x)) }));
+        save(() => server.setDoneAction(t.id, true));
+      }
+    },
+    [state.focus, state.tasks, startFocus, stopFocus, save],
   );
 
   /** Returns false when the Top 3 is already full. */
@@ -287,7 +349,8 @@ function useStoreState(live: LiveData | null) {
   /** Only for mistakes: leaves no trace. */
   const deleteTask = useCallback(
     (id: string) => {
-      setState((s) => ({ ...s, tasks: s.tasks.filter((t) => t.id !== id) }));
+      // Its Focus Sessions go with it (on the server, by cascade).
+      setState((s) => ({ ...s, tasks: s.tasks.filter((t) => t.id !== id), focus: s.focus.filter((f) => f.taskId !== id) }));
       save(() => server.deleteTaskAction(id));
     },
     [save],
@@ -524,6 +587,8 @@ function useStoreState(live: LiveData | null) {
     yesterdayOpen,
     toSettle,
     syncFailures,
+    focusedToday,
+    focusMinutes,
     actions: {
       addTask,
       editTask,
@@ -531,6 +596,9 @@ function useStoreState(live: LiveData | null) {
       toggleDone,
       toggleTop3,
       deleteTask,
+      startFocus,
+      stopFocus,
+      answerFocus,
       finishMorning,
       skipMorning,
       setIntention,

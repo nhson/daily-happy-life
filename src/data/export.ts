@@ -11,7 +11,7 @@ import { settingsOf, type Db } from "./users";
  * Clerk id) and no push subscription. `importAll` writes it back, which is what proves it complete.
  */
 
-const { users, compass, odysseyPlans, objectives, tasks, dailyLogs, decisions } = schema;
+const { users, compass, odysseyPlans, objectives, tasks, dailyLogs, decisions, focusSessions } = schema;
 
 type Owned<T> = Omit<T, "userId">;
 export interface Export {
@@ -27,13 +27,15 @@ export interface Export {
   tasks: Owned<typeof tasks.$inferSelect>[];
   dailyLogs: Owned<typeof dailyLogs.$inferSelect>[];
   decisions: Owned<typeof decisions.$inferSelect>[];
+  /** Without the queued-push id, which means nothing outside this account. Older exports have none. */
+  focusSessions?: Omit<Owned<typeof focusSessions.$inferSelect>, "pushMessageId">[];
 }
 
 const owned = <T extends { userId: string }>(rows: T[]): Owned<T>[] =>
   rows.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== "userId")) as Owned<T>);
 
 export async function exportAll(db: Db, userId: string): Promise<Export> {
-  const [[user], [c], ps, os, ts, ls, ds] = await Promise.all([
+  const [[user], [c], ps, os, ts, ls, ds, fs] = await Promise.all([
     db.select().from(users).where(eq(users.id, userId)),
     db.select().from(compass).where(eq(compass.userId, userId)),
     db.select().from(odysseyPlans).where(eq(odysseyPlans.userId, userId)).orderBy(asc(odysseyPlans.slot)),
@@ -41,6 +43,7 @@ export async function exportAll(db: Db, userId: string): Promise<Export> {
     db.select().from(tasks).where(eq(tasks.userId, userId)).orderBy(asc(tasks.createdAt), asc(tasks.id)),
     db.select().from(dailyLogs).where(eq(dailyLogs.userId, userId)).orderBy(asc(dailyLogs.date)),
     db.select().from(decisions).where(eq(decisions.userId, userId)).orderBy(asc(decisions.createdAt), asc(decisions.id)),
+    db.select().from(focusSessions).where(eq(focusSessions.userId, userId)).orderBy(asc(focusSessions.startedAt), asc(focusSessions.id)),
   ]);
   if (!user) throw new Error("No such user");
   return {
@@ -56,6 +59,7 @@ export async function exportAll(db: Db, userId: string): Promise<Export> {
     tasks: owned(ts),
     dailyLogs: owned(ls),
     decisions: owned(ds),
+    focusSessions: owned(fs).map((f) => ({ id: f.id, taskId: f.taskId, startedAt: f.startedAt, plannedMinutes: f.plannedMinutes, endedAt: f.endedAt })),
   };
 }
 
@@ -69,6 +73,7 @@ export async function importAll(db: Db, userId: string, x: Export): Promise<void
   await atomic(db, (d) => {
     const qs: PromiseLike<unknown>[] = [
       // Children first; every table hangs off the user.
+      d.delete(focusSessions).where(eq(focusSessions.userId, userId)),
       d.delete(decisions).where(eq(decisions.userId, userId)),
       d.delete(dailyLogs).where(eq(dailyLogs.userId, userId)),
       d.delete(tasks).where(eq(tasks.userId, userId)),
@@ -81,6 +86,7 @@ export async function importAll(db: Db, userId: string, x: Export): Promise<void
     if (x.tasks.length) qs.push(d.insert(tasks).values(mine(x.tasks)));
     if (x.dailyLogs.length) qs.push(d.insert(dailyLogs).values(mine(x.dailyLogs)));
     if (x.decisions.length) qs.push(d.insert(decisions).values(mine(x.decisions)));
+    if (x.focusSessions?.length) qs.push(d.insert(focusSessions).values(mine(x.focusSessions)));
     if (x.compass) qs.push(d.insert(compass).values({ ...x.compass, userId }));
     const s = x.settings;
     qs.push(

@@ -118,6 +118,16 @@
       ],
       "status": "pending-confirmation",
       "evidence": "2026-11-05, production, Lighthouse mobile profile (150 ms RTT, 1.6 Mbps, CPU 4×), `bunx playwright test e2e/perf.spec.ts`: Today interactive (first tap on capture opens the sheet, hydration included) 1277 ms cold / 1152 ms repeat visit (budget 1500); INP slowest of 17 interactions 72 ms, most 16 ms = one frame (budget 100). A11y e2e/a11y.spec.ts 8/8: axe WCAG 2.0/2.1/2.2 A+AA, no serious/critical issues on Today/Tasks/Life/Settings at dawn, day, dusk, night, forced light and dark, and in the morning ritual; every control offers a 44px target (fixed: mindset strip keyboard-scrollable; .hit areas, 44px icon buttons). Install: Chromium reports no installability errors on production. Ritual smoke test: `bun run smoke` (e2e/day-one.spec.ts). Full local `bun run e2e` 31/31. Re-run on production after deploying 1e8b965: `E2E_BASE_URL=https://daily-happy-life.vercel.app bunx playwright test e2e/a11y.spec.ts e2e/pwa.spec.ts e2e/perf.spec.ts` → 14 passed (interactive 1417 ms cold / 1161 ms repeat, INP worst 88 ms). Open: clean install on iOS checked on the owner's iPhone, together with Slice 9's push."
+    },
+    {
+      "id": "feat-012",
+      "name": "Slice 11 — Focus timer (Phase 2 · 1)",
+      "description": "A Focus Session attached to a task: start from a Top 3 row or the task sheet (15/25/50, last length remembered), bar while running, chime + push at the end, done / another round / leave it, minutes focused in the Evening Check-in, saved in focus_sessions and exported. Done when: A session survives a reload, only one runs, its end asks, and the evening shows today's minutes; the end push is queued and cancelled correctly.",
+      "dependencies": [
+        "feat-011"
+      ],
+      "status": "in-progress",
+      "evidence": ""
     }
   ]
 }

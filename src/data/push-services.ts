@@ -1,6 +1,7 @@
 import "server-only";
 import { Client, Receiver } from "@upstash/qstash";
 import webpush from "web-push";
+import type { Later } from "./focus";
 import type { Pusher, Scheduler } from "./reminders";
 
 /**
@@ -36,6 +37,23 @@ export function qstashScheduler(): Scheduler | null {
       } catch (e) {
         if (!String(e).includes("404") && !String(e).toLowerCase().includes("not found")) throw e;
       }
+    },
+  };
+}
+
+/** One delayed call to `/api/remind` (the end of a Focus Session); cancelled on an early stop. */
+export function qstashLater(): Later | null {
+  const token = process.env.QSTASH_TOKEN;
+  const base = appUrl();
+  if (!token || !base) return null;
+  const client = new Client({ token, baseUrl: process.env.QSTASH_URL });
+  return {
+    async at(delaySeconds, body) {
+      const r = await client.publish({ url: `${base}/api/remind`, body, delay: delaySeconds, retries: 1, headers: { "content-type": "application/json" } });
+      return r.messageId;
+    },
+    async cancel(id) {
+      await client.messages.delete(id);
     },
   };
 }

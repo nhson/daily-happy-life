@@ -26,3 +26,17 @@ for (let i = 0; i < 20; i++) {
     break;
   }
 }
+
+// 3. The Focus Session branch: a focus-end message for a session that doesn't exist stays quiet ("stale").
+{
+  const { messageId } = await client.publishJSON({ url: `${base}/api/remind`, body: { userId, focusId: crypto.randomUUID() }, retries: 0 });
+  for (let i = 0; i < 20; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const logs = await client.logs({ filter: { messageId } });
+    const done = logs.logs.find((l) => ["DELIVERED", "FAILED", "ERROR"].includes(l.state));
+    if (done) {
+      console.log("focus-end probe:", done.state, "status:", (done as Record<string, unknown>).responseStatus);
+      break;
+    }
+  }
+}

@@ -15,6 +15,13 @@
       "when": 1793849254407,
       "tag": "0001_ambiguous_gabe_jones",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793864104850,
+      "tag": "0002_robust_texas_twister",
+      "breakpoints": true
     }
   ]
 }

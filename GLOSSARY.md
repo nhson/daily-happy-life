@@ -98,6 +98,10 @@ _Avoid_: Journal, review, reflection
 One of Wonder, Coherence, Flow, Community — what a day touched that made it feel meaningful.
 _Not to be confused with_: the Wonder Mindset or the Coherence Gauge.
 
+**Focus Session**:
+A stretch of undivided time the user gives one Task, of a length chosen up front. When it ends, the user says whether the Task is Done, goes another round, or leaves it for now.
+_Avoid_: Pomodoro, sprint, timer
+
 **Daily Log**:
 The single record of one day's Intention and Evening Check-in.
 
@@ -135,6 +139,7 @@ The approved Vietnamese term for each concept. Vietnamese is the default languag
 | Energy / Engagement | Năng lượng / Độ say mê |
 | Source of Meaning | Nguồn ý nghĩa |
 | Wonder · Coherence · Flow · Community (Sources) | Kinh ngạc · Mạch lạc · Dòng chảy · Kết nối |
+| Focus Session | Phiên tập trung |
 | Daily Log | Nhật ký ngày |
 | Decision | Quyết định |
 | Done / Closed | Xong / Buông |

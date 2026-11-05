@@ -124,7 +124,7 @@ export function TodayView() {
                 )}
               </div>
               {top3.length ? (
-                <TaskList tasks={top3} />
+                <TaskList tasks={top3} focusable />
               ) : (
                 <button type="button" onClick={() => setFlowOpen(true)} className="glass flex h-14 w-full items-center justify-between rounded-2xl px-5 text-ink-2">
                   {copy.today.chooseTop3} <ArrowRight size={16} />

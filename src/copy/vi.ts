@@ -261,6 +261,28 @@ export const vi: Copy = {
     decisionText: (plan) => `Chuyển sang “${plan}”`,
     skipDecision: "Bỏ qua",
   },
+  focus: {
+    start: "Tập trung",
+    startFor: (title) => `Tập trung vào “${title}”`,
+    minutes: (n) => `${n} phút`,
+    length: "Bao lâu",
+    running: "Đang tập trung",
+    left: (time) => `còn ${time}`,
+    stop: "Dừng",
+    stopFor: (title) => `Dừng tập trung vào “${title}”`,
+    endTitle: "Hết giờ",
+    endBody: (title) => `Bạn đã dành trọn sự chú ý cho “${title}”.`,
+    markDone: "Đánh dấu xong",
+    again: "Thêm một lượt",
+    leave: "Để đó đã",
+    pushTitle: "Hết giờ tập trung",
+    today: (time) => `Hôm nay đã tập trung ${time}`,
+    duration: (minutes) => {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return h ? (m ? `${h} giờ ${m} phút` : `${h} giờ`) : `${m} phút`;
+    },
+  },
   reminderPush: {
     title: "Một câu cho hôm nay",
   },

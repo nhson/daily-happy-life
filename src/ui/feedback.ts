@@ -7,7 +7,7 @@ export function tap(ms = 8) {
 
 let ctx: AudioContext | null = null;
 
-/** Two soft sine notes — used once a day, when the day is closed. */
+/** Two soft sine notes — when the day is closed, and when a Focus Session's time is up. */
 export function chime() {
   try {
     ctx ??= new AudioContext();

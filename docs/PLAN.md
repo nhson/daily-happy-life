@@ -140,6 +140,12 @@ Decisions made in Slice 10 (2026-11-05):
 - **Small-looking controls keep their look** and get an invisible 44×44 touch area (`.hit` in globals.css) rather than being drawn bigger.
 - **`instant = false` stays**: Today is interactive in ~1.2–1.3 s on the mid-phone profile, inside budget, so server-rendering the shell isn't needed now.
 
+Decisions made in Slice 11 — Focus timer (2026-11-05, owner picked each):
+- **Where**: one tap on a Top 3 row starts the last length used on this device; the task sheet offers 15 / 25 / 50 minutes. No Pomodoro cycles or breaks.
+- **Saved**: `focus_sessions` (task, start, planned minutes, end), server clock; one running per user (starting another ends it); finishing or letting go of a task ends its session; deleting the task removes them. In Export (optional field, so older exports still import).
+- **End signal**: a chime and a tap when the app is open. When it isn't, the server queues one delayed QStash message to `/api/remind` (`{userId, focusId}`) for users with push on; an early stop cancels it, and the endpoint re-checks the session before sending, so a stopped session never rings.
+- **The answer**: Mark it done (task Done, session ends at its planned end) · Another round (same length) · Leave it (also what dismissing the sheet means). A finished session stops asking 12 hours after its end.
+
 ## Slices (each one demoable end-to-end: schema + action + UI + test)
 
 | # | Slice | Done when |
@@ -154,6 +160,7 @@ Decisions made in Slice 10 (2026-11-05):
 | 8 | **Settings + Export**: times, timezone, day-ends-at, theme, JSON export | Export round-trips every table |
 | 9 | **PWA + Reminder**: manifest, icons, SW cache of Today, install prompt, web push, QStash schedule per user; offline capture keeps draft (no sync) | Push arrives at the chosen minute on iPhone Home-Screen app |
 | 10 | **Finish**: perf budget, a11y audit in all sky states, Playwright ritual smoke test, polish | Every budget in the table above is met |
+| 11 | **Focus timer** (Phase 2 · 1): start from a Top 3 row (one tap, last length) or a task's sheet (15/25/50 min); bar above the tab bar; at the end chime + tap if open, a push if not (one delayed QStash message, cancelled on an early stop); "Mark it done / Another round / Leave it"; minutes focused shown in the Evening Check-in; `focus_sessions` table, in Export | A session survives a reload, only one runs, its end asks, and the evening shows today's minutes |
 
 ## Testing
 

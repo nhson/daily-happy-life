@@ -12,6 +12,7 @@ import { useCopy, useLocale } from "@/copy";
 import type { LiveData } from "@/data/live";
 import { StoreProvider, useStore } from "@/data/store";
 import { CaptureButton, CaptureProvider } from "@/features/capture/capture";
+import { FocusLayer } from "@/features/focus/focus";
 import { TaskSheetProvider } from "@/features/tasks/task-sheet";
 import { ClockProvider } from "@/ui/clock";
 import { AppMark } from "@/ui/glyphs";
@@ -118,6 +119,8 @@ function Frame({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
+
+      <FocusLayer />
 
       {/* Phone tab bar + capture */}
       <div data-chrome className="fixed inset-x-0 bottom-0 z-30 flex items-end justify-center gap-3 px-4 pb-[max(env(safe-area-inset-bottom),14px)] lg:hidden">

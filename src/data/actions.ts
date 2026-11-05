@@ -16,7 +16,8 @@ import * as schema from "./db/schema";
 import * as plans from "./plans";
 import type { KindChoice } from "./state";
 import * as tasks from "./tasks";
-import { qstashScheduler } from "./push-services";
+import * as focus from "./focus";
+import { qstashLater, qstashScheduler } from "./push-services";
 import { savePush, syncReminder, type PushSubscriptionJSON } from "./reminders";
 import { saveSettings, settingsOf, type User } from "./users";
 
@@ -154,4 +155,13 @@ export async function savePushAction(sub: PushSubscriptionJSON | null) {
   const scheduler = qstashScheduler();
   if (!scheduler) return { ok: false as const };
   return savePush(db, (await me()).id, sub, scheduler);
+}
+
+/** Focus Sessions: the server's clock decides when it started and ended. */
+export async function startFocusAction(input: { id: string; taskId: string; minutes: number }) {
+  return focus.startFocus(db, (await me()).id, { id: String(input.id), taskId: String(input.taskId), minutes: input.minutes }, new Date(), qstashLater());
+}
+
+export async function endFocusAction(id: string) {
+  return focus.endFocus(db, (await me()).id, String(id), new Date(), qstashLater());
 }

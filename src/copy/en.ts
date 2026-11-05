@@ -258,6 +258,28 @@ export const en = {
     decisionText: (plan: string) => `Switched to “${plan}”`,
     skipDecision: "Skip",
   },
+  focus: {
+    start: "Focus",
+    startFor: (title: string) => `Focus on “${title}”`,
+    minutes: (n: number) => `${n} min`,
+    length: "How long",
+    running: "Focusing",
+    left: (time: string) => `${time} left`,
+    stop: "Stop",
+    stopFor: (title: string) => `Stop focusing on “${title}”`,
+    endTitle: "Time is up",
+    endBody: (title: string) => `You gave “${title}” your full attention.`,
+    markDone: "Mark it done",
+    again: "Another round",
+    leave: "Leave it for now",
+    pushTitle: "Time is up",
+    today: (time: string) => `Focused ${time} today`,
+    duration: (minutes: number) => {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return h ? (m ? `${h} h ${m} min` : `${h} h`) : `${m} min`;
+    },
+  },
   reminderPush: {
     title: "A line for today",
   },

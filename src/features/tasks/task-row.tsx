@@ -12,6 +12,7 @@ import { KindDot, kindColor } from "@/ui/glyphs";
 import { tap } from "@/ui/feedback";
 import { useSky } from "@/ui/sky";
 import { useToast } from "@/ui/toast";
+import { FocusButton } from "@/features/focus/focus";
 import { useTaskSheet } from "./task-sheet";
 
 export function useWhy() {
@@ -32,11 +33,14 @@ export function TaskRow({
   focused = false,
   showWhy = true,
   compact = false,
+  focusable = false,
 }: {
   task: Task;
   focused?: boolean;
   showWhy?: boolean;
   compact?: boolean;
+  /** Offer a one-tap Focus Session (Today's Top 3). */
+  focusable?: boolean;
 }) {
   const copy = useCopy();
   const { today, top3, actions } = useStore();
@@ -197,6 +201,8 @@ export function TaskRow({
             </span>
           )}
         </button>
+
+        {focusable && <FocusButton task={task} />}
 
         <button
           type="button"

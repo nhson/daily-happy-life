@@ -1,6 +1,7 @@
 "use client";
 
 import { clsx } from "clsx";
+import { Timer } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { useCopy } from "@/copy";
@@ -16,7 +17,7 @@ import { MeaningGlyph, meaningColor } from "@/ui/glyphs";
 /** The Evening Check-in — one sheet, one commit. ~60 seconds. */
 export function CheckInForm({ onClosed }: { onClosed: () => void }) {
   const copy = useCopy();
-  const { state, today, top3, log, tipUnseen, actions } = useStore();
+  const { state, today, top3, log, tipUnseen, focusedToday, actions } = useStore();
   const [entry, setEntry] = useState<Entry>({ energy: log.energy, engagement: log.engagement, meaningSources: log.meaningSources, note: log.note });
 
   // Today's Top 3 plus anything touched today.
@@ -44,6 +45,12 @@ export function CheckInForm({ onClosed }: { onClosed: () => void }) {
         <section>
           <p className="eyebrow mb-2">{copy.checkIn.tick}</p>
           <TaskList tasks={list} showWhy={false} compact />
+          {focusedToday > 0 && (
+            <p className="mt-3 flex items-center gap-2 text-sm text-ink-2">
+              <Timer size={15} aria-hidden className="text-ink-3" />
+              {copy.focus.today(copy.focus.duration(focusedToday))}
+            </p>
+          )}
         </section>
       )}
 

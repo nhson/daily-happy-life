@@ -169,3 +169,23 @@ export const decisions = pgTable("decisions", {
   linkedPlanId: uuid("linked_plan_id").references(() => odysseyPlans.id, { onDelete: "set null" }),
   createdAt: at("created_at").notNull().defaultNow(),
 });
+
+/** Focus Sessions (Phase 2): a timer on one task. `push_message_id`: the queued end-of-focus push, cancelled on an early stop. */
+export const focusSessions = pgTable(
+  "focus_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: owner(),
+    taskId: uuid("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    startedAt: at("started_at").notNull(),
+    plannedMinutes: smallint("planned_minutes").notNull(),
+    endedAt: at("ended_at"),
+    pushMessageId: text("push_message_id"),
+  },
+  (t) => [
+    index("focus_sessions_user_started").on(t.userId, t.startedAt),
+    check("focus_sessions_minutes", sql`${t.plannedMinutes} between 1 and 180`),
+  ],
+);

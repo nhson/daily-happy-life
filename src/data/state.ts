@@ -1,3 +1,4 @@
+import type { FocusSession } from "@/domain/focus";
 import type { OnboardingState } from "@/domain/onboarding";
 import type { Compass, DailyLog, Decision, LogicalDate, Objective, OdysseyPlan, Task, UserSettings } from "@/domain/types";
 
@@ -21,6 +22,8 @@ export interface AppState {
   tasks: Task[];
   logs: Record<LogicalDate, DailyLog>;
   decisions: Decision[];
+  /** Recent Focus Sessions: the one running or waiting, and today's. */
+  focus: FocusSession[];
   lastKind: KindChoice | null;
 }
 

@@ -43,17 +43,19 @@ export function TaskList({
   focusedId = null,
   showWhy = true,
   compact = false,
+  focusable = false,
 }: {
   tasks: Task[];
   focusedId?: string | null;
   showWhy?: boolean;
   compact?: boolean;
+  focusable?: boolean;
 }) {
   return (
     <ul className="flex flex-col gap-2">
       <AnimatePresence initial={false}>
         {tasks.map((t) => (
-          <TaskRow key={t.id} task={t} focused={t.id === focusedId} showWhy={showWhy} compact={compact} />
+          <TaskRow key={t.id} task={t} focused={t.id === focusedId} showWhy={showWhy} compact={compact} focusable={focusable} />
         ))}
       </AnimatePresence>
     </ul>
