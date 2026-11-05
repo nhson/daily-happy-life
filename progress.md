@@ -5,7 +5,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 ## Current State
 
 **Last Updated:** 2026-11-05
-**Active Feature:** feat-010 — Slice 9 (PWA + Reminder) — blocked on QStash/VAPID provisioning
+**Active Feature:** none in progress — v1 + Slice 11 (Focus timer) built; feat-010/011 pending the owner's iPhone check
 **Branch:** main
 
 ### What's Done
@@ -30,8 +30,9 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 
 ### What's Next
 
-1. Owner: approve provisioning Upstash QStash (Vercel Marketplace, free tier) + VAPID keys → then verify push on iPhone → feat-011 Slice 10 Slice 10, each: build → `bun run e2e` (local + production) → evidence → push
-2. Owner (optional): enable passkeys in the Clerk dashboard
+1. Owner: on the iPhone Home-Screen app, turn on reminders and confirm one arrives (closes feat-010 and feat-011); a Focus Session's end push can be checked the same way
+2. Owner: pick the next Phase 2 item (weekly review with AI, quarterly review, yearly Compass rewrite)
+3. Owner (optional): enable passkeys in the Clerk dashboard
 
 ## Blockers / Risks
 
