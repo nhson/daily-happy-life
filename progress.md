@@ -51,6 +51,7 @@ Append a new dated entry at the top of **Log** each session. Keep **Current Stat
 - Live on production: Gemma was rate-limited upstream (429), Nemotron answered in Vietnamese with the app's terms. The client tries models one by one and logs why one was skipped.
 - `review/` is git-ignored (screenshots) — the UI folder is `src/features/weekly/`.
 - INP regression from Slices 11–12 found by the perf spec and fixed (lazy focus layer); the Top-3 star tap stays close to the 100 ms budget — watch it.
+- Flake: one `bun run test` run had 1 failure (not captured); the next two runs were 232/232. Likely a PGlite test timing out under load — capture it if it recurs.
 
 ### 2026-11-05 — Slice 11: Focus timer (Phase 2 · 1)
 
